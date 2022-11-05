@@ -2,3 +2,6 @@ name = "Equoid"
 uuid = "f213d342-24fe-43e6-9048-7345184336a7"
 authors = ["Erik Edin <erikedin@users.noreply.github.com>"]
 version = "0.1.0"
+
+[deps]
+GLFW = "f7f18e0c-5ee9-5ccd-a5bf-e8befd85ed98"
