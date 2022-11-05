@@ -1,0 +1,4 @@
+name = "Equoid"
+uuid = "f213d342-24fe-43e6-9048-7345184336a7"
+authors = ["Erik Edin <erikedin@users.noreply.github.com>"]
+version = "0.1.0"
