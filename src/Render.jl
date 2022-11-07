@@ -20,16 +20,20 @@ struct ShaderCompilationError <: Exception
     msg::String
 end
 
+struct ShaderLinkingError <: Exception
+    msg::String
+end
+
 function readshader(path::String)
     open(path, "r") do io
         read(io, String)
     end
 end
 
-function createshaders()
-    shadersource = readshader("shaders/vertex.glsl")
+function createshader(shaderpath, shadertype)
+    shadersource = readshader(shaderpath)
 
-    shader = glCreateShader(GL_VERTEX_SHADER)
+    shader = glCreateShader(shadertype)
 
     glShaderSource(shader, 1, Ptr{GLchar}[pointer(shadersource)], C_NULL)
     glCompileShader(shader)
@@ -37,9 +41,33 @@ function createshaders()
     issuccess = Ref{GLint}()
     glGetShaderiv(shader, GL_COMPILE_STATUS, issuccess)
     if issuccess[] != GL_TRUE
-        errormsg = "Some shader failed to compile"
+        errormsg = "Shader '$(shaderpath)' failed to compile"
         throw(ShaderCompilationError(errormsg))
     end
+
+    shader
+end
+
+function createprogram() :: GLuint
+    vertexshader = createshader("shaders/vertex.glsl", GL_VERTEX_SHADER)
+    fragmentshader = createshader("shaders/fragment.glsl", GL_FRAGMENT_SHADER)
+
+    program = glCreateProgram()
+
+    glAttachShader(program, vertexshader)
+    glAttachShader(program, fragmentshader)
+    glLinkProgram(program)
+
+    issuccess = Ref{GLint}()
+    glGetProgramiv(program, GL_LINK_STATUS, issuccess)
+    if issuccess[] != GL_TRUE
+        throw(ShaderLinkingError("Shaders failed to link"))
+    end
+
+    glDeleteShader(vertexshader)
+    glDeleteShader(fragmentshader)
+
+    program
 end
 
 function setupgraphics()
@@ -55,7 +83,8 @@ function setupgraphics()
     glBindBuffer(GL_ARRAY_BUFFER, vbo[])
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW)
 
-    createshaders()
+    program = createprogram()
+    glUseProgram(program)
 end
 
 end
