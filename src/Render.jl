@@ -26,22 +26,23 @@ function readshader(path::String)
     end
 end
 
-function createShaders()
-    vertexShaderSource = readshader("shaders/vertex.glsl")
+function createshaders()
+    shadersource = readshader("shaders/vertex.glsl")
 
-    vertexShader = glCreateShader(GL_VERTEX_SHADER)
+    shader = glCreateShader(GL_VERTEX_SHADER)
 
-    glShaderSource(vertexShader, 1, Ptr{GLchar}[pointer(vertexShaderSource)], C_NULL)
-    glCompileShader(vertexShader)
+    glShaderSource(shader, 1, Ptr{GLchar}[pointer(shadersource)], C_NULL)
+    glCompileShader(shader)
+
     issuccess = Ref{GLint}()
-    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, issuccess)
+    glGetShaderiv(shader, GL_COMPILE_STATUS, issuccess)
     if issuccess[] != GL_TRUE
         errormsg = "Some shader failed to compile"
         throw(ShaderCompilationError(errormsg))
     end
 end
 
-function setupGraphics()
+function setupgraphics()
     # Hard code a simple triangle. Following the Learn OpenGL book.
     vertices = GLfloat[
         -0.5f0, -0.5f0, 0.0f0,
@@ -54,7 +55,7 @@ function setupGraphics()
     glBindBuffer(GL_ARRAY_BUFFER, vbo[])
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW)
 
-    createShaders()
+    createshaders()
 end
 
 end

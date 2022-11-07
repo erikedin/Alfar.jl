@@ -11,7 +11,7 @@ function run()
     # Make the window's context current
     GLFW.MakeContextCurrent(window)
 
-    Render.setupGraphics()
+    Render.setupgraphics()
 
     # Loop until the user closes the window
     while !GLFW.WindowShouldClose(window)
