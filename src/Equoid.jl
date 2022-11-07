@@ -1,5 +1,7 @@
 module Equoid
 
+include("Render.jl")
+
 using GLFW
 
 function run()
@@ -8,6 +10,8 @@ function run()
 
     # Make the window's context current
     GLFW.MakeContextCurrent(window)
+
+    Render.setupGraphics()
 
     # Loop until the user closes the window
     while !GLFW.WindowShouldClose(window)
