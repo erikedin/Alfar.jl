@@ -16,6 +16,8 @@ module Render
 
 using ModernGL
 
+export use, uniform
+
 #
 # Shader exceptions
 #
@@ -74,6 +76,10 @@ delete(s::Shader{T}) where {T} = glDeleteShader(s.id)
 const VertexShader = Shader{GL_VERTEX_SHADER}
 const FragmentShader = Shader{GL_FRAGMENT_SHADER}
 
+#
+# Shader programs
+#
+
 struct ShaderProgram
     id::GLuint
 end
@@ -102,16 +108,23 @@ function ShaderProgram(vertexShaderPath::String, fragmentShaderPath) :: ShaderPr
     program
 end
 
+use(program::ShaderProgram) = glUseProgram(program.id)
+
+function uniform(program::ShaderProgram, name::String, value::Float32) where {T}
+    location = glGetUniformLocation(program.id, Ptr{GLchar}(pointer(name)))
+    glUniform1f(location, value)
+end
+
 #
 # Hard coded demo graphics
 #
 
 function setupgraphics()
     vertices = GLfloat[
-         0.5f0,  0.5f0, 0.0f0, # Top right
-         0.5f0, -0.5f0, 0.0f0, # Bottom right
-        -0.5f0, -0.5f0, 0.0f0, # Bottom left
-        -0.5f0,  0.5f0, 0.0f0, # Top left
+         0.5f0,  0.5f0, 0.0f0, 1.0f0, 0.0f0, 0.0f0, # Top right
+         0.5f0, -0.5f0, 0.0f0, 0.0f0, 1.0f0, 0.0f0, # Bottom right
+        -0.5f0, -0.5f0, 0.0f0, 0.0f0, 0.0f0, 1.0f0, # Bottom left
+        -0.5f0,  0.5f0, 0.0f0, 0.0f0, 1.0f0, 1.0f0, # Top left
     ]
     indices = GLuint[
         0, 1, 3,
@@ -129,7 +142,10 @@ function setupgraphics()
     glBindBuffer(GL_ARRAY_BUFFER, vbo[])
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW)
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3*sizeof(float), C_NULL)
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6*sizeof(float), C_NULL)
+    glEnableVertexAttribArray(0)
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6*sizeof(float), Ptr{Cvoid}(3 * sizeof(float)))
+    glEnableVertexAttribArray(1)
 
     ebo = Ref{GLuint}()
     glGenBuffers(1, ebo)
@@ -137,7 +153,6 @@ function setupgraphics()
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo[])
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW)
 
-    glEnableVertexAttribArray(0)
 
     program = ShaderProgram("shaders/vertex.glsl", "shaders/fragment.glsl")
 
