@@ -15,6 +15,11 @@ function run()
 
     program, vao = Render.setupgraphics()
 
+    starttime = time()
+
+    glEnable(GL_BLEND)
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+
     # Loop until the user closes the window
     while !GLFW.WindowShouldClose(window)
         glClearColor(0.2f0, 0.3f0, 0.3f0, 1.0f0)
@@ -23,7 +28,7 @@ function run()
 	    # Render here
 
         # Set alpha channel based on time
-        timevalue = Float32(time())
+        timevalue = Float32(time() - starttime)
         alpha = sin(2.0f0 * pi / 4.0f0 * timevalue) / 2.0f0 + 0.5f0
 
         use(program)
