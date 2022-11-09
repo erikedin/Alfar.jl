@@ -1,4 +1,4 @@
-module Equoid
+module Alfar
 
 include("Render.jl")
 
@@ -34,4 +34,4 @@ function run()
     GLFW.DestroyWindow(window)
 end
 
-end # module Equoid
+end # module Alfar
