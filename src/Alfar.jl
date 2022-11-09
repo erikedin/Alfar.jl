@@ -20,7 +20,7 @@ function run()
         glClear(GL_COLOR_BUFFER_BIT)
 
 	    # Render here
-        glUseProgram(program)
+        glUseProgram(program.id)
         glBindVertexArray(vao)
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, C_NULL)
         glBindVertexArray(vao)

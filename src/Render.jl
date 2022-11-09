@@ -16,6 +16,10 @@ module Render
 
 using ModernGL
 
+#
+# Shader exceptions
+#
+
 struct ShaderCompilationError <: Exception
     msg::String
 end
@@ -23,6 +27,10 @@ end
 struct ShaderLinkingError <: Exception
     msg::String
 end
+
+#
+# Shader utilities
+#
 
 function readshader(path::String)
     open(path, "r") do io
@@ -48,27 +56,55 @@ function createshader(shaderpath, shadertype)
     shader
 end
 
-function createprogram() :: GLuint
-    vertexshader = createshader("shaders/vertex.glsl", GL_VERTEX_SHADER)
-    fragmentshader = createshader("shaders/fragment.glsl", GL_FRAGMENT_SHADER)
+#
+# Shader types
+#
 
-    program = glCreateProgram()
+struct Shader{T}
+    id::GLuint
+end
 
-    glAttachShader(program, vertexshader)
-    glAttachShader(program, fragmentshader)
-    glLinkProgram(program)
+function Shader{T}(path::String) where {T}
+    id = createshader(path, T)
+    Shader{T}(id)
+end
+
+delete(s::Shader{T}) where {T} = glDeleteShader(s.id)
+
+const VertexShader = Shader{GL_VERTEX_SHADER}
+const FragmentShader = Shader{GL_FRAGMENT_SHADER}
+
+struct ShaderProgram
+    id::GLuint
+end
+
+attach(program::ShaderProgram, shader::Shader{T}) where {T} = glAttachShader(program.id, shader.id)
+
+function ShaderProgram(vertexShaderPath::String, fragmentShaderPath) :: ShaderProgram
+    fragmentshader = FragmentShader(fragmentShaderPath)
+    vertexshader = VertexShader(vertexShaderPath)
+
+    program = ShaderProgram(glCreateProgram())
+
+    attach(program, vertexshader)
+    attach(program, fragmentshader)
+    glLinkProgram(program.id)
 
     issuccess = Ref{GLint}()
-    glGetProgramiv(program, GL_LINK_STATUS, issuccess)
+    glGetProgramiv(program.id, GL_LINK_STATUS, issuccess)
     if issuccess[] != GL_TRUE
         throw(ShaderLinkingError("Shaders failed to link"))
     end
 
-    glDeleteShader(vertexshader)
-    glDeleteShader(fragmentshader)
+    delete(vertexshader)
+    delete(fragmentshader)
 
     program
 end
+
+#
+# Hard coded demo graphics
+#
 
 function setupgraphics()
     vertices = GLfloat[
@@ -103,7 +139,7 @@ function setupgraphics()
 
     glEnableVertexAttribArray(0)
 
-    program = createprogram()
+    program = ShaderProgram("shaders/vertex.glsl", "shaders/fragment.glsl")
 
     program, vao[]
 end
