@@ -22,7 +22,8 @@ function run()
 	    # Render here
         glUseProgram(program)
         glBindVertexArray(vao)
-        glDrawArrays(GL_TRIANGLES, 0, 3)
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, C_NULL)
+        glBindVertexArray(vao)
 
 	    # Swap front and back buffers
 	    GLFW.SwapBuffers(window)
