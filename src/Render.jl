@@ -110,9 +110,23 @@ end
 
 use(program::ShaderProgram) = glUseProgram(program.id)
 
-function uniform(program::ShaderProgram, name::String, value::Float32) where {T}
-    location = glGetUniformLocation(program.id, Ptr{GLchar}(pointer(name)))
+uniformlocation(program::ShaderProgram, name::String) = glGetUniformLocation(program.id, Ptr{GLchar}(pointer(name)))
+
+function uniform(program::ShaderProgram, name::String, value::Float32)
+    location = uniformlocation(program, name)
     glUniform1f(location, value)
+end
+
+function uniform(program::ShaderProgram, name::String, value::NTuple{3, GLfloat})
+    location = uniformlocation(program, name)
+    array = Ref([value...], 1)
+    glUniform3fv(location, 1, array)
+end
+
+function uniform(program::ShaderProgram, name::String, value::NTuple{4, GLfloat})
+    location = uniformlocation(program, name)
+    array = Ref([value...], 1)
+    glUniform4fv(location, 1, array)
 end
 
 #
