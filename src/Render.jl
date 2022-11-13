@@ -219,14 +219,28 @@ end
 
 function setupgraphics()
     vertices = GLfloat[
-         0.5f0,  0.5f0, 0.0f0, 1.0f0, 0.0f0, 0.0f0, # Top right
-         0.5f0, -0.5f0, 0.0f0, 0.0f0, 1.0f0, 0.0f0, # Bottom right
-        -0.5f0, -0.5f0, 0.0f0, 0.0f0, 0.0f0, 1.0f0, # Bottom left
-        -0.5f0,  0.5f0, 0.0f0, 0.0f0, 1.0f0, 1.0f0, # Top left
+         0.5f0,  0.5f0, 0.5f0, 1.0f0, 0.0f0, 0.0f0, # Top right
+         0.5f0, -0.5f0, 0.5f0, 0.0f0, 1.0f0, 0.0f0, # Bottom right
+        -0.5f0, -0.5f0, 0.5f0, 0.0f0, 0.0f0, 1.0f0, # Bottom left
+        -0.5f0,  0.5f0, 0.5f0, 0.0f0, 1.0f0, 1.0f0, # Top left
+
+         0.5f0,  0.5f0, -0.5f0, 1.0f0, 0.0f0, 0.0f0, # Top right
+         0.5f0, -0.5f0, -0.5f0, 0.0f0, 1.0f0, 0.0f0, # Bottom right
+        -0.5f0, -0.5f0, -0.5f0, 0.0f0, 0.0f0, 1.0f0, # Bottom left
+        -0.5f0,  0.5f0, -0.5f0, 0.0f0, 1.0f0, 1.0f0, # Top left
     ]
     indices = GLuint[
+        # Front cube face
         0, 1, 3,
         1, 2, 3,
+
+        # Back cube face
+        4, 5, 7,
+        5, 6, 7,
+
+        # Left cube face
+        3, 2, 6,
+        3, 6, 7,
     ]
 
     vao = Ref{GLuint}()

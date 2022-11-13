@@ -33,11 +33,12 @@ function run()
 
     glEnable(GL_BLEND)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+    glEnable(GL_DEPTH_TEST)
 
     # Loop until the user closes the window
     while !GLFW.WindowShouldClose(window)
         glClearColor(0.2f0, 0.3f0, 0.3f0, 1.0f0)
-        glClear(GL_COLOR_BUFFER_BIT)
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
 	    # Render here
 
@@ -48,7 +49,7 @@ function run()
         angle = 2.0f0 * pi / 12.0f0 * timevalue
         # angle = -1f0*pi*5f0/8f0
         translation = Render.translate(0.0f0, 0.0f0, 0.0f0)
-        rotation = Render.rotatex(angle)
+        rotation = Render.rotatex(angle) * Render.rotatez(angle)
         scaling = Render.scale(1.0f0, 1.0f0, 1.0f0)
         view = Render.translate(0f0, 0f0, -3.f0)
         projection = Render.perspective(0.25f0*pi, 640f0/480f0, 0.1f0, 100f0)
@@ -61,7 +62,7 @@ function run()
         uniform(program, "projection", projection)
 
         glBindVertexArray(vao)
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, C_NULL)
+        glDrawElements(GL_TRIANGLES, 18, GL_UNSIGNED_INT, C_NULL)
         glBindVertexArray(0)
 
 	    # Swap front and back buffers
