@@ -43,17 +43,17 @@ function run()
 
         # Set alpha channel based on time
         timevalue = Float32(time() - starttime)
-        alpha = sin(2.0f0 * pi / 4.0f0 * timevalue) / 2.0f0 + 0.5f0
+        # alpha = sin(2.0f0 * pi / 4.0f0 * timevalue) / 2.0f0 + 0.5f0
 
-        translation = (0.3f0, -0.3f0, 0.0f0)
-        angle = 2.0f0 * pi / 3.0f0 * timevalue
-        rotation = (0.0f0, 0.0f0, sin(angle)/sqrt(2.0f0), cos(angle)/sqrt(2.0f0))
+        angle = 2.0f0 * pi / 12.0f0 * timevalue
+        translation = Render.translate(0.5f0, -0.5f0, 0.0f0)
+        rotation = Render.rotatez(angle)
+        scaling = Render.scale(0.5f0, 0.5f0, 0.5f0)
 
         use(program)
 
-        uniform(program, "alpha", alpha)
-        uniform(program, "rotation", rotation)
-        uniform(program, "translation", translation)
+        uniform(program, "alpha", 1.0f0)
+        uniform(program, "model", translation * rotation * scaling)
 
         glBindVertexArray(vao)
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, C_NULL)

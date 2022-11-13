@@ -1,11 +1,11 @@
 # Copyright 2022 Erik Edin
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -129,9 +129,65 @@ function uniform(program::ShaderProgram, name::String, value::NTuple{4, GLfloat}
     glUniform4fv(location, 1, array)
 end
 
+struct Matrix4{T}
+    e::Matrix{T}
+
+    function Matrix4{T}(a::Matrix{T}) where {T}
+        @assert size(a) == (4, 4)
+        new{T}(a)
+    end
+end
+
+function Base.:*(a::Matrix4{T}, b::Matrix4{T}) where {T}
+    e = Array{T, 2}(undef, 4, 4)
+    for row=1:4
+        for col=1:4
+            s = zero(T)
+            for i=1:4
+                s += a.e[row, i] * b.e[i, col]
+            end
+            e[row, col] = s
+        end
+    end
+    Matrix4{T}(e)
+end
+
+function uniform(program::ShaderProgram, name::String, value::Matrix4{GLfloat})
+    location = uniformlocation(program, name)
+    array = Ref([value.e...], 1)
+    glUniformMatrix4fv(location, 1, GL_FALSE, array)
+end
+
 #
 # Hard coded demo graphics
 #
+
+function scale(sx::Float32, sy::Float32, sz::Float32) :: Matrix4{GLfloat}
+    Matrix4{GLfloat}(GLfloat[
+        sx  0f0 0f0 0f0;
+        0f0 sy  0f0 0f0;
+        0f0 0f0 sz  0f0;
+        0f0 0f0 0f0 1f0;
+    ])
+end
+
+function translate(sx::Float32, sy::Float32, sz::Float32) :: Matrix4{GLfloat}
+    Matrix4{GLfloat}(GLfloat[
+        1f0 0f0 0f0 sx;
+        0f0 1f0 0f0 sy;
+        0f0 0f0 1f0 sz;
+        0f0 0f0 0f0 1f0;
+    ])
+end
+
+function rotatez(angle::Float32) :: Matrix4{GLfloat}
+    Matrix4{GLfloat}(GLfloat[
+        cos(angle) -sin(angle) 0f0 0f0;
+        sin(angle) cos(angle) 0f0 0f0;
+        0f0 0f0 1f0 0f0;
+        0f0 0f0 0f0 1f0;
+    ])
+end
 
 function setupgraphics()
     vertices = GLfloat[
