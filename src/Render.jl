@@ -198,6 +198,25 @@ function rotatez(angle::Float32) :: Matrix4{GLfloat}
     ])
 end
 
+function perspective(fov::Float32, aspect::Float32, near::Float32, far::Float32) :: Matrix4{GLfloat}
+    tanhalf = tan(fov/2f0)
+    Matrix4{GLfloat}(GLfloat[
+        1f0/(aspect*tanhalf) 0f0           0f0                          0f0;
+        0f0                  1f0/(tanhalf) 0f0                          0f0;
+        0f0                  0f0           -(far + near) / (far - near) -2f0*far*near / (far - near);
+        0.0f0                0f0           -1f0 0f0;
+    ])
+end
+
+function transformidentity() :: Matrix4{GLfloat} where {}
+    Matrix4{GLfloat}([
+         one(GLfloat) zero(GLfloat) zero(GLfloat) zero(GLfloat);
+        zero(GLfloat)  one(GLfloat) zero(GLfloat) zero(GLfloat);
+        zero(GLfloat) zero(GLfloat)  one(GLfloat) zero(GLfloat);
+        zero(GLfloat) zero(GLfloat) zero(GLfloat)  one(GLfloat);
+    ])
+end
+
 function setupgraphics()
     vertices = GLfloat[
          0.5f0,  0.5f0, 0.0f0, 1.0f0, 0.0f0, 0.0f0, # Top right
