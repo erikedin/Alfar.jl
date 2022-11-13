@@ -48,8 +48,6 @@ function run()
 
         angle = 2.0f0 * pi / 12.0f0 * timevalue
         # angle = -1f0*pi*5f0/8f0
-        translation = Render.translate(0.0f0, 0.0f0, 0.0f0)
-        rotation = Render.rotatex(angle) * Render.rotatez(angle)
         scaling = Render.scale(1.0f0, 1.0f0, 1.0f0)
         view = Render.translate(0f0, 0f0, -3.f0)
         projection = Render.perspective(0.25f0*pi, 640f0/480f0, 0.1f0, 100f0)
@@ -57,12 +55,23 @@ function run()
         use(program)
 
         uniform(program, "alpha", 1.0f0)
-        uniform(program, "model", translation * rotation * scaling)
         uniform(program, "view", view)
         uniform(program, "projection", projection)
 
         glBindVertexArray(vao)
-        glDrawElements(GL_TRIANGLES, 18, GL_UNSIGNED_INT, C_NULL)
+        cubepositions = [
+            (0f0, 0f0, 0f0),
+            (2f0, 5f0, -15f0),
+            (-1.5f0, -2.2f0, -2.5f0),
+            (-1.5f0, 0.2f0, -1.5f0),
+        ]
+        for (sx, sy, sz) in cubepositions
+            translation = Render.translate(sx, sy, sz)
+            rotation = Render.rotatex(angle+sx) * Render.rotatez(angle+sy)
+
+            uniform(program, "model", translation * rotation * scaling)
+            glDrawElements(GL_TRIANGLES, 18, GL_UNSIGNED_INT, C_NULL)
+        end
         glBindVertexArray(0)
 
 	    # Swap front and back buffers
