@@ -158,6 +158,51 @@ function uniform(program::ShaderProgram, name::String, value::Matrix4{GLfloat})
     glUniformMatrix4fv(location, 1, GL_FALSE, array)
 end
 
+const Vector3{T} = NTuple{3, T}
+
+function Base.:-(a::Vector3{T}, b::Vector3{T}) :: Vector3{T} where {T}
+    (a[1] - b[1], a[2] - b[2], a[3] - b[3])
+end
+
+function Base.:-(a::Vector3{T}) :: Vector3{T} where {T}
+    (-a[1], -a[2], -a[3])
+end
+
+function cross(a::Vector3{T}, b::Vector3{T}) :: Vector3{T} where {T}
+    (
+        a[2]*b[3] - a[3]*b[2],
+        a[3]*b[1] - a[1]*b[3],
+        a[1]*b[2] - a[2]*b[1],
+    )
+end
+
+function normalize(a::Vector3{T}) :: Vector3{T} where {T}
+    m = sqrt(a[1]*a[1] + a[2]*a[2] + a[3]*a[3])
+    (a[1]/m, a[2]/m, a[3]/m)
+end
+
+function lookat(cameraposition::Vector3{Float32}, cameratarget::Vector3{Float32}, up::Vector3{Float32}) :: Matrix4{Float32}
+    direction = normalize(cameraposition - cameratarget)
+    right = normalize(cross(up, direction))
+    cameraup = normalize(cross(direction, right))
+
+    # TODO complete the function
+    cameratranslation = Matrix4{Float32}([
+        1f0 0f0 0f0 -cameraposition[1];
+        0f0 1f0 0f0 -cameraposition[2];
+        0f0 0f0 1f0 -cameraposition[3];
+        0f0 0f0 0f0 1f0;
+    ])
+    other = Matrix4{Float32}([
+        right[1] right[2] right[3] 0f0;
+        cameraup[1] cameraup[2] cameraup[3] 0f0;
+        direction[1] direction[2] direction[3] 0f0;
+        0f0 0f0 0f0 1f0;
+
+    ])
+    other*cameratranslation
+end
+
 #
 # Hard coded demo graphics
 #

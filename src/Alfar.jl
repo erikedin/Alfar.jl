@@ -49,7 +49,7 @@ function run()
         angle = 2.0f0 * pi / 12.0f0 * timevalue
         # angle = -1f0*pi*5f0/8f0
         scaling = Render.scale(1.0f0, 1.0f0, 1.0f0)
-        view = Render.translate(0f0, 0f0, -3.f0)
+        view = Render.lookat((0f0, 0f0, 3f0), (0f0, 0f0, 0f0), (0f0, 1f0, 0f0))
         projection = Render.perspective(0.25f0*pi, 640f0/480f0, 0.1f0, 100f0)
 
         use(program)
