@@ -180,6 +180,15 @@ function translate(sx::Float32, sy::Float32, sz::Float32) :: Matrix4{GLfloat}
     ])
 end
 
+function rotatex(angle::Float32) :: Matrix4{GLfloat}
+    Matrix4{GLfloat}(GLfloat[
+        1f0 0f0 0f0 0f0;
+        0f0 cos(angle) -sin(angle) 0f0;
+        0f0 sin(angle) cos(angle) 0f0;
+        0f0 0f0 0f0 1f0;
+    ])
+end
+
 function rotatez(angle::Float32) :: Matrix4{GLfloat}
     Matrix4{GLfloat}(GLfloat[
         cos(angle) -sin(angle) 0f0 0f0;
