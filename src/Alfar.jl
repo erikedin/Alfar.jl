@@ -35,6 +35,34 @@ function run()
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
     glEnable(GL_DEPTH_TEST)
 
+    # Camera variables
+    cameraposition = (0f0, 0f0, 3f0)
+    camerafront = (0f0, 0f0, -1f0)
+    cameraup = (0f0, 1f0, 0f0)
+    cameraspeed = 0.05f0
+
+    GLFW.SetKeyCallback(window, (_, key, scancode, action, mods) -> begin
+
+        cameraright = Render.normalize(Render.cross(camerafront, cameraup))
+
+        if key == GLFW.KEY_W && action == GLFW.PRESS
+            cameraposition += camerafront * cameraspeed
+        end
+        if key == GLFW.KEY_S && action == GLFW.PRESS
+            cameraposition -= camerafront * cameraspeed
+        end
+        if key == GLFW.KEY_A && action == GLFW.PRESS
+            cameraposition -= cameraright * cameraspeed
+        end
+        if key == GLFW.KEY_D && action == GLFW.PRESS
+            cameraposition += cameraright * cameraspeed
+        end
+
+        if key == GLFW.KEY_ESCAPE && action == GLFW.PRESS
+            GLFW.SetWindowShouldClose(window, true)
+        end
+    end)
+
     # Loop until the user closes the window
     while !GLFW.WindowShouldClose(window)
         glClearColor(0.2f0, 0.3f0, 0.3f0, 1.0f0)
@@ -49,12 +77,8 @@ function run()
         angle = 2.0f0 * pi / 12.0f0 * timevalue
         # angle = -1f0*pi*5f0/8f0
 
-        # Demo viewing angle
-        viewangle = 2.0f0 * pi / 15 * timevalue
-        cameraposition = (cos(viewangle), 0f0, sin(viewangle)) * 3f0
-
         scaling = Render.scale(1.0f0, 1.0f0, 1.0f0)
-        view = Render.lookat(cameraposition, (0f0, 0f0, 0f0), (0f0, 1f0, 0f0))
+        view = Render.lookat(cameraposition, cameraposition + camerafront, cameraup)
         projection = Render.perspective(0.25f0*pi, 640f0/480f0, 0.1f0, 100f0)
 
         use(program)

@@ -164,6 +164,10 @@ function Base.:-(a::Vector3{T}, b::Vector3{T}) :: Vector3{T} where {T}
     (a[1] - b[1], a[2] - b[2], a[3] - b[3])
 end
 
+function Base.:+(a::Vector3{T}, b::Vector3{T}) :: Vector3{T} where {T}
+    (a[1] + b[1], a[2] + b[2], a[3] + b[3])
+end
+
 function Base.:-(a::Vector3{T}) :: Vector3{T} where {T}
     (-a[1], -a[2], -a[3])
 end
