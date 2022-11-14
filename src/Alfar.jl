@@ -39,10 +39,14 @@ function run()
     cameraposition = (0f0, 0f0, 3f0)
     camerafront = (0f0, 0f0, -1f0)
     cameraup = (0f0, 1f0, 0f0)
-    cameraspeed = 0.05f0
+
+    # Keyboard input time state
+    deltatime = 0f0
+    lastframetime = 0f0
+
 
     GLFW.SetKeyCallback(window, (_, key, scancode, action, mods) -> begin
-
+        cameraspeed = 2.5f0 * deltatime
         cameraright = Render.normalize(Render.cross(camerafront, cameraup))
 
         if key == GLFW.KEY_W && action == GLFW.PRESS
@@ -105,6 +109,11 @@ function run()
 
 	    # Swap front and back buffers
 	    GLFW.SwapBuffers(window)
+
+        # Keep track of how long this frame took
+        currentframe = time()
+        deltatime = Float32(currentframe - lastframetime)
+        lastframetime = currentframe
 
 	    # Poll for and process events
 	    GLFW.PollEvents()
