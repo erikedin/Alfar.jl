@@ -34,11 +34,15 @@ function run()
     glEnable(GL_BLEND)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
     glEnable(GL_DEPTH_TEST)
+    GLFW.SetInputMode(window, GLFW.CURSOR, GLFW.CURSOR_DISABLED)
 
     # Camera variables
     cameraposition = (0f0, 0f0, 3f0)
     camerafront = (0f0, 0f0, -1f0)
     cameraup = (0f0, 1f0, 0f0)
+    yaw = -pi/2f0
+    pitch = 0f0
+    isfirstmouseinput = true
 
     # Keyboard input time state
     deltatime = 0f0
@@ -67,6 +71,42 @@ function run()
         end
     end)
 
+    lastx = 320
+    lasty = 240
+    GLFW.SetCursorPosCallback(window, (_, xpos, ypos) -> begin
+        if isfirstmouseinput
+            isfirstmouseinput = false
+            lastx = xpos
+            lasty = ypos
+        end
+
+        xoffset = xpos - lastx
+        yoffset = -(ypos - lasty)
+
+        lastx = xpos
+        lasty = ypos
+        if isfirstmouseinput
+            isfirstmouseinput = false
+        end
+
+        sensitivity = 0.005f0
+        xoffset *= sensitivity
+        yoffset *= sensitivity
+
+        yaw += xoffset
+        pitch += yoffset
+
+        if pitch > (pi/2f0 - pi/100f0)
+            pitch = (pi/2f0 - pi/100f0)
+        end
+        if pitch < -(pi/2f0 - pi/100f0)
+            pitch = -(pi/2f0 - pi/100f0)
+        end
+
+        cameradirection = (Float32(cos(pitch) * cos(yaw)), Float32(sin(pitch)), Float32(cos(pitch) * sin(yaw)))
+        camerafront = Render.normalize(cameradirection)
+    end)
+
     # Loop until the user closes the window
     while !GLFW.WindowShouldClose(window)
         glClearColor(0.2f0, 0.3f0, 0.3f0, 1.0f0)
@@ -82,7 +122,9 @@ function run()
         # angle = -1f0*pi*5f0/8f0
 
         scaling = Render.scale(1.0f0, 1.0f0, 1.0f0)
+
         view = Render.lookat(cameraposition, cameraposition + camerafront, cameraup)
+
         projection = Render.perspective(0.25f0*pi, 640f0/480f0, 0.1f0, 100f0)
 
         use(program)
