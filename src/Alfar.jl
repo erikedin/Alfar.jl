@@ -71,6 +71,17 @@ function run()
         end
     end)
 
+    fov = 0.25f0*pi
+    GLFW.SetScrollCallback(window, (_, xoffset, yoffset) -> begin
+        fov -= Float32(yoffset)*2f0*pi/300
+        if fov < 2f0*pi/300f0
+            fov = 2f0*pi/300f0
+        end
+        if fov > pi/4f0
+            fov = pi/4f0
+        end
+    end)
+
     lastx = 320
     lasty = 240
     GLFW.SetCursorPosCallback(window, (_, xpos, ypos) -> begin
@@ -125,7 +136,7 @@ function run()
 
         view = Render.lookat(cameraposition, cameraposition + camerafront, cameraup)
 
-        projection = Render.perspective(0.25f0*pi, 640f0/480f0, 0.1f0, 100f0)
+        projection = Render.perspective(fov, 640f0/480f0, 0.1f0, 100f0)
 
         use(program)
 
