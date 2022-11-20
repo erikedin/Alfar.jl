@@ -51,7 +51,12 @@ function createshader(shaderpath, shadertype)
     issuccess = Ref{GLint}()
     glGetShaderiv(shader, GL_COMPILE_STATUS, issuccess)
     if issuccess[] != GL_TRUE
-        errormsg = "Shader '$(shaderpath)' failed to compile"
+        maxlength = 512
+        actuallength = Ref{GLsizei}()
+        infolog = Vector{GLchar}(undef, maxlength)
+        glGetShaderInfoLog(shader, maxlength, actuallength, infolog)
+        infomessage = String(infolog[1:actuallength[]])
+        errormsg = "Shader '$(shaderpath)' failed to compile: $(infomessage)"
         throw(ShaderCompilationError(errormsg))
     end
 
@@ -271,16 +276,18 @@ function transformidentity() :: Matrix4{GLfloat} where {}
 end
 
 function setupgraphics()
+    # Normals are computed later, so zero vectors take their place here.
     vertices = GLfloat[
-         0.5f0,  0.5f0, 0.5f0, 1.0f0, 0.0f0, 0.0f0, # Top right
-         0.5f0, -0.5f0, 0.5f0, 0.0f0, 1.0f0, 0.0f0, # Bottom right
-        -0.5f0, -0.5f0, 0.5f0, 0.0f0, 0.0f0, 1.0f0, # Bottom left
-        -0.5f0,  0.5f0, 0.5f0, 0.0f0, 1.0f0, 1.0f0, # Top left
+        # Position              # Normals    # Color
+         0.5f0,  0.5f0,  0.5f0, 0f0, 0f0, 0f0, 1.0f0, 0.0f0, 0.0f0, # Top right     # Index 0
+         0.5f0, -0.5f0,  0.5f0, 0f0, 0f0, 0f0, 0.0f0, 1.0f0, 0.0f0, # Bottom right  # Index 1
+        -0.5f0, -0.5f0,  0.5f0, 0f0, 0f0, 0f0, 0.0f0, 0.0f0, 1.0f0, # Bottom left   # Index 2
+        -0.5f0,  0.5f0,  0.5f0, 0f0, 0f0, 0f0, 0.0f0, 1.0f0, 1.0f0, # Top left      # Index 3
 
-         0.5f0,  0.5f0, -0.5f0, 1.0f0, 0.0f0, 0.0f0, # Top right
-         0.5f0, -0.5f0, -0.5f0, 0.0f0, 1.0f0, 0.0f0, # Bottom right
-        -0.5f0, -0.5f0, -0.5f0, 0.0f0, 0.0f0, 1.0f0, # Bottom left
-        -0.5f0,  0.5f0, -0.5f0, 0.0f0, 1.0f0, 1.0f0, # Top left
+         0.5f0,  0.5f0, -0.5f0, 0f0, 0f0, 0f0, 1.0f0, 0.0f0, 0.0f0, # Top right     # Index 4
+         0.5f0, -0.5f0, -0.5f0, 0f0, 0f0, 0f0, 0.0f0, 1.0f0, 0.0f0, # Bottom right  # Index 5
+        -0.5f0, -0.5f0, -0.5f0, 0f0, 0f0, 0f0, 0.0f0, 0.0f0, 1.0f0, # Bottom left   # Index 6
+        -0.5f0,  0.5f0, -0.5f0, 0f0, 0f0, 0f0, 0.0f0, 1.0f0, 1.0f0, # Top left      # Index 7
     ]
     indices = GLuint[
         # Front cube face
@@ -292,9 +299,34 @@ function setupgraphics()
         5, 6, 7,
 
         # Left cube face
-        3, 2, 6,
-        3, 6, 7,
+        3, 6, 2,
+        3, 7, 6,
     ]
+
+    # Compute normals for all indices
+    for (index1, index2, index3) in collect(Iterators.partition(indices, 3))
+        println(index1, index2, index3)
+        arrayindex1 = index1*9 + 1
+        arrayindex2 = index2*9 + 1
+        arrayindex3 = index3*9 + 1
+        v1 = NTuple{3, GLfloat}(vertices[arrayindex1:arrayindex1+3])
+        v2 = NTuple{3, GLfloat}(vertices[arrayindex2:arrayindex2+3])
+        v3 = NTuple{3, GLfloat}(vertices[arrayindex3:arrayindex3+3])
+
+        println(v1, v2, v3)
+
+        a1 = v2 - v1
+        a2 = v3 - v1
+        println("a1 = $(a1), a2 = $(a2)")
+        c = cross(a1, a2)
+        println("Cross: $(c)")
+        normal = normalize(c)
+        println("Normal:", normal)
+
+        vertices[arrayindex1+3] = normal[1]
+        vertices[arrayindex1+4] = normal[2]
+        vertices[arrayindex1+5] = normal[3]
+    end
 
     vao = Ref{GLuint}()
     glGenVertexArrays(1, vao)
@@ -314,11 +346,14 @@ function setupgraphics()
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW)
 
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6*sizeof(GLfloat), C_NULL)
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 9*sizeof(GLfloat), C_NULL)
     glEnableVertexAttribArray(0)
 
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6*sizeof(GLfloat), Ptr{Cvoid}(3 * sizeof(GLfloat)))
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 9*sizeof(GLfloat), Ptr{Cvoid}(3 * sizeof(GLfloat)))
     glEnableVertexAttribArray(1)
+
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 9*sizeof(GLfloat), Ptr{Cvoid}(6 * sizeof(GLfloat)))
+    glEnableVertexAttribArray(2)
 
     program = ShaderProgram("shaders/vertex.glsl", "shaders/fragment.glsl")
 

@@ -96,9 +96,6 @@ function run()
 
         lastx = xpos
         lasty = ypos
-        if isfirstmouseinput
-            isfirstmouseinput = false
-        end
 
         sensitivity = 0.005f0
         xoffset *= sensitivity
@@ -143,17 +140,21 @@ function run()
         uniform(program, "alpha", 1.0f0)
         uniform(program, "view", view)
         uniform(program, "projection", projection)
+        uniform(program, "ambientStrength", 0.1f0)
+        uniform(program, "lightColor", (1f0, 1f0, 1f0))
+        uniform(program, "lightPosition", cameraposition)
 
         glBindVertexArray(vao)
         cubepositions = [
             (0f0, 0f0, 0f0),
-            (2f0, 5f0, -15f0),
-            (-1.5f0, -2.2f0, -2.5f0),
-            (-1.5f0, 0.2f0, -1.5f0),
+            # (2f0, 5f0, -15f0),
+            # (-1.5f0, -2.2f0, -2.5f0),
+            # (-1.5f0, 0.2f0, -1.5f0),
         ]
         for (sx, sy, sz) in cubepositions
             translation = Render.translate(sx, sy, sz)
-            rotation = Render.rotatex(angle+sx) * Render.rotatez(angle+sy)
+            # rotation = Render.rotatex(angle+sx) * Render.rotatez(angle+sy)
+            rotation = Render.rotatex(0f0)
 
             uniform(program, "model", translation * rotation * scaling)
             glDrawElements(GL_TRIANGLES, 18, GL_UNSIGNED_INT, C_NULL)
