@@ -295,11 +295,11 @@ function setupgraphics()
         -0.5f0, -0.5f0,  0.5f0,  0f0,  0f0,  1f0, 1.0f0, 0.0f0, 0.0f0, # Left bottom  front
 
         # Left side
+        -0.5f0,  0.5f0, -0.5f0, -1f0,  0f0,  0f0, 0.0f0, 0.0f0, 1.0f0, # Left top    back
         -0.5f0, -0.5f0, -0.5f0, -1f0,  0f0,  0f0, 0.0f0, 0.0f0, 1.0f0, # Left bottom back
-        -0.5f0,  0.5f0, -0.5f0, -1f0,  0f0,  0f0, 0.0f0, 0.0f0, 1.0f0, # Left top    back
-        -0.5f0, -0.5f0,  0.5f0, -1f0,  0f0,  0f0, 0.0f0, 0.0f0, 1.0f0, # Left bottom front
         -0.5f0, -0.5f0,  0.5f0, -1f0,  0f0,  0f0, 0.0f0, 0.0f0, 1.0f0, # Left bottom front
         -0.5f0,  0.5f0, -0.5f0, -1f0,  0f0,  0f0, 0.0f0, 0.0f0, 1.0f0, # Left top    back
+        -0.5f0, -0.5f0,  0.5f0, -1f0,  0f0,  0f0, 0.0f0, 0.0f0, 1.0f0, # Left bottom front
         -0.5f0,  0.5f0,  0.5f0, -1f0,  0f0,  0f0, 0.0f0, 0.0f0, 1.0f0, # Left top    front
 
         # Right side
@@ -311,13 +311,20 @@ function setupgraphics()
          0.5f0,  0.5f0,  0.5f0,  1f0,  0f0,  0f0, 0.0f0, 1.0f0, 1.0f0, # Right top    front
 
         # Bottom side
-         0.5f0, -0.5f0, -0.5f0,  0f0, -1f0,  0f0, 0.0f0, 1.0f0, 0.0f0, # Right bottom back
-        -0.5f0, -0.5f0, -0.5f0,  0f0, -1f0,  0f0, 0.0f0, 1.0f0, 0.0f0, # Left bottom back
-         0.5f0, -0.5f0,  0.5f0,  0f0, -1f0,  0f0, 0.0f0, 1.0f0, 0.0f0, # Right bottom front
-        -0.5f0, -0.5f0,  0.5f0,  0f0, -1f0,  0f0, 0.0f0, 1.0f0, 0.0f0, # Left bottom front
-         0.5f0, -0.5f0,  0.5f0,  0f0, -1f0,  0f0, 0.0f0, 1.0f0, 0.0f0, # Right bottom front
-        -0.5f0, -0.5f0, -0.5f0,  0f0, -1f0,  0f0, 0.0f0, 1.0f0, 0.0f0, # Left bottom back
-        -0.5f0, -0.5f0,  0.5f0,  0f0, -1f0,  0f0, 0.0f0, 1.0f0, 0.0f0, # Left bottom front
+        -0.5f0, -0.5f0, -0.5f0,  0f0, -1f0,  0f0, 0.0f0, 0.0f0, 1.0f0, # Left bottom back
+         0.5f0, -0.5f0, -0.5f0,  0f0, -1f0,  0f0, 0.0f0, 0.0f0, 1.0f0, # Right bottom back
+         0.5f0, -0.5f0,  0.5f0,  0f0, -1f0,  0f0, 0.0f0, 0.0f0, 1.0f0, # Right bottom front
+        -0.5f0, -0.5f0,  0.5f0,  0f0, -1f0,  0f0, 0.0f0, 0.0f0, 1.0f0, # Left bottom front
+        -0.5f0, -0.5f0, -0.5f0,  0f0, -1f0,  0f0, 0.0f0, 0.0f0, 1.0f0, # Left bottom back
+         0.5f0, -0.5f0,  0.5f0,  0f0, -1f0,  0f0, 0.0f0, 0.0f0, 1.0f0, # Right bottom front
+
+        # Top side
+        -0.5f0,  0.5f0, -0.5f0,  0f0,  1f0,  0f0, 0.0f0, 1.0f0, 0.0f0, # Left  top back
+         0.5f0,  0.5f0,  0.5f0,  0f0,  1f0,  0f0, 0.0f0, 1.0f0, 0.0f0, # Right top front
+         0.5f0,  0.5f0, -0.5f0,  0f0,  1f0,  0f0, 0.0f0, 1.0f0, 0.0f0, # Right top back
+         0.5f0,  0.5f0,  0.5f0,  0f0,  1f0,  0f0, 0.0f0, 1.0f0, 0.0f0, # Right top front
+        -0.5f0,  0.5f0, -0.5f0,  0f0,  1f0,  0f0, 0.0f0, 1.0f0, 0.0f0, # Left  top back
+        -0.5f0,  0.5f0,  0.5f0,  0f0,  1f0,  0f0, 0.0f0, 1.0f0, 0.0f0, # Left  top front
     ]
 
     vao = Ref{GLuint}()

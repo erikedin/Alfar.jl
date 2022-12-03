@@ -31,6 +31,7 @@ function run()
 
     starttime = time()
 
+    glEnable(GL_CULL_FACE)
     glEnable(GL_BLEND)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
     glEnable(GL_DEPTH_TEST)
@@ -147,9 +148,10 @@ function run()
         glBindVertexArray(vao)
         cubepositions = [
             (0f0, 0f0, 0f0),
-            (2f0, 5f0, -15f0),
-            (-1.5f0, -2.2f0, -2.5f0),
-            (-1.5f0, 0.2f0, -1.5f0),
+            (0f0, 3f0, 0f0),
+            (0f0, -3f0, 0f0),
+            (-3f0, 0f0, 0f0),
+            (3f0, 0f0, 0f0),
         ]
         for (sx, sy, sz) in cubepositions
             translation = Render.translate(sx, sy, sz)
@@ -157,7 +159,7 @@ function run()
             rotation = Render.rotatex(0f0)
 
             uniform(program, "model", translation * rotation * scaling)
-            glDrawArrays(GL_TRIANGLES, 0, 24)
+            glDrawArrays(GL_TRIANGLES, 0, 36)
         end
         glBindVertexArray(0)
 
