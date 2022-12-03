@@ -276,57 +276,49 @@ function transformidentity() :: Matrix4{GLfloat} where {}
 end
 
 function setupgraphics()
-    # Normals are computed later, so zero vectors take their place here.
     vertices = GLfloat[
-        # Position              # Normals    # Color
-         0.5f0,  0.5f0,  0.5f0, 0f0, 0f0, 0f0, 1.0f0, 0.0f0, 0.0f0, # Top right     # Index 0
-         0.5f0, -0.5f0,  0.5f0, 0f0, 0f0, 0f0, 0.0f0, 1.0f0, 0.0f0, # Bottom right  # Index 1
-        -0.5f0, -0.5f0,  0.5f0, 0f0, 0f0, 0f0, 0.0f0, 0.0f0, 1.0f0, # Bottom left   # Index 2
-        -0.5f0,  0.5f0,  0.5f0, 0f0, 0f0, 0f0, 0.0f0, 1.0f0, 1.0f0, # Top left      # Index 3
+        # Position              # Normals         # Color
+        # Back side
+         0.5f0, -0.5f0, -0.5f0,  0f0,  0f0, -1f0, 0.0f0, 1.0f0, 0.0f0, # Right bottom back
+         0.5f0,  0.5f0, -0.5f0,  0f0,  0f0, -1f0, 0.0f0, 1.0f0, 0.0f0, # Right top    back
+        -0.5f0,  0.5f0, -0.5f0,  0f0,  0f0, -1f0, 0.0f0, 1.0f0, 0.0f0, # Left top    back
+         0.5f0, -0.5f0, -0.5f0,  0f0,  0f0, -1f0, 0.0f0, 1.0f0, 0.0f0, # Right bottom back
+        -0.5f0,  0.5f0, -0.5f0,  0f0,  0f0, -1f0, 0.0f0, 1.0f0, 0.0f0, # Left top    back
+        -0.5f0, -0.5f0, -0.5f0,  0f0,  0f0, -1f0, 0.0f0, 1.0f0, 0.0f0, # Left bottom back
 
-         0.5f0,  0.5f0, -0.5f0, 0f0, 0f0, 0f0, 1.0f0, 0.0f0, 0.0f0, # Top right     # Index 4
-         0.5f0, -0.5f0, -0.5f0, 0f0, 0f0, 0f0, 0.0f0, 1.0f0, 0.0f0, # Bottom right  # Index 5
-        -0.5f0, -0.5f0, -0.5f0, 0f0, 0f0, 0f0, 0.0f0, 0.0f0, 1.0f0, # Bottom left   # Index 6
-        -0.5f0,  0.5f0, -0.5f0, 0f0, 0f0, 0f0, 0.0f0, 1.0f0, 1.0f0, # Top left      # Index 7
+        # Front side
+         0.5f0, -0.5f0,  0.5f0,  0f0,  0f0,  1f0, 1.0f0, 0.0f0, 0.0f0, # Right bottom front
+         0.5f0,  0.5f0,  0.5f0,  0f0,  0f0,  1f0, 1.0f0, 0.0f0, 0.0f0, # Right top    front
+        -0.5f0,  0.5f0,  0.5f0,  0f0,  0f0,  1f0, 1.0f0, 0.0f0, 0.0f0, # Left top     front
+         0.5f0, -0.5f0,  0.5f0,  0f0,  0f0,  1f0, 1.0f0, 0.0f0, 0.0f0, # Right bottom front
+        -0.5f0,  0.5f0,  0.5f0,  0f0,  0f0,  1f0, 1.0f0, 0.0f0, 0.0f0, # Left top     front
+        -0.5f0, -0.5f0,  0.5f0,  0f0,  0f0,  1f0, 1.0f0, 0.0f0, 0.0f0, # Left bottom  front
+
+        # Left side
+        -0.5f0, -0.5f0, -0.5f0, -1f0,  0f0,  0f0, 0.0f0, 0.0f0, 1.0f0, # Left bottom back
+        -0.5f0,  0.5f0, -0.5f0, -1f0,  0f0,  0f0, 0.0f0, 0.0f0, 1.0f0, # Left top    back
+        -0.5f0, -0.5f0,  0.5f0, -1f0,  0f0,  0f0, 0.0f0, 0.0f0, 1.0f0, # Left bottom front
+        -0.5f0, -0.5f0,  0.5f0, -1f0,  0f0,  0f0, 0.0f0, 0.0f0, 1.0f0, # Left bottom front
+        -0.5f0,  0.5f0, -0.5f0, -1f0,  0f0,  0f0, 0.0f0, 0.0f0, 1.0f0, # Left top    back
+        -0.5f0,  0.5f0,  0.5f0, -1f0,  0f0,  0f0, 0.0f0, 0.0f0, 1.0f0, # Left top    front
+
+        # Right side
+         0.5f0, -0.5f0, -0.5f0,  1f0,  0f0,  0f0, 0.0f0, 1.0f0, 1.0f0, # Right bottom back
+         0.5f0,  0.5f0, -0.5f0,  1f0,  0f0,  0f0, 0.0f0, 1.0f0, 1.0f0, # Right top    back
+         0.5f0, -0.5f0,  0.5f0,  1f0,  0f0,  0f0, 0.0f0, 1.0f0, 1.0f0, # Right bottom front
+         0.5f0, -0.5f0,  0.5f0,  1f0,  0f0,  0f0, 0.0f0, 1.0f0, 1.0f0, # Right bottom front
+         0.5f0,  0.5f0, -0.5f0,  1f0,  0f0,  0f0, 0.0f0, 1.0f0, 1.0f0, # Right top    back
+         0.5f0,  0.5f0,  0.5f0,  1f0,  0f0,  0f0, 0.0f0, 1.0f0, 1.0f0, # Right top    front
+
+        # Bottom side
+         0.5f0, -0.5f0, -0.5f0,  0f0, -1f0,  0f0, 0.0f0, 1.0f0, 0.0f0, # Right bottom back
+        -0.5f0, -0.5f0, -0.5f0,  0f0, -1f0,  0f0, 0.0f0, 1.0f0, 0.0f0, # Left bottom back
+         0.5f0, -0.5f0,  0.5f0,  0f0, -1f0,  0f0, 0.0f0, 1.0f0, 0.0f0, # Right bottom front
+        -0.5f0, -0.5f0,  0.5f0,  0f0, -1f0,  0f0, 0.0f0, 1.0f0, 0.0f0, # Left bottom front
+         0.5f0, -0.5f0,  0.5f0,  0f0, -1f0,  0f0, 0.0f0, 1.0f0, 0.0f0, # Right bottom front
+        -0.5f0, -0.5f0, -0.5f0,  0f0, -1f0,  0f0, 0.0f0, 1.0f0, 0.0f0, # Left bottom back
+        -0.5f0, -0.5f0,  0.5f0,  0f0, -1f0,  0f0, 0.0f0, 1.0f0, 0.0f0, # Left bottom front
     ]
-    indices = GLuint[
-        # Front cube face
-        0, 1, 3,
-        1, 2, 3,
-
-        # Back cube face
-        4, 5, 7,
-        5, 6, 7,
-
-        # Left cube face
-        3, 6, 2,
-        3, 7, 6,
-    ]
-
-    # Compute normals for all indices
-    for (index1, index2, index3) in collect(Iterators.partition(indices, 3))
-        println(index1, index2, index3)
-        arrayindex1 = index1*9 + 1
-        arrayindex2 = index2*9 + 1
-        arrayindex3 = index3*9 + 1
-        v1 = NTuple{3, GLfloat}(vertices[arrayindex1:arrayindex1+3])
-        v2 = NTuple{3, GLfloat}(vertices[arrayindex2:arrayindex2+3])
-        v3 = NTuple{3, GLfloat}(vertices[arrayindex3:arrayindex3+3])
-
-        println(v1, v2, v3)
-
-        a1 = v2 - v1
-        a2 = v3 - v1
-        println("a1 = $(a1), a2 = $(a2)")
-        c = cross(a1, a2)
-        println("Cross: $(c)")
-        normal = normalize(c)
-        println("Normal:", normal)
-
-        vertices[arrayindex1+3] = normal[1]
-        vertices[arrayindex1+4] = normal[2]
-        vertices[arrayindex1+5] = normal[3]
-    end
 
     vao = Ref{GLuint}()
     glGenVertexArrays(1, vao)
@@ -338,13 +330,6 @@ function setupgraphics()
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo[])
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW)
-
-    ebo = Ref{GLuint}()
-    glGenBuffers(1, ebo)
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo[])
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW)
-
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 9*sizeof(GLfloat), C_NULL)
     glEnableVertexAttribArray(0)
