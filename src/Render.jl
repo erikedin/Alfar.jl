@@ -280,11 +280,11 @@ function setupgraphics()
         # Position              # Normals         # Color
         # Back side
          0.5f0, -0.5f0, -0.5f0,  0f0,  0f0, -1f0, 0.0f0, 1.0f0, 0.0f0, # Right bottom back
+        -0.5f0,  0.5f0, -0.5f0,  0f0,  0f0, -1f0, 0.0f0, 1.0f0, 0.0f0, # Left top    back
          0.5f0,  0.5f0, -0.5f0,  0f0,  0f0, -1f0, 0.0f0, 1.0f0, 0.0f0, # Right top    back
-        -0.5f0,  0.5f0, -0.5f0,  0f0,  0f0, -1f0, 0.0f0, 1.0f0, 0.0f0, # Left top    back
          0.5f0, -0.5f0, -0.5f0,  0f0,  0f0, -1f0, 0.0f0, 1.0f0, 0.0f0, # Right bottom back
-        -0.5f0,  0.5f0, -0.5f0,  0f0,  0f0, -1f0, 0.0f0, 1.0f0, 0.0f0, # Left top    back
         -0.5f0, -0.5f0, -0.5f0,  0f0,  0f0, -1f0, 0.0f0, 1.0f0, 0.0f0, # Left bottom back
+        -0.5f0,  0.5f0, -0.5f0,  0f0,  0f0, -1f0, 0.0f0, 1.0f0, 0.0f0, # Left top    back
 
         # Front side
          0.5f0, -0.5f0,  0.5f0,  0f0,  0f0,  1f0, 1.0f0, 0.0f0, 0.0f0, # Right bottom front
