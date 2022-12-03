@@ -152,6 +152,12 @@ function run()
             (0f0, -3f0, 0f0),
             (-3f0, 0f0, 0f0),
             (3f0, 0f0, 0f0),
+
+            (0f0, 0f0, 6f0),
+            (0f0, 3f0, 6f0),
+            (0f0, -3f0, 6f0),
+            (-3f0, 0f0, 6f0),
+            (3f0, 0f0, 6f0),
         ]
         for (sx, sy, sz) in cubepositions
             translation = Render.translate(sx, sy, sz)
