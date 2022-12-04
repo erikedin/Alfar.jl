@@ -14,6 +14,7 @@
 
 module Alfar
 
+include("Format/Format.jl")
 include("Render.jl")
 
 using GLFW
