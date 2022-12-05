@@ -16,6 +16,7 @@ module STL
 
 struct STLBinary
     header::Vector{UInt8}
+    ntriangles::UInt32
 end
 
 abstract type STLBinaryParser end
@@ -31,16 +32,26 @@ end
 const ParseResult{T} = Union{OKParse{T}, ParserError}
 
 struct HeaderParser <: STLBinaryParser end
+struct NTrianglesParser <: STLBinaryParser end
 
 function parsestl(::HeaderParser, io::IO) :: ParseResult{Vector{UInt8}}
     value = read(io, 80)
     OKParse{Vector{UInt8}}(value, position(io))
 end
 
+function parsestl(::NTrianglesParser, io::IO) :: ParseResult{UInt32}
+    value = read(io, UInt32)
+    OKParse{UInt32}(value, position(io))
+end
+
 function readbinary!(io::IO) :: STLBinary
     parser = HeaderParser()
     result = parsestl(parser, io)
-    STLBinary(result.value)
+
+    ntrianglesparser = NTrianglesParser()
+    resultn = parsestl(ntrianglesparser, io)
+
+    STLBinary(result.value, resultn.value)
 end
 
 end

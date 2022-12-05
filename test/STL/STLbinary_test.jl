@@ -71,4 +71,65 @@ end
     @test stl.header == header
 end
 
+@testset "Parse STL; Header says 1 triangle; Parsed result says 1 triangle" begin
+    # Arrange
+    header = ones(UInt8, 80)
+    ntriangles = UInt32(1)
+    data = [
+        header, ntriangles,
+
+        # Triangle 1
+        Float32(0), Float32(0), Float32(1),
+        Float32(1), Float32(0), Float32(0),
+        Float32(0), Float32(1), Float32(0),
+        Float32(0), Float32(0), Float32(0),
+        UInt16(0),
+    ]
+    io = IOBuffer()
+    for d in data
+        write(io, d)
+    end
+    seekstart(io)
+
+    # Act
+    stl = STL.readbinary!(io)
+
+    # Assert
+    @test stl.ntriangles == 1
+end
+
+@testset "Parse STL; Header says 2 triangles; Parsed result says 2 triangles" begin
+    # Arrange
+    header = ones(UInt8, 80)
+    ntriangles = UInt32(2)
+    data = [
+        header, ntriangles,
+
+        # Triangle 1
+        Float32(0), Float32(0), Float32(1),
+        Float32(1), Float32(0), Float32(0),
+        Float32(0), Float32(1), Float32(0),
+        Float32(0), Float32(0), Float32(0),
+        UInt16(0),
+
+        # Triangle 2
+        Float32(0), Float32(0), Float32(1),
+        Float32(1), Float32(0), Float32(0),
+        Float32(0), Float32(1), Float32(0),
+        Float32(0), Float32(0), Float32(0),
+        UInt16(0),
+    ]
+    io = IOBuffer()
+    for d in data
+        write(io, d)
+    end
+    seekstart(io)
+
+    # Act
+    stl = STL.readbinary!(io)
+
+    # Assert
+    @test stl.ntriangles == 2
+end
+
 end
