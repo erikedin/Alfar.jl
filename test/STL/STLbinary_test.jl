@@ -148,4 +148,58 @@ end
     @test stl.ntriangles == 2
 end
 
+@testset "Parse STL; Normal is the Z-axis; First normal is the Z-axis" begin
+    # Arrange
+    header = zeros(UInt8, 80)
+    ntriangles = UInt32(1)
+    data = [
+        header, ntriangles,
+
+        # Triangle 1
+        Float32(0), Float32(0), Float32(1),
+        Float32(1), Float32(0), Float32(0),
+        Float32(0), Float32(1), Float32(0),
+        Float32(0), Float32(0), Float32(0),
+        UInt16(0),
+    ]
+    io = IOBuffer()
+    for d in data
+        write(io, d)
+    end
+    seekstart(io)
+
+    # Act
+    stl = STL.readbinary!(io)
+
+    # Assert
+    @test stl.triangles[1].normal == NTuple{3, Float32}([0f0, 0f0, 1f0])
+end
+
+@testset "Parse STL; Normal is the Y-axis; First normal is the Y-axis" begin
+    # Arrange
+    header = zeros(UInt8, 80)
+    ntriangles = UInt32(1)
+    data = [
+        header, ntriangles,
+
+        # Triangle 1
+        Float32(0), Float32(1), Float32(0),
+        Float32(1), Float32(0), Float32(0),
+        Float32(0), Float32(1), Float32(0),
+        Float32(0), Float32(0), Float32(0),
+        UInt16(0),
+    ]
+    io = IOBuffer()
+    for d in data
+        write(io, d)
+    end
+    seekstart(io)
+
+    # Act
+    stl = STL.readbinary!(io)
+
+    # Assert
+    @test stl.triangles[1].normal == NTuple{3, Float32}([0f0, 1f0, 0f0])
+end
+
 end

@@ -14,9 +14,16 @@
 
 module STL
 
+const V3 = NTuple{3, Float32}
+
+struct Triangle
+    normal::V3
+end
+
 struct STLBinary
     header::Vector{UInt8}
     ntriangles::UInt32
+    triangles::Vector{Triangle}
 end
 
 abstract type STLBinaryParser end
@@ -33,6 +40,7 @@ const ParseResult{T} = Union{OKParse{T}, ParserError}
 
 struct HeaderParser <: STLBinaryParser end
 struct NTrianglesParser <: STLBinaryParser end
+struct V3Parser <: STLBinaryParser end
 
 function parsestl(::HeaderParser, io::IO) :: ParseResult{Vector{UInt8}}
     value = read(io, 80)
@@ -48,6 +56,13 @@ function parsestl(::NTrianglesParser, io::IO) :: ParseResult{UInt32}
     OKParse{UInt32}(value, position(io))
 end
 
+function parsestl(::V3Parser, io::IO) :: ParseResult{V3}
+    x = read(io, Float32)
+    y = read(io, Float32)
+    z = read(io, Float32)
+    OKParse{V3}(V3([x, y, z]), position(io))
+end
+
 function readbinary!(io::IO) :: STLBinary
     parser = HeaderParser()
     result = parsestl(parser, io)
@@ -58,7 +73,10 @@ function readbinary!(io::IO) :: STLBinary
     ntrianglesparser = NTrianglesParser()
     resultn = parsestl(ntrianglesparser, io)
 
-    STLBinary(result.value, resultn.value)
+    normalparser = V3Parser()
+    resultnormal = parsestl(normalparser, io)
+
+    STLBinary(result.value, resultn.value, Triangle[Triangle(resultnormal.value)])
 end
 
 end
