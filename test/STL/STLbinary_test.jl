@@ -38,7 +38,34 @@ using Alfar.Format.STL
     seekstart(io)
 
     # Act
-    stl = STL.readbinary(io)
+    stl = STL.readbinary!(io)
+
+    # Assert
+    @test stl.header == header
+end
+
+@testset "Parse STL; Header contains all ones; Parsed header has all ones" begin
+    # Arrange
+    header = ones(UInt8, 80)
+    ntriangles = UInt32(1)
+    data = [
+        header, ntriangles,
+
+        # Triangle 1
+        Float32(0), Float32(0), Float32(1),
+        Float32(1), Float32(0), Float32(0),
+        Float32(0), Float32(1), Float32(0),
+        Float32(0), Float32(0), Float32(0),
+        UInt16(0),
+    ]
+    io = IOBuffer()
+    for d in data
+        write(io, d)
+    end
+    seekstart(io)
+
+    # Act
+    stl = STL.readbinary!(io)
 
     # Assert
     @test stl.header == header

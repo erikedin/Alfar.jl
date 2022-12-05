@@ -18,8 +18,29 @@ struct STLBinary
     header::Vector{UInt8}
 end
 
-function readbinary(io::IO) :: STLBinary
-    STLBinary(zeros(UInt8, 80))
+abstract type STLBinaryParser end
+
+abstract type ParserError end
+struct GenericParserError <: ParserError end
+
+struct OKParse{T}
+    value::T
+    position::Int
+end
+
+const ParseResult{T} = Union{OKParse{T}, ParserError}
+
+struct HeaderParser <: STLBinaryParser end
+
+function parsestl(::HeaderParser, io::IO) :: ParseResult{Vector{UInt8}}
+    value = read(io, 80)
+    OKParse{Vector{UInt8}}(value, position(io))
+end
+
+function readbinary!(io::IO) :: STLBinary
+    parser = HeaderParser()
+    result = parsestl(parser, io)
+    STLBinary(result.value)
 end
 
 end
