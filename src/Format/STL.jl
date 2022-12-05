@@ -33,7 +33,6 @@ struct GenericParserError <: ParserError end
 
 struct OKParse{T}
     value::T
-    position::Int
 end
 
 const ParseResult{T} = Union{OKParse{T}, ParserError}
@@ -45,7 +44,7 @@ struct V3Parser <: STLBinaryParser end
 function parsestl(::HeaderParser, io::IO) :: ParseResult{Vector{UInt8}}
     value = read(io, 80)
     if length(value) == 80
-        OKParse{Vector{UInt8}}(value, position(io))
+        OKParse{Vector{UInt8}}(value)
     else
         GenericParserError()
     end
@@ -53,14 +52,14 @@ end
 
 function parsestl(::NTrianglesParser, io::IO) :: ParseResult{UInt32}
     value = read(io, UInt32)
-    OKParse{UInt32}(value, position(io))
+    OKParse{UInt32}(value)
 end
 
 function parsestl(::V3Parser, io::IO) :: ParseResult{V3}
     x = read(io, Float32)
     y = read(io, Float32)
     z = read(io, Float32)
-    OKParse{V3}(V3([x, y, z]), position(io))
+    OKParse{V3}(V3([x, y, z]))
 end
 
 function readbinary!(io::IO) :: STLBinary
