@@ -71,6 +71,22 @@ end
     @test stl.header == header
 end
 
+@testset "Parse STL; Header is too short, only 79 bytes; Parse fails" begin
+    # Arrange
+    header = ones(UInt8, 79)
+    data = [
+        header
+    ]
+    io = IOBuffer()
+    for d in data
+        write(io, d)
+    end
+    seekstart(io)
+
+    # Act and Assert
+    @test_throws STL.ParserError STL.readbinary!(io)
+end
+
 @testset "Parse STL; Header says 1 triangle; Parsed result says 1 triangle" begin
     # Arrange
     header = ones(UInt8, 80)

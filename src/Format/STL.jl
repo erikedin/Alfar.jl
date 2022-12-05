@@ -36,7 +36,11 @@ struct NTrianglesParser <: STLBinaryParser end
 
 function parsestl(::HeaderParser, io::IO) :: ParseResult{Vector{UInt8}}
     value = read(io, 80)
-    OKParse{Vector{UInt8}}(value, position(io))
+    if length(value) == 80
+        OKParse{Vector{UInt8}}(value, position(io))
+    else
+        GenericParserError()
+    end
 end
 
 function parsestl(::NTrianglesParser, io::IO) :: ParseResult{UInt32}
@@ -47,6 +51,9 @@ end
 function readbinary!(io::IO) :: STLBinary
     parser = HeaderParser()
     result = parsestl(parser, io)
+    if isa(result, ParserError)
+        throw(result)
+    end
 
     ntrianglesparser = NTrianglesParser()
     resultn = parsestl(ntrianglesparser, io)
