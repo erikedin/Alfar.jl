@@ -26,56 +26,25 @@ struct STLBinary
     triangles::Vector{Triangle}
 end
 
-abstract type STLBinaryParser end
-
-abstract type ParserError end
-struct GenericParserError <: ParserError end
-
-struct OKParse{T}
-    value::T
-end
-
-const ParseResult{T} = Union{OKParse{T}, ParserError}
-
-struct HeaderParser <: STLBinaryParser end
-struct NTrianglesParser <: STLBinaryParser end
-struct V3Parser <: STLBinaryParser end
-
-function parsestl(::HeaderParser, io::IO) :: ParseResult{Vector{UInt8}}
-    value = read(io, 80)
-    if length(value) == 80
-        OKParse{Vector{UInt8}}(value)
-    else
-        GenericParserError()
-    end
-end
-
-function parsestl(::NTrianglesParser, io::IO) :: ParseResult{UInt32}
-    value = read(io, UInt32)
-    OKParse{UInt32}(value)
-end
-
-function parsestl(::V3Parser, io::IO) :: ParseResult{V3}
+function Base.read(io::IO, ::Type{V3}) :: V3
     x = read(io, Float32)
     y = read(io, Float32)
     z = read(io, Float32)
-    OKParse{V3}(V3([x, y, z]))
+    V3([x, y, z])
 end
 
 function readbinary!(io::IO) :: STLBinary
-    parser = HeaderParser()
-    result = parsestl(parser, io)
-    if isa(result, ParserError)
-        throw(result)
+    header = read(io, 80)
+    ntriangles = read(io, UInt32)
+    triangles = Vector{Triangle}(undef, ntriangles)
+
+    for i=1:ntriangles
+        normal = read(io, V3)
+
+        triangles[i] = Triangle(normal)
     end
 
-    ntrianglesparser = NTrianglesParser()
-    resultn = parsestl(ntrianglesparser, io)
-
-    normalparser = V3Parser()
-    resultnormal = parsestl(normalparser, io)
-
-    STLBinary(result.value, resultn.value, Triangle[Triangle(resultnormal.value)])
+    STLBinary(header, ntriangles, triangles)
 end
 
 end

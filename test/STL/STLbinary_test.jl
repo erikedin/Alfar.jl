@@ -84,7 +84,7 @@ end
     seekstart(io)
 
     # Act and Assert
-    @test_throws STL.ParserError STL.readbinary!(io)
+    @test_throws EOFError STL.readbinary!(io)
 end
 
 @testset "Parse STL; Header says 1 triangle; Parsed result says 1 triangle" begin
