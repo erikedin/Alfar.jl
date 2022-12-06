@@ -13,3 +13,4 @@
 # limitations under the License.
 
 include("STL/STLbinary_test.jl")
+include("STL/STLbinarywrite_test.jl")

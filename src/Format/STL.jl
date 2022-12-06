@@ -55,4 +55,27 @@ function readbinary!(io::IO) :: STLBinary
     STLBinary(header, ntriangles, triangles)
 end
 
+function Base.write(io::IO, v::V3)
+    n = write(io, v[1])
+    n += write(io, v[2])
+    n += write(io, v[3])
+    n
+end
+
+function Base.write(io::IO, stl::STLBinary)
+    n = 0
+    n += write(io, stl.header)
+    n += write(io, stl.ntriangles)
+
+    for t in stl.triangles
+        n += write(io, t.normal)
+        n += write(io, t.v1)
+        n += write(io, t.v2)
+        n += write(io, t.v3)
+        n += write(io, t.attribute)
+    end
+
+    n
+end
+
 end
