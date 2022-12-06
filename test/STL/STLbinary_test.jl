@@ -202,4 +202,172 @@ end
     @test stl.triangles[1].normal == NTuple{3, Float32}([0f0, 1f0, 0f0])
 end
 
+@testset "Parse STL; First vertex is (1, 0, 0); First triangle has vertex 1 (1, 0, 0)" begin
+    # Arrange
+    header = zeros(UInt8, 80)
+    ntriangles = UInt32(1)
+    data = [
+        header, ntriangles,
+
+        # Triangle 1
+        Float32(0), Float32(0), Float32(1),
+        Float32(1), Float32(0), Float32(0),
+        Float32(0), Float32(1), Float32(0),
+        Float32(0), Float32(0), Float32(0),
+        UInt16(0),
+    ]
+    io = IOBuffer()
+    for d in data
+        write(io, d)
+    end
+    seekstart(io)
+
+    # Act
+    stl = STL.readbinary!(io)
+
+    # Assert
+    @test stl.triangles[1].v1 == NTuple{3, Float32}([1f0, 0f0, 0f0])
+end
+
+@testset "Parse STL; First vertex is (0, 2, 0); First triangle has vertex 1 (0, 2, 0)" begin
+    # Arrange
+    header = zeros(UInt8, 80)
+    ntriangles = UInt32(1)
+    data = [
+        header, ntriangles,
+
+        # Triangle 1
+        Float32(0), Float32(0), Float32(1),
+        Float32(0), Float32(2), Float32(0),
+        Float32(0), Float32(1), Float32(0),
+        Float32(0), Float32(0), Float32(0),
+        UInt16(0),
+    ]
+    io = IOBuffer()
+    for d in data
+        write(io, d)
+    end
+    seekstart(io)
+
+    # Act
+    stl = STL.readbinary!(io)
+
+    # Assert
+    @test stl.triangles[1].v1 == NTuple{3, Float32}([0f0, 2f0, 0f0])
+end
+
+@testset "Parse STL; Vertex 2 is (0, 0, 1); First triangle has vertex 2 (0, 0, 1)" begin
+    # Arrange
+    header = zeros(UInt8, 80)
+    ntriangles = UInt32(1)
+    data = [
+        header, ntriangles,
+
+        # Triangle 1
+        Float32(0), Float32(0), Float32(1),
+        Float32(1), Float32(0), Float32(0),
+        Float32(0), Float32(0), Float32(1),
+        Float32(0), Float32(0), Float32(0),
+        UInt16(0),
+    ]
+    io = IOBuffer()
+    for d in data
+        write(io, d)
+    end
+    seekstart(io)
+
+    # Act
+    stl = STL.readbinary!(io)
+
+    # Assert
+    @test stl.triangles[1].v2 == NTuple{3, Float32}([0f0, 0f0, 1f0])
+end
+
+@testset "Parse STL; Vertex 3 is (1, 0, 1); First triangle has vertex 3 (1, 0, 1)" begin
+    # Arrange
+    header = zeros(UInt8, 80)
+    ntriangles = UInt32(1)
+    data = [
+        header, ntriangles,
+
+        # Triangle 1
+        Float32(0), Float32(0), Float32(1),
+        Float32(1), Float32(0), Float32(0),
+        Float32(0), Float32(0), Float32(1),
+        Float32(1), Float32(0), Float32(1),
+        UInt16(0),
+    ]
+    io = IOBuffer()
+    for d in data
+        write(io, d)
+    end
+    seekstart(io)
+
+    # Act
+    stl = STL.readbinary!(io)
+
+    # Assert
+    @test stl.triangles[1].v3 == NTuple{3, Float32}([1f0, 0f0, 1f0])
+end
+
+@testset "Parse STL; Vertex 1 attribute is 17; Parsed vertex 1 attribute is 17" begin
+    # Arrange
+    header = zeros(UInt8, 80)
+    ntriangles = UInt32(1)
+    data = [
+        header, ntriangles,
+
+        # Triangle 1
+        Float32(0), Float32(0), Float32(1),
+        Float32(1), Float32(0), Float32(0),
+        Float32(0), Float32(0), Float32(1),
+        Float32(1), Float32(0), Float32(1),
+        UInt16(17),
+    ]
+    io = IOBuffer()
+    for d in data
+        write(io, d)
+    end
+    seekstart(io)
+
+    # Act
+    stl = STL.readbinary!(io)
+
+    # Assert
+    @test stl.triangles[1].attribute == UInt16(17)
+end
+
+@testset "Parse STL; Triangle 2 vertex 1 is (1,2,3); Parsed vertex 1 (1,2,3)" begin
+    # Arrange
+    header = zeros(UInt8, 80)
+    ntriangles = UInt32(2)
+    data = [
+        header, ntriangles,
+
+        # Triangle 1
+        Float32(0), Float32(0), Float32(1),
+        Float32(1), Float32(0), Float32(0),
+        Float32(0), Float32(0), Float32(1),
+        Float32(1), Float32(0), Float32(1),
+        UInt16(17),
+
+        # Triangle 2
+        Float32(0), Float32(0), Float32(1),
+        Float32(1), Float32(2), Float32(3),
+        Float32(0), Float32(0), Float32(1),
+        Float32(1), Float32(0), Float32(1),
+        UInt16(17),
+    ]
+    io = IOBuffer()
+    for d in data
+        write(io, d)
+    end
+    seekstart(io)
+
+    # Act
+    stl = STL.readbinary!(io)
+
+    # Assert
+    @test stl.triangles[2].v1 == NTuple{3, Float32}([1f0, 2f0, 3f0])
+end
 end

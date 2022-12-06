@@ -18,6 +18,10 @@ const V3 = NTuple{3, Float32}
 
 struct Triangle
     normal::V3
+    v1::V3
+    v2::V3
+    v3::V3
+    attribute::UInt16
 end
 
 struct STLBinary
@@ -40,8 +44,12 @@ function readbinary!(io::IO) :: STLBinary
 
     for i=1:ntriangles
         normal = read(io, V3)
+        v1 = read(io, V3)
+        v2 = read(io, V3)
+        v3 = read(io, V3)
+        attribute = read(io, UInt16)
 
-        triangles[i] = Triangle(normal)
+        triangles[i] = Triangle(normal, v1, v2, v3, attribute)
     end
 
     STLBinary(header, ntriangles, triangles)
