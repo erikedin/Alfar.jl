@@ -20,6 +20,7 @@ include("Render.jl")
 using GLFW
 using ModernGL
 using Alfar.Render
+using Alfar.Format.STL
 
 function run()
     # Create a window and its OpenGL context
@@ -28,7 +29,12 @@ function run()
     # Make the window's context current
     GLFW.MakeContextCurrent(window)
 
-    program, vao = Render.setupgraphics()
+    # Read hard coded STL file for now
+    stl = open("mycube.stl", "r") do io
+        STL.readbinary!(io)
+    end
+
+    program, vao = Render.setupgraphics(stl)
 
     starttime = time()
 

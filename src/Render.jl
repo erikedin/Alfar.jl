@@ -16,6 +16,8 @@ module Render
 
 using ModernGL
 
+using Alfar.Format.STL: STLBinary
+
 export use, uniform
 
 #
@@ -275,57 +277,18 @@ function transformidentity() :: Matrix4{GLfloat} where {}
     ])
 end
 
-function setupgraphics()
+function setupgraphics(stl::STLBinary)
     vertices = GLfloat[
-        # Position              # Normals
-        # Back side
-         0.5f0, -0.5f0, -0.5f0,  0f0,  0f0, -1f0, # Right bottom back
-        -0.5f0,  0.5f0, -0.5f0,  0f0,  0f0, -1f0, # Left top    back
-         0.5f0,  0.5f0, -0.5f0,  0f0,  0f0, -1f0, # Right top    back
-         0.5f0, -0.5f0, -0.5f0,  0f0,  0f0, -1f0, # Right bottom back
-        -0.5f0, -0.5f0, -0.5f0,  0f0,  0f0, -1f0, # Left bottom back
-        -0.5f0,  0.5f0, -0.5f0,  0f0,  0f0, -1f0, # Left top    back
-
-        # Front side
-         0.5f0, -0.5f0,  0.5f0,  0f0,  0f0,  1f0, # Right bottom front
-         0.5f0,  0.5f0,  0.5f0,  0f0,  0f0,  1f0, # Right top    front
-        -0.5f0,  0.5f0,  0.5f0,  0f0,  0f0,  1f0, # Left top     front
-         0.5f0, -0.5f0,  0.5f0,  0f0,  0f0,  1f0, # Right bottom front
-        -0.5f0,  0.5f0,  0.5f0,  0f0,  0f0,  1f0, # Left top     front
-        -0.5f0, -0.5f0,  0.5f0,  0f0,  0f0,  1f0, # Left bottom  front
-
-        # Left side
-        -0.5f0,  0.5f0, -0.5f0, -1f0,  0f0,  0f0, # Left top    back
-        -0.5f0, -0.5f0, -0.5f0, -1f0,  0f0,  0f0, # Left bottom back
-        -0.5f0, -0.5f0,  0.5f0, -1f0,  0f0,  0f0, # Left bottom front
-        -0.5f0,  0.5f0, -0.5f0, -1f0,  0f0,  0f0, # Left top    back
-        -0.5f0, -0.5f0,  0.5f0, -1f0,  0f0,  0f0, # Left bottom front
-        -0.5f0,  0.5f0,  0.5f0, -1f0,  0f0,  0f0, # Left top    front
-
-        # Right side
-         0.5f0, -0.5f0, -0.5f0,  1f0,  0f0,  0f0, # Right bottom back
-         0.5f0,  0.5f0, -0.5f0,  1f0,  0f0,  0f0, # Right top    back
-         0.5f0, -0.5f0,  0.5f0,  1f0,  0f0,  0f0, # Right bottom front
-         0.5f0, -0.5f0,  0.5f0,  1f0,  0f0,  0f0, # Right bottom front
-         0.5f0,  0.5f0, -0.5f0,  1f0,  0f0,  0f0, # Right top    back
-         0.5f0,  0.5f0,  0.5f0,  1f0,  0f0,  0f0, # Right top    front
-
-        # Bottom side
-        -0.5f0, -0.5f0, -0.5f0,  0f0, -1f0,  0f0, # Left bottom back
-         0.5f0, -0.5f0, -0.5f0,  0f0, -1f0,  0f0, # Right bottom back
-         0.5f0, -0.5f0,  0.5f0,  0f0, -1f0,  0f0, # Right bottom front
-        -0.5f0, -0.5f0,  0.5f0,  0f0, -1f0,  0f0, # Left bottom front
-        -0.5f0, -0.5f0, -0.5f0,  0f0, -1f0,  0f0, # Left bottom back
-         0.5f0, -0.5f0,  0.5f0,  0f0, -1f0,  0f0, # Right bottom front
-
-        # Top side
-        -0.5f0,  0.5f0, -0.5f0,  0f0,  1f0,  0f0, # Left  top back
-         0.5f0,  0.5f0,  0.5f0,  0f0,  1f0,  0f0, # Right top front
-         0.5f0,  0.5f0, -0.5f0,  0f0,  1f0,  0f0, # Right top back
-         0.5f0,  0.5f0,  0.5f0,  0f0,  1f0,  0f0, # Right top front
-        -0.5f0,  0.5f0, -0.5f0,  0f0,  1f0,  0f0, # Left  top back
-        -0.5f0,  0.5f0,  0.5f0,  0f0,  1f0,  0f0, # Left  top front
     ]
+
+    for triangle in stl.triangles
+        append!(vertices, triangle.v1)
+        append!(vertices, triangle.normal)
+        append!(vertices, triangle.v2)
+        append!(vertices, triangle.normal)
+        append!(vertices, triangle.v3)
+        append!(vertices, triangle.normal)
+    end
 
     vao = Ref{GLuint}()
     glGenVertexArrays(1, vao)
