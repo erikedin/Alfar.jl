@@ -142,7 +142,7 @@ function run()
         uniform(program, "alpha", 1.0f0)
         uniform(program, "view", view)
         uniform(program, "projection", projection)
-        uniform(program, "ambientStrength", 0.3f0)
+        uniform(program, "ambientStrength", 0.1f0)
         uniform(program, "lightColor", (1f0, 1f0, 1f0))
         uniform(program, "lightPosition", cameraposition)
 

@@ -277,54 +277,54 @@ end
 
 function setupgraphics()
     vertices = GLfloat[
-        # Position              # Normals         # Color
+        # Position              # Normals
         # Back side
-         0.5f0, -0.5f0, -0.5f0,  0f0,  0f0, -1f0, 0.0f0, 1.0f0, 0.0f0, # Right bottom back
-        -0.5f0,  0.5f0, -0.5f0,  0f0,  0f0, -1f0, 0.0f0, 1.0f0, 0.0f0, # Left top    back
-         0.5f0,  0.5f0, -0.5f0,  0f0,  0f0, -1f0, 0.0f0, 1.0f0, 0.0f0, # Right top    back
-         0.5f0, -0.5f0, -0.5f0,  0f0,  0f0, -1f0, 0.0f0, 1.0f0, 0.0f0, # Right bottom back
-        -0.5f0, -0.5f0, -0.5f0,  0f0,  0f0, -1f0, 0.0f0, 1.0f0, 0.0f0, # Left bottom back
-        -0.5f0,  0.5f0, -0.5f0,  0f0,  0f0, -1f0, 0.0f0, 1.0f0, 0.0f0, # Left top    back
+         0.5f0, -0.5f0, -0.5f0,  0f0,  0f0, -1f0, # Right bottom back
+        -0.5f0,  0.5f0, -0.5f0,  0f0,  0f0, -1f0, # Left top    back
+         0.5f0,  0.5f0, -0.5f0,  0f0,  0f0, -1f0, # Right top    back
+         0.5f0, -0.5f0, -0.5f0,  0f0,  0f0, -1f0, # Right bottom back
+        -0.5f0, -0.5f0, -0.5f0,  0f0,  0f0, -1f0, # Left bottom back
+        -0.5f0,  0.5f0, -0.5f0,  0f0,  0f0, -1f0, # Left top    back
 
         # Front side
-         0.5f0, -0.5f0,  0.5f0,  0f0,  0f0,  1f0, 1.0f0, 0.0f0, 0.0f0, # Right bottom front
-         0.5f0,  0.5f0,  0.5f0,  0f0,  0f0,  1f0, 1.0f0, 0.0f0, 0.0f0, # Right top    front
-        -0.5f0,  0.5f0,  0.5f0,  0f0,  0f0,  1f0, 1.0f0, 0.0f0, 0.0f0, # Left top     front
-         0.5f0, -0.5f0,  0.5f0,  0f0,  0f0,  1f0, 1.0f0, 0.0f0, 0.0f0, # Right bottom front
-        -0.5f0,  0.5f0,  0.5f0,  0f0,  0f0,  1f0, 1.0f0, 0.0f0, 0.0f0, # Left top     front
-        -0.5f0, -0.5f0,  0.5f0,  0f0,  0f0,  1f0, 1.0f0, 0.0f0, 0.0f0, # Left bottom  front
+         0.5f0, -0.5f0,  0.5f0,  0f0,  0f0,  1f0, # Right bottom front
+         0.5f0,  0.5f0,  0.5f0,  0f0,  0f0,  1f0, # Right top    front
+        -0.5f0,  0.5f0,  0.5f0,  0f0,  0f0,  1f0, # Left top     front
+         0.5f0, -0.5f0,  0.5f0,  0f0,  0f0,  1f0, # Right bottom front
+        -0.5f0,  0.5f0,  0.5f0,  0f0,  0f0,  1f0, # Left top     front
+        -0.5f0, -0.5f0,  0.5f0,  0f0,  0f0,  1f0, # Left bottom  front
 
         # Left side
-        -0.5f0,  0.5f0, -0.5f0, -1f0,  0f0,  0f0, 0.0f0, 0.0f0, 1.0f0, # Left top    back
-        -0.5f0, -0.5f0, -0.5f0, -1f0,  0f0,  0f0, 0.0f0, 0.0f0, 1.0f0, # Left bottom back
-        -0.5f0, -0.5f0,  0.5f0, -1f0,  0f0,  0f0, 0.0f0, 0.0f0, 1.0f0, # Left bottom front
-        -0.5f0,  0.5f0, -0.5f0, -1f0,  0f0,  0f0, 0.0f0, 0.0f0, 1.0f0, # Left top    back
-        -0.5f0, -0.5f0,  0.5f0, -1f0,  0f0,  0f0, 0.0f0, 0.0f0, 1.0f0, # Left bottom front
-        -0.5f0,  0.5f0,  0.5f0, -1f0,  0f0,  0f0, 0.0f0, 0.0f0, 1.0f0, # Left top    front
+        -0.5f0,  0.5f0, -0.5f0, -1f0,  0f0,  0f0, # Left top    back
+        -0.5f0, -0.5f0, -0.5f0, -1f0,  0f0,  0f0, # Left bottom back
+        -0.5f0, -0.5f0,  0.5f0, -1f0,  0f0,  0f0, # Left bottom front
+        -0.5f0,  0.5f0, -0.5f0, -1f0,  0f0,  0f0, # Left top    back
+        -0.5f0, -0.5f0,  0.5f0, -1f0,  0f0,  0f0, # Left bottom front
+        -0.5f0,  0.5f0,  0.5f0, -1f0,  0f0,  0f0, # Left top    front
 
         # Right side
-         0.5f0, -0.5f0, -0.5f0,  1f0,  0f0,  0f0, 0.0f0, 1.0f0, 1.0f0, # Right bottom back
-         0.5f0,  0.5f0, -0.5f0,  1f0,  0f0,  0f0, 0.0f0, 1.0f0, 1.0f0, # Right top    back
-         0.5f0, -0.5f0,  0.5f0,  1f0,  0f0,  0f0, 0.0f0, 1.0f0, 1.0f0, # Right bottom front
-         0.5f0, -0.5f0,  0.5f0,  1f0,  0f0,  0f0, 0.0f0, 1.0f0, 1.0f0, # Right bottom front
-         0.5f0,  0.5f0, -0.5f0,  1f0,  0f0,  0f0, 0.0f0, 1.0f0, 1.0f0, # Right top    back
-         0.5f0,  0.5f0,  0.5f0,  1f0,  0f0,  0f0, 0.0f0, 1.0f0, 1.0f0, # Right top    front
+         0.5f0, -0.5f0, -0.5f0,  1f0,  0f0,  0f0, # Right bottom back
+         0.5f0,  0.5f0, -0.5f0,  1f0,  0f0,  0f0, # Right top    back
+         0.5f0, -0.5f0,  0.5f0,  1f0,  0f0,  0f0, # Right bottom front
+         0.5f0, -0.5f0,  0.5f0,  1f0,  0f0,  0f0, # Right bottom front
+         0.5f0,  0.5f0, -0.5f0,  1f0,  0f0,  0f0, # Right top    back
+         0.5f0,  0.5f0,  0.5f0,  1f0,  0f0,  0f0, # Right top    front
 
         # Bottom side
-        -0.5f0, -0.5f0, -0.5f0,  0f0, -1f0,  0f0, 0.0f0, 0.0f0, 1.0f0, # Left bottom back
-         0.5f0, -0.5f0, -0.5f0,  0f0, -1f0,  0f0, 0.0f0, 0.0f0, 1.0f0, # Right bottom back
-         0.5f0, -0.5f0,  0.5f0,  0f0, -1f0,  0f0, 0.0f0, 0.0f0, 1.0f0, # Right bottom front
-        -0.5f0, -0.5f0,  0.5f0,  0f0, -1f0,  0f0, 0.0f0, 0.0f0, 1.0f0, # Left bottom front
-        -0.5f0, -0.5f0, -0.5f0,  0f0, -1f0,  0f0, 0.0f0, 0.0f0, 1.0f0, # Left bottom back
-         0.5f0, -0.5f0,  0.5f0,  0f0, -1f0,  0f0, 0.0f0, 0.0f0, 1.0f0, # Right bottom front
+        -0.5f0, -0.5f0, -0.5f0,  0f0, -1f0,  0f0, # Left bottom back
+         0.5f0, -0.5f0, -0.5f0,  0f0, -1f0,  0f0, # Right bottom back
+         0.5f0, -0.5f0,  0.5f0,  0f0, -1f0,  0f0, # Right bottom front
+        -0.5f0, -0.5f0,  0.5f0,  0f0, -1f0,  0f0, # Left bottom front
+        -0.5f0, -0.5f0, -0.5f0,  0f0, -1f0,  0f0, # Left bottom back
+         0.5f0, -0.5f0,  0.5f0,  0f0, -1f0,  0f0, # Right bottom front
 
         # Top side
-        -0.5f0,  0.5f0, -0.5f0,  0f0,  1f0,  0f0, 0.0f0, 1.0f0, 0.0f0, # Left  top back
-         0.5f0,  0.5f0,  0.5f0,  0f0,  1f0,  0f0, 0.0f0, 1.0f0, 0.0f0, # Right top front
-         0.5f0,  0.5f0, -0.5f0,  0f0,  1f0,  0f0, 0.0f0, 1.0f0, 0.0f0, # Right top back
-         0.5f0,  0.5f0,  0.5f0,  0f0,  1f0,  0f0, 0.0f0, 1.0f0, 0.0f0, # Right top front
-        -0.5f0,  0.5f0, -0.5f0,  0f0,  1f0,  0f0, 0.0f0, 1.0f0, 0.0f0, # Left  top back
-        -0.5f0,  0.5f0,  0.5f0,  0f0,  1f0,  0f0, 0.0f0, 1.0f0, 0.0f0, # Left  top front
+        -0.5f0,  0.5f0, -0.5f0,  0f0,  1f0,  0f0, # Left  top back
+         0.5f0,  0.5f0,  0.5f0,  0f0,  1f0,  0f0, # Right top front
+         0.5f0,  0.5f0, -0.5f0,  0f0,  1f0,  0f0, # Right top back
+         0.5f0,  0.5f0,  0.5f0,  0f0,  1f0,  0f0, # Right top front
+        -0.5f0,  0.5f0, -0.5f0,  0f0,  1f0,  0f0, # Left  top back
+        -0.5f0,  0.5f0,  0.5f0,  0f0,  1f0,  0f0, # Left  top front
     ]
 
     vao = Ref{GLuint}()
@@ -338,14 +338,11 @@ function setupgraphics()
     glBindBuffer(GL_ARRAY_BUFFER, vbo[])
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW)
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 9*sizeof(GLfloat), C_NULL)
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6*sizeof(GLfloat), C_NULL)
     glEnableVertexAttribArray(0)
 
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 9*sizeof(GLfloat), Ptr{Cvoid}(3 * sizeof(GLfloat)))
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6*sizeof(GLfloat), Ptr{Cvoid}(3 * sizeof(GLfloat)))
     glEnableVertexAttribArray(1)
-
-    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 9*sizeof(GLfloat), Ptr{Cvoid}(6 * sizeof(GLfloat)))
-    glEnableVertexAttribArray(2)
 
     program = ShaderProgram("shaders/vertex.glsl", "shaders/fragment.glsl")
 
