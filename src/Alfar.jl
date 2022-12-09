@@ -16,6 +16,7 @@ module Alfar
 
 include("Format/Format.jl")
 include("Render.jl")
+include("Tools.jl")
 
 using GLFW
 using ModernGL
