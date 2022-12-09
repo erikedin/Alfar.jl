@@ -46,7 +46,7 @@ function run()
     GLFW.SetInputMode(window, GLFW.CURSOR, GLFW.CURSOR_DISABLED)
 
     # Camera variables
-    cameraposition = (0f0, 0f0, 3f0)
+    cameraposition = (0f0, 0f0, 20f0)
     camerafront = (0f0, 0f0, -1f0)
     cameraup = (0f0, 1f0, 0f0)
     yaw = -pi/2f0
@@ -173,7 +173,7 @@ function run()
             rotation = Render.rotatex(0f0)
 
             uniform(program, "model", translation * rotation * scaling)
-            glDrawArrays(GL_TRIANGLES, 0, 36)
+            glDrawArrays(GL_TRIANGLES, 0, trunc(Int, stl.ntriangles * 3))
         end
         glBindVertexArray(0)
 
