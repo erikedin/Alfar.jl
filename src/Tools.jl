@@ -14,23 +14,23 @@
 
 module Tools
 
-using Alfar.Format.STL: V3, STLBinary
+using Alfar.Format.STL: Vector3, STLBinary
 
 struct BoundingBox
-    min::V3
-    max::V3
+    min::Vector3
+    max::Vector3
 end
 
-function minv3(a::V3, b::V3) :: V3
-    V3([
+function minv3(a::Vector3, b::Vector3) :: Vector3
+    Vector3([
         min(a[1], b[1]),
         min(a[2], b[2]),
         min(a[3], b[3]),
     ])
 end
 
-function maxv3(a::V3, b::V3) :: V3
-    V3([
+function maxv3(a::Vector3, b::Vector3) :: Vector3
+    Vector3([
         max(a[1], b[1]),
         max(a[2], b[2]),
         max(a[3], b[3]),
@@ -39,8 +39,8 @@ end
 
 function boundingbox(stl::STLBinary) :: BoundingBox
 
-    vmin = V3([0f0, 0f0, 0f0])
-    vmax = V3([0f0, 0f0, 0f0])
+    vmin = Vector3([0f0, 0f0, 0f0])
+    vmax = Vector3([0f0, 0f0, 0f0])
     isfirst = true
 
     for triangle in stl.triangles

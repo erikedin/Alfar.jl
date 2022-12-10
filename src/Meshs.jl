@@ -12,7 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-include("STL/STLbinary_test.jl")
-include("STL/STLbinarywrite_test.jl")
+module Meshs
 
-include("gpu/read_mesh_test.jl")
+export Mesh
+
+struct Mesh
+
+end
+
+end

@@ -14,13 +14,13 @@
 
 module STL
 
-const V3 = NTuple{3, Float32}
+using Alfar.Math
 
 struct Triangle
-    normal::V3
-    v1::V3
-    v2::V3
-    v3::V3
+    normal::Vector3{Float32}
+    v1::Vector3{Float32}
+    v2::Vector3{Float32}
+    v3::Vector3{Float32}
     attribute::UInt16
 end
 
@@ -28,13 +28,15 @@ struct STLBinary
     header::Vector{UInt8}
     ntriangles::UInt32
     triangles::Vector{Triangle}
+    STLBinary(header::Vector{UInt8}, ntriangles::UInt32, triangles::Vector{Triangle}) = new(header, ntriangles, triangles)
+    STLBinary(triangles::Vector{Triangle}) = new(zeros(UInt8, 80), length(triangles), triangles)
 end
 
-function Base.read(io::IO, ::Type{V3}) :: V3
+function Base.read(io::IO, ::Type{Vector3{Float32}}) :: Vector3{Float32}
     x = read(io, Float32)
     y = read(io, Float32)
     z = read(io, Float32)
-    V3([x, y, z])
+    Vector3([x, y, z])
 end
 
 function readbinary!(io::IO) :: STLBinary
@@ -43,10 +45,10 @@ function readbinary!(io::IO) :: STLBinary
     triangles = Vector{Triangle}(undef, ntriangles)
 
     for i=1:ntriangles
-        normal = read(io, V3)
-        v1 = read(io, V3)
-        v2 = read(io, V3)
-        v3 = read(io, V3)
+        normal = read(io, Vector3{Float32})
+        v1 = read(io, Vector3{Float32})
+        v2 = read(io, Vector3{Float32})
+        v3 = read(io, Vector3{Float32})
         attribute = read(io, UInt16)
 
         triangles[i] = Triangle(normal, v1, v2, v3, attribute)
@@ -55,7 +57,7 @@ function readbinary!(io::IO) :: STLBinary
     STLBinary(header, ntriangles, triangles)
 end
 
-function Base.write(io::IO, v::V3)
+function Base.write(io::IO, v::Vector3{Float32})
     n = write(io, v[1])
     n += write(io, v[2])
     n += write(io, v[3])

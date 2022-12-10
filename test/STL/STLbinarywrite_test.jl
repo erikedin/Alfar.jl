@@ -13,8 +13,9 @@
 # limitations under the License.
 
 using Test
+using Alfar.Math
 using Alfar.Format.STL
-using Alfar.Format.STL: V3, Triangle, STLBinary
+using Alfar.Format.STL: Triangle, STLBinary
 
 @testset "STL binary write" begin
 
@@ -22,21 +23,21 @@ using Alfar.Format.STL: V3, Triangle, STLBinary
     # Arrange
     io = IOBuffer()
     triangle1 = Triangle(
-        V3([0f0, 0f0, 1f0]),
-        V3([0f0, 0f0, 0f0]),
-        V3([0f0, 0f0, 0f0]),
-        V3([1f0, 0f0, 0f0]),
+        (0f0, 0f0, 1f0),
+        (0f0, 0f0, 0f0),
+        (0f0, 0f0, 0f0),
+        (1f0, 0f0, 0f0),
         UInt16(0)
     )
     triangle2 = Triangle(
-        V3([0f0, 1f0, 0f0]),
-        V3([0f0, 0f0, 0f0]),
-        V3([0f0, 0f0, 1f0]),
-        V3([1f0, 0f0, 0f0]),
+        (0f0, 1f0, 0f0),
+        (0f0, 0f0, 0f0),
+        (0f0, 0f0, 1f0),
+        (1f0, 0f0, 0f0),
         UInt16(0)
     )
     header = zeros(UInt8, 80)
-    stlwrite = STLBinary(header, 2, Triangle[triangle1, triangle2])
+    stlwrite = STLBinary(header, UInt32(2), Triangle[triangle1, triangle2])
 
     # Act
     write(io, stlwrite)
@@ -51,21 +52,21 @@ end
     # Arrange
     io = IOBuffer()
     triangle1 = Triangle(
-        V3([0f0, 0f0, 1f0]),
-        V3([17f0, 42f0, 0f0]),
-        V3([0f0, 0f0, 0f0]),
-        V3([1f0, 0f0, 0f0]),
+        (0f0, 0f0, 1f0),
+        (17f0, 42f0, 0f0),
+        (0f0, 0f0, 0f0),
+        (1f0, 0f0, 0f0),
         UInt16(0)
     )
     triangle2 = Triangle(
-        V3([0f0, 1f0, 0f0]),
-        V3([0f0, 0f0, 0f0]),
-        V3([0f0, 0f0, 1f0]),
-        V3([1f0, 0f0, 0f0]),
+        (0f0, 1f0, 0f0),
+        (0f0, 0f0, 0f0),
+        (0f0, 0f0, 1f0),
+        (1f0, 0f0, 0f0),
         UInt16(0)
     )
     header = zeros(UInt8, 80)
-    stlwrite = STLBinary(header, 2, Triangle[triangle1, triangle2])
+    stlwrite = STLBinary(header, UInt32(2), Triangle[triangle1, triangle2])
 
     # Act
     write(io, stlwrite)
@@ -73,7 +74,7 @@ end
 
     # Assert
     stl = STL.readbinary!(io)
-    @test stl.triangles[1].v1 == V3([17f0, 42f0, 0f0])
+    @test stl.triangles[1].v1 == (17f0, 42f0, 0f0)
 end
 
 end

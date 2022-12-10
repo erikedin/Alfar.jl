@@ -17,6 +17,7 @@ module Render
 using ModernGL
 
 using Alfar.Format.STL: STLBinary
+using Alfar.Math
 
 export use, uniform
 
@@ -136,64 +137,10 @@ function uniform(program::ShaderProgram, name::String, value::NTuple{4, GLfloat}
     glUniform4fv(location, 1, array)
 end
 
-struct Matrix4{T}
-    e::Matrix{T}
-
-    function Matrix4{T}(a::Matrix{T}) where {T}
-        @assert size(a) == (4, 4)
-        new{T}(a)
-    end
-end
-
-function Base.:*(a::Matrix4{T}, b::Matrix4{T}) where {T}
-    e = Array{T, 2}(undef, 4, 4)
-    for row=1:4
-        for col=1:4
-            s = zero(T)
-            for i=1:4
-                s += a.e[row, i] * b.e[i, col]
-            end
-            e[row, col] = s
-        end
-    end
-    Matrix4{T}(e)
-end
-
 function uniform(program::ShaderProgram, name::String, value::Matrix4{GLfloat})
     location = uniformlocation(program, name)
     array = Ref([value.e...], 1)
     glUniformMatrix4fv(location, 1, GL_FALSE, array)
-end
-
-const Vector3{T} = NTuple{3, T}
-
-function Base.:-(a::Vector3{T}, b::Vector3{T}) :: Vector3{T} where {T}
-    (a[1] - b[1], a[2] - b[2], a[3] - b[3])
-end
-
-function Base.:+(a::Vector3{T}, b::Vector3{T}) :: Vector3{T} where {T}
-    (a[1] + b[1], a[2] + b[2], a[3] + b[3])
-end
-
-function Base.:-(a::Vector3{T}) :: Vector3{T} where {T}
-    (-a[1], -a[2], -a[3])
-end
-
-function Base.:*(a::Vector3{T}, s::T) :: Vector3{T} where {T}
-    (a[1]*s, a[2]*s, a[3]*s)
-end
-
-function cross(a::Vector3{T}, b::Vector3{T}) :: Vector3{T} where {T}
-    (
-        a[2]*b[3] - a[3]*b[2],
-        a[3]*b[1] - a[1]*b[3],
-        a[1]*b[2] - a[2]*b[1],
-    )
-end
-
-function normalize(a::Vector3{T}) :: Vector3{T} where {T}
-    m = sqrt(a[1]*a[1] + a[2]*a[2] + a[3]*a[3])
-    (a[1]/m, a[2]/m, a[3]/m)
 end
 
 function lookat(cameraposition::Vector3{Float32}, cameratarget::Vector3{Float32}, up::Vector3{Float32}) :: Matrix4{Float32}
