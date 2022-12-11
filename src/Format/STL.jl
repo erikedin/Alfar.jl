@@ -81,7 +81,7 @@ function Base.write(io::IO, stl::STLBinary)
     n
 end
 
-function makemesh(stl::STLBinary)
+function makerendermesh(stl::STLBinary) :: RenderMesh
     vertices = Float32[]
 
     for t in stl.triangles
@@ -93,7 +93,7 @@ function makemesh(stl::STLBinary)
         append!(vertices, t.normal)
     end
 
-    Mesh(vertices)
+    RenderMesh(vertices)
 end
 
 end

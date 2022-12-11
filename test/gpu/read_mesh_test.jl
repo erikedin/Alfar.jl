@@ -109,9 +109,14 @@ end
 
     # Act
     readstl = STL.readbinary!(io)
-    mesh = STL.makemesh(readstl)
+    rendermesh = STL.makerendermesh(readstl)
+
+    mesh = mapresource(rendermesh)
+
     nout = CuArray{Int}(undef, 1)
     @CUDA.sync @cuda threads=1 readnumberofvertices_gpu!(mesh, nout)
+
+    unmapresource(rendermesh)
 
     # Assert
     verticesongpu = CUDA.@allowscalar nout[1]
@@ -170,9 +175,11 @@ end
 
     # Act
     readstl = STL.readbinary!(io)
-    mesh = STL.makemesh(readstl)
+    rendermesh = STL.makerendermesh(readstl)
+    mesh = mapresource(rendermesh)
     nout = CuArray{Int}(undef, 1)
     @CUDA.sync @cuda threads=1 readnumberofvertices_gpu!(mesh, nout)
+    unmapresource(rendermesh)
 
     # Assert
     verticesongpu = CUDA.@allowscalar nout[1]
