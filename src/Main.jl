@@ -58,12 +58,21 @@ end
 timesincelastrender(t::Timing) :: Float64 = time() - t.lastrender
 rendered!(t::Timing) = t.lastrender = time()
 
+mutable struct Object
+    rendermesh::RenderMesh
+    translation::Matrix4{Float32}
+    scaling::Matrix4{Float32}
+    rotation::Matrix4{Float32}
+end
+
+model(o::Object) :: Matrix4{Float32} = o.translation * o.scaling * o.rotation
+
 struct AlfarMain
     camera::Camera
     mouse::MouseState
     timing::Timing
     program::ShaderProgram
-    rendermesh::RenderMesh
+    objects::Vector{Object}
 end
 
 function AlfarMain()
@@ -74,8 +83,15 @@ function AlfarMain()
         STL.readbinary!(io)
     end
     rendermesh = makerendermesh(stl)
+    mycube = Object(rendermesh, translate(0f0, 0f0, 0f0), scale(1f0, 1f0, 1f0), rotatez(0f0))
 
-    AlfarMain(Camera(), MouseState(), Timing(), program, rendermesh)
+    stl2 = open("Utah_teapot.stl", "r") do io
+        STL.readbinary!(io)
+    end
+    teapotmesh = makerendermesh(stl2)
+    teapot = Object(teapotmesh, translate(-5f0, 0f0, 0f0), scale(0.3f0, 0.3f0, 0.3f0), rotatez(2f0*Float32(pi)/8))
+
+    AlfarMain(Camera(), MouseState(), Timing(), program, [mycube, teapot])
 end
 
 function configureinput(app::AlfarMain, window::GLFW.Window)
@@ -148,12 +164,7 @@ function configureinput(app::AlfarMain, window::GLFW.Window)
 end
 
 function render(app::AlfarMain)
-    angle = -1f0*pi*5f0/8f0
-
-    scaling = Render.scale(1.0f0, 1.0f0, 1.0f0)
-
     view = Render.lookat(app.camera.position, app.camera.position + app.camera.front, app.camera.up)
-
     projection = Render.perspective(app.camera.fov, 640f0/480f0, 0.1f0, 100f0)
 
     use(app.program)
@@ -165,12 +176,12 @@ function render(app::AlfarMain)
     uniform(app.program, "lightColor", (1f0, 1f0, 1f0))
     uniform(app.program, "lightPosition", app.camera.position)
 
-    bindmesh(app.rendermesh)
-    rotation = Render.rotatex(angle) * Render.rotatez(angle)
-
-    uniform(app.program, "model", rotation * scaling)
-    draw(app.rendermesh)
-    unbindmesh()
+    for object in app.objects
+        bindmesh(object.rendermesh)
+        uniform(app.program, "model", model(object))
+        draw(object.rendermesh)
+        unbindmesh()
+    end
 
     rendered!(app.timing)
 end

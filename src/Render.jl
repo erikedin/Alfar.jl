@@ -21,6 +21,7 @@ using Alfar.Math
 
 export ShaderProgram
 export use, uniform
+export translate, scale, rotatez, rotatex
 
 #
 # Shader exceptions
