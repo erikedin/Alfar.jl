@@ -64,6 +64,23 @@ function createshader(shadersource, shadertype)
     shader
 end
 
+function createprogram()
+    vertexshader = createshader(VERTEX_SHADER, GL_VERTEX_SHADER)
+    fragmentshader = createshader(FRAGMENT_SHADER, GL_FRAGMENT_SHADER)
+    program = glCreateProgram()
+    glAttachShader(program, vertexshader)
+    glAttachShader(program, fragmentshader)
+    glLinkProgram(program)
+
+    issuccess = Ref{GLint}()
+    glGetProgramiv(program, GL_LINK_STATUS, issuccess)
+    if issuccess[] != GL_TRUE
+        throw(ShaderLinkingError("Shaders failed to link"))
+    end
+
+    program
+end
+
 function setupgraphics()
     vertices = GLfloat[
         -0.5f0, -0.5f0, 0.5f0, 1f0, 0f0, 0f0,
@@ -87,20 +104,7 @@ function setupgraphics()
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6*sizeof(GLfloat), Ptr{Cvoid}(3 * sizeof(GLfloat)))
     glEnableVertexAttribArray(1)
 
-    vertexshader = createshader(VERTEX_SHADER, GL_VERTEX_SHADER)
-    fragmentshader = createshader(FRAGMENT_SHADER, GL_FRAGMENT_SHADER)
-    program = glCreateProgram()
-    glAttachShader(program, vertexshader)
-    glAttachShader(program, fragmentshader)
-    glLinkProgram(program)
-
-    issuccess = Ref{GLint}()
-    glGetProgramiv(program, GL_LINK_STATUS, issuccess)
-    if issuccess[] != GL_TRUE
-        throw(ShaderLinkingError("Shaders failed to link"))
-    end
-
-    program, vao[], 3
+    vao[], 3
 end
 
 function run()
@@ -111,7 +115,8 @@ function run()
     GLFW.MakeContextCurrent(window)
 
     # TODO Setup graphics
-    program, vao, numberofvertices = setupgraphics()
+    vao, numberofvertices = setupgraphics()
+    program = createprogram()
 
     glEnable(GL_CULL_FACE)
     glEnable(GL_BLEND)
