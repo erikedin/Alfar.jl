@@ -15,7 +15,7 @@
 using Test
 using Alfar.Format.STL
 
-@testset "STL binary" begin
+@testset "STL binary      " begin
 
 @testset "Parse STL; Header is all zeroes; Parsed header is all zeros" begin
     # Arrange

@@ -82,7 +82,18 @@ function Base.write(io::IO, stl::STLBinary)
 end
 
 function makemesh(stl::STLBinary)
-    Mesh()
+    vertices = Float32[]
+
+    for t in stl.triangles
+        append!(vertices, t.v1)
+        append!(vertices, t.normal)
+        append!(vertices, t.v2)
+        append!(vertices, t.normal)
+        append!(vertices, t.v3)
+        append!(vertices, t.normal)
+    end
+
+    Mesh(vertices)
 end
 
 end

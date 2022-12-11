@@ -14,13 +14,21 @@
 
 module Meshs
 
+using CUDA
+using Adapt
+
 export Mesh
 export numberofvertices
 
-struct Mesh
+struct Mesh{A}
+    vertices::A
+end
+Adapt.@adapt_structure Mesh
 
+function Mesh(vertices::Vector{Float32}) :: Mesh
+    Mesh(CuArray(vertices))
 end
 
-numberofvertices(::Mesh) :: Int = 36
+numberofvertices(mesh::Mesh) :: Int = length(mesh.vertices) / 6
 
 end
