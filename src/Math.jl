@@ -14,7 +14,7 @@
 
 module Math
 
-export Vector3, Matrix4
+export Vector2, Vector3, Matrix4
 export cross, normalize
 
 #

@@ -19,6 +19,7 @@ include("Meshs.jl")
 include("Format/Format.jl")
 include("Render.jl")
 include("Tools.jl")
+include("Main.jl")
 
 using GLFW
 using ModernGL

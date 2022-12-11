@@ -14,12 +14,14 @@
 
 module Main
 
-export configureinput
+export configureinput, render
 export Camera, MouseState, AlfarMain
 
 using GLFW
 using Alfar.Math
 using Alfar.Render
+using Alfar.Meshs
+using Alfar.Format.STL
 
 mutable struct Camera
     position::Vector3{Float32}
@@ -33,7 +35,7 @@ end
 function Camera() :: Camera
     fov = 0.25f0*pi
     Camera(
-        (0f0, 0f0, 20f0),
+        (0f0, 0f0, 3f0),
         (0f0, 0f0, -1f0),
         (0f0, 1f0, 0f0),
         -pi/2f0,
@@ -43,7 +45,7 @@ function Camera() :: Camera
 end
 
 mutable struct MouseState
-    position::Vector2{Int}
+    position::Vector2{Float64}
     isfirstmouseinput::Bool
 end
 
@@ -80,7 +82,7 @@ function configureinput(app::AlfarMain, window::GLFW.Window)
     GLFW.SetInputMode(window, GLFW.CURSOR, GLFW.CURSOR_DISABLED)
 
     GLFW.SetKeyCallback(window, (_, key, scancode, action, mods) -> begin
-        cameraspeed = 2.5f0 * deltatime
+        cameraspeed = 2.5f0 * Float32(timesincelastrender(app.timing))
         cameraright = normalize(cross(app.camera.front, app.camera.up))
 
         if key == GLFW.KEY_W && action == GLFW.PRESS
@@ -123,7 +125,7 @@ function configureinput(app::AlfarMain, window::GLFW.Window)
 
         app.mouse.position = newposition
 
-        sensitivity = 0.005f0
+        sensitivity = 0.005
         offset *= sensitivity
 
         app.camera.yaw += offset[1]
@@ -152,7 +154,7 @@ function render(app::AlfarMain)
 
     view = Render.lookat(app.camera.position, app.camera.position + app.camera.front, app.camera.up)
 
-    projection = Render.perspective(fov, 640f0/480f0, 0.1f0, 100f0)
+    projection = Render.perspective(app.camera.fov, 640f0/480f0, 0.1f0, 100f0)
 
     use(app.program)
 
