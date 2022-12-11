@@ -25,6 +25,7 @@ using ModernGL
 using Alfar.Meshs
 using Alfar.Render
 using Alfar.Format.STL
+using Alfar.Main
 
 function run()
     # Create a window and its OpenGL context
@@ -33,100 +34,13 @@ function run()
     # Make the window's context current
     GLFW.MakeContextCurrent(window)
 
-    # Read hard coded STL file for now
-    stl = open("mycube.stl", "r") do io
-        STL.readbinary!(io)
-    end
-    rendermesh = makerendermesh(stl)
-
-    program = ShaderProgram("shaders/vertex.glsl", "shaders/fragment.glsl")
-
-    starttime = time()
-
     glEnable(GL_CULL_FACE)
     glEnable(GL_BLEND)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
     glEnable(GL_DEPTH_TEST)
-    GLFW.SetInputMode(window, GLFW.CURSOR, GLFW.CURSOR_DISABLED)
 
-    # Camera variables
-    cameraposition = (0f0, 0f0, 20f0)
-    camerafront = (0f0, 0f0, -1f0)
-    cameraup = (0f0, 1f0, 0f0)
-    yaw = -pi/2f0
-    pitch = 0f0
-    isfirstmouseinput = true
-
-    # Keyboard input time state
-    deltatime = 0f0
-    lastframetime = 0f0
-
-
-    GLFW.SetKeyCallback(window, (_, key, scancode, action, mods) -> begin
-        cameraspeed = 2.5f0 * deltatime
-        cameraright = Render.normalize(Render.cross(camerafront, cameraup))
-
-        if key == GLFW.KEY_W && action == GLFW.PRESS
-            cameraposition += camerafront * cameraspeed
-        end
-        if key == GLFW.KEY_S && action == GLFW.PRESS
-            cameraposition -= camerafront * cameraspeed
-        end
-        if key == GLFW.KEY_A && action == GLFW.PRESS
-            cameraposition -= cameraright * cameraspeed
-        end
-        if key == GLFW.KEY_D && action == GLFW.PRESS
-            cameraposition += cameraright * cameraspeed
-        end
-
-        if key == GLFW.KEY_ESCAPE && action == GLFW.PRESS
-            GLFW.SetWindowShouldClose(window, true)
-        end
-    end)
-
-    fov = 0.25f0*pi
-    GLFW.SetScrollCallback(window, (_, xoffset, yoffset) -> begin
-        fov -= Float32(yoffset)*2f0*pi/300
-        if fov < 2f0*pi/300f0
-            fov = 2f0*pi/300f0
-        end
-        if fov > pi/4f0
-            fov = pi/4f0
-        end
-    end)
-
-    lastx = 320
-    lasty = 240
-    GLFW.SetCursorPosCallback(window, (_, xpos, ypos) -> begin
-        if isfirstmouseinput
-            isfirstmouseinput = false
-            lastx = xpos
-            lasty = ypos
-        end
-
-        xoffset = xpos - lastx
-        yoffset = -(ypos - lasty)
-
-        lastx = xpos
-        lasty = ypos
-
-        sensitivity = 0.005f0
-        xoffset *= sensitivity
-        yoffset *= sensitivity
-
-        yaw += xoffset
-        pitch += yoffset
-
-        if pitch > (pi/2f0 - pi/100f0)
-            pitch = (pi/2f0 - pi/100f0)
-        end
-        if pitch < -(pi/2f0 - pi/100f0)
-            pitch = -(pi/2f0 - pi/100f0)
-        end
-
-        cameradirection = (Float32(cos(pitch) * cos(yaw)), Float32(sin(pitch)), Float32(cos(pitch) * sin(yaw)))
-        camerafront = Render.normalize(cameradirection)
-    end)
+    app = AlfarMain()
+    configureinput(app, window)
 
     # Loop until the user closes the window
     while !GLFW.WindowShouldClose(window)
@@ -134,43 +48,10 @@ function run()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
 	    # Render here
-
-        # Set alpha channel based on time
-        timevalue = Float32(time() - starttime)
-        # alpha = sin(2.0f0 * pi / 4.0f0 * timevalue) / 2.0f0 + 0.5f0
-
-        angle = 2.0f0 * pi / 12.0f0 * timevalue
-        # angle = -1f0*pi*5f0/8f0
-
-        scaling = Render.scale(1.0f0, 1.0f0, 1.0f0)
-
-        view = Render.lookat(cameraposition, cameraposition + camerafront, cameraup)
-
-        projection = Render.perspective(fov, 640f0/480f0, 0.1f0, 100f0)
-
-        use(program)
-
-        uniform(program, "alpha", 1.0f0)
-        uniform(program, "view", view)
-        uniform(program, "projection", projection)
-        uniform(program, "ambientStrength", 0.1f0)
-        uniform(program, "lightColor", (1f0, 1f0, 1f0))
-        uniform(program, "lightPosition", cameraposition)
-
-        bindmesh(rendermesh)
-        rotation = Render.rotatex(angle) * Render.rotatez(angle)
-
-        uniform(program, "model", rotation * scaling)
-        draw(rendermesh)
-        unbindmesh()
+        render(app)
 
 	    # Swap front and back buffers
 	    GLFW.SwapBuffers(window)
-
-        # Keep track of how long this frame took
-        currentframe = time()
-        deltatime = Float32(currentframe - lastframetime)
-        lastframetime = currentframe
 
 	    # Poll for and process events
 	    GLFW.PollEvents()

@@ -22,6 +22,7 @@ export cross, normalize
 #
 
 const Vector3{T} = NTuple{3, T}
+const Vector2{T} = NTuple{2, T}
 
 function Base.:-(a::Vector3{T}, b::Vector3{T}) :: Vector3{T} where {T}
     (a[1] - b[1], a[2] - b[2], a[3] - b[3])
@@ -37,6 +38,9 @@ end
 
 function Base.:*(a::Vector3{T}, s::T) :: Vector3{T} where {T}
     (a[1]*s, a[2]*s, a[3]*s)
+end
+function Base.:*(a::Vector2{T}, s::T) :: Vector2{T} where {T}
+    (a[1]*s, a[2]*s)
 end
 
 function cross(a::Vector3{T}, b::Vector3{T}) :: Vector3{T} where {T}
