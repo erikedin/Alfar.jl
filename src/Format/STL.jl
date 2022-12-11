@@ -17,6 +17,8 @@ module STL
 using Alfar.Math
 using Alfar.Meshs
 
+export makerendermesh
+
 struct Triangle
     normal::Vector3{Float32}
     v1::Vector3{Float32}

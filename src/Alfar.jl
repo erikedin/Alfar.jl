@@ -22,6 +22,7 @@ include("Tools.jl")
 
 using GLFW
 using ModernGL
+using Alfar.Meshs
 using Alfar.Render
 using Alfar.Format.STL
 
@@ -36,8 +37,9 @@ function run()
     stl = open("mycube.stl", "r") do io
         STL.readbinary!(io)
     end
+    rendermesh = makerendermesh(stl)
 
-    program, vao = Render.setupgraphics(stl)
+    program = ShaderProgram("shaders/vertex.glsl", "shaders/fragment.glsl")
 
     starttime = time()
 
@@ -155,29 +157,12 @@ function run()
         uniform(program, "lightColor", (1f0, 1f0, 1f0))
         uniform(program, "lightPosition", cameraposition)
 
-        glBindVertexArray(vao)
-        cubepositions = [
-            (0f0, 0f0, 0f0),
-            (0f0, 3f0, 0f0),
-            (0f0, -3f0, 0f0),
-            (-3f0, 0f0, 0f0),
-            (3f0, 0f0, 0f0),
+        bindmesh(rendermesh)
+        rotation = Render.rotatex(angle) * Render.rotatez(angle)
 
-            (0f0, 0f0, 6f0),
-            (0f0, 3f0, 6f0),
-            (0f0, -3f0, 6f0),
-            (-3f0, 0f0, 6f0),
-            (3f0, 0f0, 6f0),
-        ]
-        for (sx, sy, sz) in cubepositions
-            translation = Render.translate(sx, sy, sz)
-            # rotation = Render.rotatex(angle+sx) * Render.rotatez(angle+sy)
-            rotation = Render.rotatex(0f0)
-
-            uniform(program, "model", translation * rotation * scaling)
-            glDrawArrays(GL_TRIANGLES, 0, trunc(Int, stl.ntriangles * 3))
-        end
-        glBindVertexArray(0)
+        uniform(program, "model", rotation * scaling)
+        draw(rendermesh)
+        unbindmesh()
 
 	    # Swap front and back buffers
 	    GLFW.SwapBuffers(window)

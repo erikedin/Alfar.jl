@@ -19,6 +19,7 @@ using ModernGL
 using Alfar.Format.STL: STLBinary
 using Alfar.Math
 
+export ShaderProgram
 export use, uniform
 
 #
@@ -222,41 +223,6 @@ function transformidentity() :: Matrix4{GLfloat} where {}
         zero(GLfloat) zero(GLfloat)  one(GLfloat) zero(GLfloat);
         zero(GLfloat) zero(GLfloat) zero(GLfloat)  one(GLfloat);
     ])
-end
-
-function setupgraphics(stl::STLBinary)
-    vertices = GLfloat[
-    ]
-
-    for triangle in stl.triangles
-        append!(vertices, triangle.v1)
-        append!(vertices, triangle.normal)
-        append!(vertices, triangle.v2)
-        append!(vertices, triangle.normal)
-        append!(vertices, triangle.v3)
-        append!(vertices, triangle.normal)
-    end
-
-    vao = Ref{GLuint}()
-    glGenVertexArrays(1, vao)
-
-    glBindVertexArray(vao[])
-
-    vbo = Ref{GLuint}()
-    glGenBuffers(1, vbo)
-
-    glBindBuffer(GL_ARRAY_BUFFER, vbo[])
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW)
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6*sizeof(GLfloat), C_NULL)
-    glEnableVertexAttribArray(0)
-
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6*sizeof(GLfloat), Ptr{Cvoid}(3 * sizeof(GLfloat)))
-    glEnableVertexAttribArray(1)
-
-    program = ShaderProgram("shaders/vertex.glsl", "shaders/fragment.glsl")
-
-    program, vao[]
 end
 
 end

@@ -21,6 +21,7 @@ using Adapt
 export Mesh, RenderMesh
 export numberofvertices
 export mapresource, unmapresource
+export draw, bindmesh, unbindmesh
 
 struct Mesh{A}
     vertices::A
@@ -42,6 +43,7 @@ struct RenderMesh
     vao::GLuint
     vbo::GLuint
     graphicsResource::CUDA.CUgraphicsResource
+    nvertices::Int
 end
 
 function RenderMesh(vertices::Vector{Float32}) :: RenderMesh
@@ -68,8 +70,10 @@ function RenderMesh(vertices::Vector{Float32}) :: RenderMesh
     registerflags = CUDA.CU_GRAPHICS_REGISTER_FLAGS_WRITE_DISCARD
     CUDA.cuGraphicsGLRegisterBuffer(graphicsResourceRef, vbo[], registerflags)
 
-    RenderMesh(vao[], vbo[], graphicsResourceRef[])
+    RenderMesh(vao[], vbo[], graphicsResourceRef[], length(vertices))
 end
+
+numberofvertices(rendermesh::RenderMesh) :: Int = rendermesh.nvertices
 
 function mapresource(rendermesh::RenderMesh) :: Mesh
     CUDA.cuGraphicsMapResources(1, [rendermesh.graphicsResource], stream())
@@ -83,6 +87,18 @@ end
 
 function unmapresource(rendermesh::RenderMesh)
     CUDA.cuGraphicsUnmapResources(1, [rendermesh.graphicsResource], stream())
+end
+
+function draw(rendermesh::RenderMesh)
+    glDrawArrays(GL_TRIANGLES, 0, numberofvertices(rendermesh))
+end
+
+function bindmesh(rendermesh::RenderMesh)
+    glBindVertexArray(rendermesh.vao)
+end
+
+function unbindmesh()
+    glBindVertexArray(0)
 end
 
 end
