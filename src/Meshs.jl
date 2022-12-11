@@ -65,7 +65,8 @@ function RenderMesh(vertices::Vector{Float32}) :: RenderMesh
     # Register the OpenGL buffer, with all the vertex data, with CUDA, so it may read and write
     # to that buffer.
     graphicsResourceRef = Ref{CUDA.CUgraphicsResource}()
-    CUDA.cuGraphicsGLRegisterBuffer(graphicsResourceRef, vbo[], CUDA.CU_GRAPHICS_REGISTER_FLAGS_NONE)
+    registerflags = CUDA.CU_GRAPHICS_REGISTER_FLAGS_WRITE_DISCARD
+    CUDA.cuGraphicsGLRegisterBuffer(graphicsResourceRef, vbo[], registerflags)
 
     RenderMesh(vao[], vbo[], graphicsResourceRef[])
 end

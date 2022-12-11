@@ -104,7 +104,18 @@ function setupgraphics()
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6*sizeof(GLfloat), Ptr{Cvoid}(3 * sizeof(GLfloat)))
     glEnableVertexAttribArray(1)
 
-    vao[], 3
+    # CUDA: Register buffer
+    graphicsResourceRef = Ref{CUDA.CUgraphicsResource}()
+    registerflags = CUDA.CU_GRAPHICS_REGISTER_FLAGS_WRITE_DISCARD
+    CUDA.cuGraphicsGLRegisterBuffer(graphicsResourceRef, vbo[], registerflags)
+
+    vao[], 3, graphicsResourceRef[]
+end
+
+function docudathings(graphicsResource::CUDA.CUgraphicsResource)
+    CUDA.cuGraphicsMapResources(1, [graphicsResource], stream())
+
+    CUDA.cuGraphicsUnmapResources(1, [graphicsResource], stream())
 end
 
 function run()
@@ -115,7 +126,7 @@ function run()
     GLFW.MakeContextCurrent(window)
 
     # TODO Setup graphics
-    vao, numberofvertices = setupgraphics()
+    vao, numberofvertices, graphicsResource = setupgraphics()
     program = createprogram()
 
     glEnable(GL_CULL_FACE)
@@ -129,6 +140,7 @@ function run()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
 	    # Render here
+        docudathings(graphicsResource)
 
         glUseProgram(program)
 
