@@ -29,7 +29,7 @@ Adapt.@adapt_structure Mesh
 
 function Mesh(devicepointer::CUDA.CUdeviceptr, nbytes::Csize_t) :: Mesh
     vertexpointer = reinterpret(CuPtr{Float32}, devicepointer)
-    len = nbytes / sizeof(Float32)
+    len = trunc(Int, nbytes / sizeof(Float32))
     vertices = unsafe_wrap(CuArray, vertexpointer, len)
     Mesh(vertices)
 end
