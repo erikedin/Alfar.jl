@@ -15,56 +15,91 @@
 using Alfar.Meshs
 using Alfar.Format.STL
 using Alfar.Math
+using CUDA
 
 @testset "GPU" begin
 
 @testset "Mesh" begin
 
 function readnumberofvertices_gpu!(mesh::Mesh, nout)
-    if threadIdx.x() == 1
+    if threadIdx().x == 1
         nout[1] = numberofvertices(mesh)
     end
+    return
 end
 
-@testset "Read cube from STL; Mesh on GPU has 8 vertices" begin
+@testset "Read cube from STL; Mesh on GPU has 36 vertices" begin
     # Arrange
     # TODO Create cube
     vertices = [
-        # Front
-        (-0.5f0, -0.5f0,  0.5f0), # 1 Front lower left
-        ( 0.5f0, -0.5f0,  0.5f0), # 2 Front lower right
-        ( 0.5f0,  0.5f0,  0.5f0), # 3 Front upper right
-        (-0.5f0,  0.5f0,  0.5f0), # 4 Front upper left
+         0.0f0,  0.0f0,  1.0f0,
+        -0.5f0, -0.5f0,  0.5f0,
+         0.5f0,  0.5f0,  0.5f0,
+        -0.5f0,  0.5f0,  0.5f0,
 
-        # Back
-        ( 0.5f0, -0.5f0, -0.5f0), # 5 Back lower right
-        (-0.5f0, -0.5f0, -0.5f0), # 6 Back lower left
-        (-0.5f0,  0.5f0, -0.5f0), # 7 Back upper left
-        ( 0.5f0,  0.5f0, -0.5f0), # 8 Back upper right
-    ]
-    faces = [
-        (1, 3, 4), # Upper front
-        (1, 2, 3), # Lower front
-        (5, 7, 8), # Upper back
-        (5, 6, 7), # Lower back
-        (2, 8, 3), # Upper right
-        (2, 5, 8), # Lower right
-        (6, 4, 7), # Upper left
-        (6, 1, 4), # Lower left
-        (4, 3, 8), # Front top
-        (4, 8, 7), # Back  top
-        (6, 5, 2), # Front bottom
-        (6, 2, 1), # Back  bottom
-    ]
-    triangles = Vector{STL.Triangle}()
-    for face in faces
-        v1 = vertices[face[1]]
-        v2 = vertices[face[2]]
-        v3 = vertices[face[3]]
-        normal = cross(v2 - v1, v3 - v1)
+         0.0f0,  0.0f0,  1.0f0,
+        -0.5f0, -0.5f0,  0.5f0,
+         0.5f0, -0.5f0,  0.5f0,
+         0.5f0,  0.5f0,  0.5f0,
 
-        triangle = STL.Triangle(normal, v1, v2, v3, UInt16(0))
-        push!(triangles, triangle)
+         0.0f0,  0.0f0, -1.0f0,
+         0.5f0, -0.5f0, -0.5f0,
+        -0.5f0,  0.5f0, -0.5f0,
+         0.5f0,  0.5f0, -0.5f0,
+
+         0.0f0,  0.0f0, -1.0f0,
+         0.5f0, -0.5f0, -0.5f0,
+        -0.5f0, -0.5f0, -0.5f0,
+        -0.5f0,  0.5f0, -0.5f0,
+
+         1.0f0, -0.0f0,  0.0f0,
+         0.5f0, -0.5f0,  0.5f0,
+         0.5f0,  0.5f0, -0.5f0,
+         0.5f0,  0.5f0,  0.5f0,
+
+         1.0f0,  0.0f0,  0.0f0,
+         0.5f0, -0.5f0,  0.5f0,
+         0.5f0, -0.5f0, -0.5f0,
+         0.5f0,  0.5f0, -0.5f0,
+
+        -1.0f0,  0.0f0,  0.0f0,
+        -0.5f0, -0.5f0, -0.5f0,
+        -0.5f0,  0.5f0,  0.5f0,
+        -0.5f0,  0.5f0, -0.5f0,
+
+        -1.0f0,  0.0f0,  0.0f0,
+        -0.5f0, -0.5f0, -0.5f0,
+        -0.5f0, -0.5f0,  0.5f0,
+        -0.5f0,  0.5f0,  0.5f0,
+
+        -0.0f0,  1.0f0,  0.0f0,
+        -0.5f0,  0.5f0,  0.5f0,
+         0.5f0,  0.5f0,  0.5f0,
+         0.5f0,  0.5f0, -0.5f0,
+
+         0.0f0,  1.0f0,  0.0f0,
+        -0.5f0,  0.5f0,  0.5f0,
+         0.5f0,  0.5f0, -0.5f0,
+        -0.5f0,  0.5f0, -0.5f0,
+
+         0.0f0, -1.0f0,  0.0f0,
+        -0.5f0, -0.5f0, -0.5f0,
+         0.5f0, -0.5f0, -0.5f0,
+         0.5f0, -0.5f0,  0.5f0,
+
+         0.0f0, -1.0f0,  0.0f0,
+        -0.5f0, -0.5f0, -0.5f0,
+         0.5f0, -0.5f0,  0.5f0,
+        -0.5f0, -0.5f0,  0.5f0,
+    ]
+
+    triangles = STL.Triangle[]
+    for faceindex = 1:12:length(vertices)
+        normal = Vector3(vertices[faceindex:faceindex+2])
+        v1     = Vector3(vertices[faceindex+3:faceindex+5])
+        v2     = Vector3(vertices[faceindex+6:faceindex+8])
+        v3     = Vector3(vertices[faceindex+9:faceindex+11])
+        push!(triangles, STL.Triangle(normal, v1, v2, v3, UInt16(0)))
     end
     stl = STL.STLBinary(triangles)
 
@@ -73,14 +108,15 @@ end
     seekstart(io)
 
     # Act
-    mesh = STL.read(io, Mesh)
-
-    # Assert
+    readstl = STL.readbinary!(io)
+    mesh = STL.makemesh(readstl)
     nout = CuArray{Int}(undef, 1)
     @CUDA.sync @cuda threads=1 readnumberofvertices_gpu!(mesh, nout)
-    verticesongpu = nout[1]
 
-    @test verticesongpu == 8
+    # Assert
+    verticesongpu = CUDA.@allowscalar nout[1]
+
+    @test verticesongpu == 36
 end
 
 end # testset "Mesh"

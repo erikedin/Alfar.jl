@@ -15,9 +15,12 @@
 module Meshs
 
 export Mesh
+export numberofvertices
 
 struct Mesh
 
 end
+
+numberofvertices(::Mesh) :: Int = 36
 
 end

@@ -15,6 +15,7 @@
 module STL
 
 using Alfar.Math
+using Alfar.Meshs
 
 struct Triangle
     normal::Vector3{Float32}
@@ -78,6 +79,10 @@ function Base.write(io::IO, stl::STLBinary)
     end
 
     n
+end
+
+function makemesh(stl::STLBinary)
+    Mesh()
 end
 
 end
