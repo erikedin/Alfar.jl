@@ -96,7 +96,7 @@ function setupgraphics()
     glGenBuffers(1, vbo)
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo[])
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW)
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW)
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6*sizeof(GLfloat), C_NULL)
     glEnableVertexAttribArray(0)
@@ -112,13 +112,40 @@ function setupgraphics()
     vao[], 3, graphicsResourceRef[]
 end
 
+function wrapresource(devicepointer::CUDA.CUdeviceptr, n::Csize_t)
+    devicearray = reinterpret(CuPtr{Float32}, devicepointer)
+    len = trunc(Int, n / sizeof(Float32))
+    unsafe_wrap(CuArray, devicearray, len)
+end
+
+function vertexgpu!(vertices)
+    index1 = 1
+    index2 = 7
+    index3 = 13
+    if threadIdx().x == 1
+
+    end
+    return
+end
+
 function docudathings(graphicsResource::CUDA.CUgraphicsResource)
     CUDA.cuGraphicsMapResources(1, [graphicsResource], stream())
+
+    devicepointer = Ref{CUDA.CUdeviceptr}()
+    sizepointer = Ref{Csize_t}()
+    CUDA.cuGraphicsResourceGetMappedPointer_v2(devicepointer, sizepointer, graphicsResource)
+    verticesdevice = wrapresource(devicepointer[], sizepointer[])
+
+    CUDA.@sync @cuda threads=1 vertexgpu!(verticesdevice)
 
     CUDA.cuGraphicsUnmapResources(1, [graphicsResource], stream())
 end
 
 function run()
+    # Pre-compile the CUDA kernel, or it will happen on the first render.
+    dummyvertices = CUDA.zeros(Float32, 18)
+    CUDA.@sync @cuda threads=1 vertexgpu!(dummyvertices)
+
     # Create a window and its OpenGL context
     window = GLFW.CreateWindow(640, 480, "Alfar")
 
