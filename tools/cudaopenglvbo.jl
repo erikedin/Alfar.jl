@@ -118,17 +118,28 @@ function wrapresource(devicepointer::CUDA.CUdeviceptr, n::Csize_t)
     unsafe_wrap(CuArray, devicearray, len)
 end
 
-function vertexgpu!(vertices)
-    index1 = 1
-    index2 = 7
-    index3 = 13
+function vertexgpu!(vertices, angle::Float32)
     if threadIdx().x == 1
+        x1 = vertices[1]
+        y1 = vertices[2]
+        x2 = vertices[7]
+        y2 = vertices[8]
+        x3 = vertices[13]
+        y3 = vertices[14]
 
+        vertices[1] = x1*cos(angle) - y1*sin(angle)
+        vertices[2] = x1*sin(angle) + y1*cos(angle)
+
+        vertices[7] = x2*cos(angle) - y2*sin(angle)
+        vertices[8] = x2*sin(angle) + y2*cos(angle)
+
+        vertices[13] = x3*cos(angle) - y3*sin(angle)
+        vertices[14] = x3*sin(angle) + y3*cos(angle)
     end
     return
 end
 
-function docudathings(graphicsResource::CUDA.CUgraphicsResource)
+function docudathings(graphicsResource::CUDA.CUgraphicsResource, angle::Float32)
     CUDA.cuGraphicsMapResources(1, [graphicsResource], stream())
 
     devicepointer = Ref{CUDA.CUdeviceptr}()
@@ -136,7 +147,7 @@ function docudathings(graphicsResource::CUDA.CUgraphicsResource)
     CUDA.cuGraphicsResourceGetMappedPointer_v2(devicepointer, sizepointer, graphicsResource)
     verticesdevice = wrapresource(devicepointer[], sizepointer[])
 
-    CUDA.@sync @cuda threads=1 vertexgpu!(verticesdevice)
+    CUDA.@sync @cuda threads=1 vertexgpu!(verticesdevice, angle::Float32)
 
     CUDA.cuGraphicsUnmapResources(1, [graphicsResource], stream())
 end
@@ -144,7 +155,7 @@ end
 function run()
     # Pre-compile the CUDA kernel, or it will happen on the first render.
     dummyvertices = CUDA.zeros(Float32, 18)
-    CUDA.@sync @cuda threads=1 vertexgpu!(dummyvertices)
+    CUDA.@sync @cuda threads=1 vertexgpu!(dummyvertices, 0f0)
 
     # Create a window and its OpenGL context
     window = GLFW.CreateWindow(640, 480, "Alfar")
@@ -161,13 +172,19 @@ function run()
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
     glEnable(GL_DEPTH_TEST)
 
+    lastrender = time()
+
     # Loop until the user closes the window
     while !GLFW.WindowShouldClose(window)
         glClearColor(0.2f0, 0.3f0, 0.3f0, 1.0f0)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
 	    # Render here
-        docudathings(graphicsResource)
+        elapsedtime = time() - lastrender
+        lastrender = time()
+        angle = 2.0 * pi * elapsedtime / 4.0
+        docudathings(graphicsResource, Float32(angle))
+
 
         glUseProgram(program)
 
