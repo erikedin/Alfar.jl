@@ -18,7 +18,9 @@ export MengerSponge
 export fractal
 
 struct Empty{N} end
+
 fractal(::Empty{0}) = [0]
+
 function fractal(::Empty{N}) where {N}
     o = fractal(Empty{N-1}())
     [
@@ -39,10 +41,12 @@ end
 struct MengerSponge{N} end
 
 side(m::MengerSponge{N}) where {N} = 3^N
+
 function dimensions(m::MengerSponge{N}) where {N}
     s = side(m)
     (s, s, s)
 end
+
 function size(m::MengerSponge{N}) where {N}
     (x,y,z) = dimensions(m)
     x*y*z
@@ -53,7 +57,7 @@ fractal(m::MengerSponge{0}) = [1]
 function fractal(m::MengerSponge{N}) where {N}
     x = fractal(MengerSponge{N-1}())
     o = fractal(Empty{N-1}())
-    subdivision = [
+    [
         x x x
         x o x
         x x x;;;
