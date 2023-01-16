@@ -14,16 +14,16 @@
 
 using Alfar.Fractal
 
-m0 = Menger{0}()
-println("Menger 0:", fractal(m0))
+m0 = MengerSponge{0}()
+println("Menger sponge 0: ", fractal(m0))
 println()
 
-m1 = Menger{1}()
-println("Menger 1:", fractal(m1))
-println("Menger 2 size: $(size(fractal(m1)))")
+m1 = MengerSponge{1}()
+println("Menger sponge 1: ", fractal(m1))
+println("Menger sponge 1 size: $(size(fractal(m1)))")
 println()
 
-m2 = Menger{2}()
-println("Menger 2:", fractal(m2))
-println("Menger 2 size: $(size(fractal(m2)))")
+m2 = MengerSponge{2}()
+println("Menger sponge 2: ", fractal(m2))
+println("Menger sponge 2 size: $(size(fractal(m2)))")
 println()

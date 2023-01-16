@@ -14,61 +14,57 @@
 
 module Fractal
 
-export Menger
+export MengerSponge
 export fractal
 
 struct Empty{N} end
 fractal(::Empty{0}) = [0]
 function fractal(::Empty{N}) where {N}
-    o = Empty{N-1}()
-    f = fractal
+    o = fractal(Empty{N-1}())
     [
-        f(o) f(o) f(o)
-        f(o) f(o) f(o)
-        f(o) f(o) f(o);;;
+        o o o
+        o o o
+        o o o;;;
 
-        f(o) f(o) f(o)
-        f(o) f(o) f(o)
-        f(o) f(o) f(o);;;
+        o o o
+        o o o
+        o o o;;;
         
-        f(o) f(o) f(o)
-        f(o) f(o) f(o)
-        f(o) f(o) f(o)
+        o o o
+        o o o
+        o o o
     ]
 end
 
-struct Menger{N} end
+struct MengerSponge{N} end
 
-side(m::Menger{N}) where {N} = 3^N
-function dimensions(m::Menger{N}) where {N}
+side(m::MengerSponge{N}) where {N} = 3^N
+function dimensions(m::MengerSponge{N}) where {N}
     s = side(m)
     (s, s, s)
 end
-function size(m::Menger{N}) where {N}
+function size(m::MengerSponge{N}) where {N}
     (x,y,z) = dimensions(m)
     x*y*z
 end
 
+fractal(m::MengerSponge{0}) = [1]
 
-
-fractal(m::Menger{0}) = [1]
-
-function fractal(m::Menger{N}) where {N}
-    x = Menger{N-1}()
-    o = Empty{N-1}()
-    f = fractal
+function fractal(m::MengerSponge{N}) where {N}
+    x = fractal(MengerSponge{N-1}())
+    o = fractal(Empty{N-1}())
     subdivision = [
-        f(x) f(x) f(x)
-        f(x) f(o) f(x)
-        f(x) f(x) f(x);;;
+        x x x
+        x o x
+        x x x;;;
 
-        f(x) f(o) f(x)
-        f(o) f(o) f(o)
-        f(x) f(o) f(x);;;
+        x o x
+        o o o
+        x o x;;;
 
-        f(x) f(x) f(x)
-        f(x) f(o) f(x)
-        f(x) f(x) f(x);;;
+        x x x
+        x o x
+        x x x;;;
     ]
 end
 
