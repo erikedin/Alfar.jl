@@ -15,6 +15,7 @@
 module Alfar
 
 include("Math.jl")
+include("Fractal.jl")
 include("Meshs.jl")
 include("Format/Format.jl")
 include("Render.jl")
