@@ -14,8 +14,10 @@
 
 module VolumeTextures
 
-using MengerSponge
 using ModernGL
+
+export VolumeTexture
+export bind, textureimage
 
 struct VolumeTexture
     id::Int
@@ -26,21 +28,23 @@ end
 
 function VolumeTexture(width::Int, height::Int, depth::Int) :: VolumeTexture
     textureRef = Ref{GLuint}()
-    id = glGenTextures(1, textureRef)
+    glGenTextures(1, textureRef)
 
-    new(id, width, height, depth)
+    VolumeTexture(textureRef[], width, height, depth)
 end
 
 bind(vt::VolumeTexture) = glBindTexture(GL_TEXTURE_3D, vt.id)
 
 function textureimage(vt::VolumeTexture, data::AbstractVector{GL_UNSIGNED_BYTE})
+    bind(vt)
+
     levelofdetail = 0 # No mipmaps
     internalformat = GL_RGBA
     border = 0 # Must be zero according to the documentation
     format = GL_RGBA
     type = GL_UNSIGNED_BYTE
     voxels = Ref(data, 1)
-    glTextImage3D(GL_TEXTURE_3D, levelofdetail, internalformat, vt.width, vt.height, vt.depth, border, format, type, voxels)
+    glTexImage3D(GL_TEXTURE_3D, levelofdetail, internalformat, vt.width, vt.height, vt.depth, border, format, type, voxels)
 end
 
 end

@@ -15,34 +15,14 @@
 module Meshs
 
 using ModernGL
-using CUDA
-using Adapt
 
-export Mesh, RenderMesh
+export RenderMesh
 export numberofvertices
-export mapresource, unmapresource
 export draw, bindmesh, unbindmesh
 
-struct Mesh{A}
-    vertices::A
-end
-Adapt.@adapt_structure Mesh
-
-function Mesh(devicepointer::CUDA.CUdeviceptr, nbytes::Csize_t) :: Mesh
-    vertexpointer = reinterpret(CuPtr{Float32}, devicepointer)
-    len = trunc(Int, nbytes / sizeof(Float32))
-    vertices = unsafe_wrap(CuArray, vertexpointer, len)
-    Mesh(vertices)
-end
-
-numberofvertices(mesh::Mesh) :: Int = length(mesh.vertices) / 6
-
-# RenderMesh contains the OpenGL specific data of a mesh, while
-# the Mesh contains the parts that CUDA will modify.
 struct RenderMesh
     vao::GLuint
     vbo::GLuint
-    graphicsResource::CUDA.CUgraphicsResource
     nvertices::Int
 end
 
@@ -64,30 +44,13 @@ function RenderMesh(vertices::Vector{Float32}) :: RenderMesh
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6*sizeof(GLfloat), Ptr{Cvoid}(3 * sizeof(GLfloat)))
     glEnableVertexAttribArray(1)
 
-    # Register the OpenGL buffer, with all the vertex data, with CUDA, so it may read and write
-    # to that buffer.
-    graphicsResourceRef = Ref{CUDA.CUgraphicsResource}()
-    registerflags = CUDA.CU_GRAPHICS_REGISTER_FLAGS_WRITE_DISCARD
-    CUDA.cuGraphicsGLRegisterBuffer(graphicsResourceRef, vbo[], registerflags)
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 9*sizeof(GLfloat), Ptr{Cvoid}(3 * sizeof(GLfloat)))
+    glEnableVertexAttribArray(2)
 
-    RenderMesh(vao[], vbo[], graphicsResourceRef[], length(vertices))
+    RenderMesh(vao[], vbo[], length(vertices))
 end
 
 numberofvertices(rendermesh::RenderMesh) :: Int = rendermesh.nvertices
-
-function mapresource(rendermesh::RenderMesh) :: Mesh
-    CUDA.cuGraphicsMapResources(1, [rendermesh.graphicsResource], stream())
-
-    devicepointer = Ref{CUDA.CUdeviceptr}()
-    sizepointer = Ref{Csize_t}()
-    CUDA.cuGraphicsResourceGetMappedPointer_v2(devicepointer, sizepointer, rendermesh.graphicsResource)
-
-    Mesh(devicepointer[], sizepointer[])
-end
-
-function unmapresource(rendermesh::RenderMesh)
-    CUDA.cuGraphicsUnmapResources(1, [rendermesh.graphicsResource], stream())
-end
 
 function draw(rendermesh::RenderMesh)
     glDrawArrays(GL_TRIANGLES, 0, numberofvertices(rendermesh))

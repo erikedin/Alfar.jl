@@ -14,28 +14,13 @@
 
 #version 330 core
 
-in vec3 ourColor;
-in vec3 Normal;
-in vec3 FragPos;
+in vec3 TexCoord;
 
 out vec4 FragColor;
 
-uniform float alpha;
-uniform float ambientStrength;
-uniform vec3 lightColor;
-uniform vec3 lightPosition;
+uniform sampler3D ourTexture;
 
 void main()
 {
-    // Ambient color
-    vec3 ambient = ambientStrength * lightColor;
-
-    // Diffuse color
-    vec3 normal = normalize(Normal);
-    vec3 lightDirection = normalize(lightPosition - FragPos);
-    float diffuseFactor = max(dot(normal, lightDirection), 0.0);
-    vec3 diffuse = diffuseFactor * lightColor;
-
-    vec3 color = (ambient + diffuse) * ourColor;
-    FragColor = vec4(color, alpha);
+    FragColor = texture(ourTexture, TexCoord);
 }

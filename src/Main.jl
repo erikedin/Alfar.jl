@@ -22,6 +22,7 @@ using Alfar.Math
 using Alfar.Render
 using Alfar.Meshs
 using Alfar.Format.STL
+using Alfar.VolumeTextures
 
 mutable struct Camera
     position::Vector3{Float32}
@@ -60,12 +61,21 @@ rendered!(t::Timing) = t.lastrender = time()
 
 mutable struct Object
     rendermesh::RenderMesh
+    texture::VolumeTexture
     translation::Matrix4{Float32}
     scaling::Matrix4{Float32}
     rotation::Matrix4{Float32}
 end
 
 model(o::Object) :: Matrix4{Float32} = o.translation * o.scaling * o.rotation
+
+function draw(object::Object)
+    bindmesh(object.rendermesh)
+    bind(object.volumetexture)
+    uniform(app.program, "model", model(object))
+    draw(object.rendermesh)
+    unbindmesh()
+end
 
 struct AlfarMain
     camera::Camera
@@ -79,19 +89,11 @@ function AlfarMain()
     program = ShaderProgram("shaders/vertex.glsl", "shaders/fragment.glsl")
 
     # Read hard coded STL file for now
-    stl = open("mycube.stl", "r") do io
-        STL.readbinary!(io)
-    end
-    rendermesh = makerendermesh(stl)
-    mycube = Object(rendermesh, translate(0f0, 0f0, 0f0), scale(1f0, 1f0, 1f0), rotatez(0f0))
+    rendermesh = RenderMesh(Render.viewingbox())
+    volumetexture = Render.mengerspongetexture()
+    viewingcube = Object(rendermesh, volumetexture, translate(0f0, 0f0, 0f0), scale(1f0, 1f0, 1f0), rotatez(0f0))
 
-    stl2 = open("Utah_teapot.stl", "r") do io
-        STL.readbinary!(io)
-    end
-    teapotmesh = makerendermesh(stl2)
-    teapot = Object(teapotmesh, translate(-5f0, 0f0, 0f0), scale(0.3f0, 0.3f0, 0.3f0), rotatez(2f0*Float32(pi)/8))
-
-    AlfarMain(Camera(), MouseState(), Timing(), program, [mycube, teapot])
+    AlfarMain(Camera(), MouseState(), Timing(), program, [viewingcube])
 end
 
 function configureinput(app::AlfarMain, window::GLFW.Window)
@@ -177,10 +179,7 @@ function render(app::AlfarMain)
     uniform(app.program, "lightPosition", app.camera.position)
 
     for object in app.objects
-        bindmesh(object.rendermesh)
-        uniform(app.program, "model", model(object))
         draw(object.rendermesh)
-        unbindmesh()
     end
 
     rendered!(app.timing)

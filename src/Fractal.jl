@@ -15,7 +15,7 @@
 module Fractal
 
 export MengerSponge
-export fractal
+export fractal, size, dimensions
 
 struct Empty{N} end
 
@@ -47,7 +47,7 @@ function dimensions(m::MengerSponge{N}) where {N}
     (s, s, s)
 end
 
-function size(m::MengerSponge{N}) where {N}
+function Base.size(m::MengerSponge{N}) where {N}
     (x,y,z) = dimensions(m)
     x*y*z
 end

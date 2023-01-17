@@ -18,6 +18,8 @@ using ModernGL
 
 using Alfar.Format.STL: STLBinary
 using Alfar.Math
+using Alfar.VolumeTextures
+using Alfar.Fractal
 
 export ShaderProgram
 export use, uniform
@@ -224,6 +226,79 @@ function transformidentity() :: Matrix4{GLfloat} where {}
         zero(GLfloat) zero(GLfloat)  one(GLfloat) zero(GLfloat);
         zero(GLfloat) zero(GLfloat) zero(GLfloat)  one(GLfloat);
     ])
+end
+
+#
+# Viewing box
+#
+
+function viewingbox()
+    vertices = GLfloat[
+        # Position              # Normals         # Texture coordinate
+        # Back side
+         0.5f0, -0.5f0, -0.5f0,  0f0,  0f0, -1f0, 1.0f0, 0.0f0, 0.0f0, # Right bottom back
+        -0.5f0,  0.5f0, -0.5f0,  0f0,  0f0, -1f0, 0.0f0, 1.0f0, 0.0f0, # Left  top    back
+         0.5f0,  0.5f0, -0.5f0,  0f0,  0f0, -1f0, 1.0f0, 1.0f0, 0.0f0, # Right top    back
+         0.5f0, -0.5f0, -0.5f0,  0f0,  0f0, -1f0, 1.0f0, 0.0f0, 0.0f0, # Right bottom back
+        -0.5f0, -0.5f0, -0.5f0,  0f0,  0f0, -1f0, 0.0f0, 0.0f0, 0.0f0, # Left  bottom back
+        -0.5f0,  0.5f0, -0.5f0,  0f0,  0f0, -1f0, 0.0f0, 1.0f0, 0.0f0, # Left  top    back
+
+        # Front side
+         0.5f0, -0.5f0,  0.5f0,  0f0,  0f0,  1f0, 1.0f0, 0.0f0, 1.0f0, # Right bottom front
+         0.5f0,  0.5f0,  0.5f0,  0f0,  0f0,  1f0, 1.0f0, 1.0f0, 1.0f0, # Right top    front
+        -0.5f0,  0.5f0,  0.5f0,  0f0,  0f0,  1f0, 0.0f0, 1.0f0, 1.0f0, # Left  top    front
+         0.5f0, -0.5f0,  0.5f0,  0f0,  0f0,  1f0, 1.0f0, 0.0f0, 1.0f0, # Right bottom front
+        -0.5f0,  0.5f0,  0.5f0,  0f0,  0f0,  1f0, 0.0f0, 1.0f0, 1.0f0, # Left  top    front
+        -0.5f0, -0.5f0,  0.5f0,  0f0,  0f0,  1f0, 0.0f0, 0.0f0, 1.0f0, # Left  bottom front
+
+        # Left side
+        -0.5f0,  0.5f0, -0.5f0, -1f0,  0f0,  0f0, 0.0f0, 1.0f0, 0.0f0, # Left top    back
+        -0.5f0, -0.5f0, -0.5f0, -1f0,  0f0,  0f0, 0.0f0, 0.0f0, 0.0f0, # Left bottom back
+        -0.5f0, -0.5f0,  0.5f0, -1f0,  0f0,  0f0, 0.0f0, 0.0f0, 1.0f0, # Left bottom front
+        -0.5f0,  0.5f0, -0.5f0, -1f0,  0f0,  0f0, 0.0f0, 1.0f0, 0.0f0, # Left top    back
+        -0.5f0, -0.5f0,  0.5f0, -1f0,  0f0,  0f0, 0.0f0, 0.0f0, 1.0f0, # Left bottom front
+        -0.5f0,  0.5f0,  0.5f0, -1f0,  0f0,  0f0, 0.0f0, 1.0f0, 1.0f0, # Left top    front
+
+        # Right side
+         0.5f0, -0.5f0, -0.5f0,  1f0,  0f0,  0f0, 1.0f0, 0.0f0, 0.0f0, # Right bottom back
+         0.5f0,  0.5f0, -0.5f0,  1f0,  0f0,  0f0, 1.0f0, 1.0f0, 0.0f0, # Right top    back
+         0.5f0, -0.5f0,  0.5f0,  1f0,  0f0,  0f0, 1.0f0, 0.0f0, 1.0f0, # Right bottom front
+         0.5f0, -0.5f0,  0.5f0,  1f0,  0f0,  0f0, 1.0f0, 0.0f0, 1.0f0, # Right bottom front
+         0.5f0,  0.5f0, -0.5f0,  1f0,  0f0,  0f0, 1.0f0, 1.0f0, 0.0f0, # Right top    back
+         0.5f0,  0.5f0,  0.5f0,  1f0,  0f0,  0f0, 1.0f0, 1.0f0, 1.0f0, # Right top    front
+
+        # Bottom side
+        -0.5f0, -0.5f0, -0.5f0,  0f0, -1f0,  0f0, 0.0f0, 0.0f0, 0.0f0, # Left  bottom back
+         0.5f0, -0.5f0, -0.5f0,  0f0, -1f0,  0f0, 1.0f0, 0.0f0, 0.0f0, # Right bottom back
+         0.5f0, -0.5f0,  0.5f0,  0f0, -1f0,  0f0, 1.0f0, 0.0f0, 1.0f0, # Right bottom front
+        -0.5f0, -0.5f0,  0.5f0,  0f0, -1f0,  0f0, 0.0f0, 0.0f0, 1.0f0, # Left  bottom front
+        -0.5f0, -0.5f0, -0.5f0,  0f0, -1f0,  0f0, 0.0f0, 0.0f0, 0.0f0, # Left  bottom back
+         0.5f0, -0.5f0,  0.5f0,  0f0, -1f0,  0f0, 1.0f0, 0.0f0, 1.0f0, # Right bottom front
+
+        # Top side
+        -0.5f0,  0.5f0, -0.5f0,  0f0,  1f0,  0f0, 0.0f0, 1.0f0, 0.0f0, # Left  top back
+         0.5f0,  0.5f0,  0.5f0,  0f0,  1f0,  0f0, 1.0f0, 1.0f0, 1.0f0, # Right top front
+         0.5f0,  0.5f0, -0.5f0,  0f0,  1f0,  0f0, 1.0f0, 1.0f0, 0.0f0, # Right top back
+         0.5f0,  0.5f0,  0.5f0,  0f0,  1f0,  0f0, 1.0f0, 1.0f0, 1.0f0, # Right top front
+        -0.5f0,  0.5f0, -0.5f0,  0f0,  1f0,  0f0, 0.0f0, 1.0f0, 0.0f0, # Left  top back
+        -0.5f0,  0.5f0,  0.5f0,  0f0,  1f0,  0f0, 0.0f0, 1.0f0, 1.0f0, # Left  top front
+    ]
+end
+
+function mengerspongetexture() :: VolumeTexture
+    sponge = MengerSponge{2}()
+    fractalvoxels = fractal(sponge)
+
+    voxelcolor = x -> if x == 1 (1f0, 0f0, 0f0) else (0f0, 0f0, 0f0) end
+
+    colorvoxels = map(voxelcolor, fractalvoxels)
+
+    texturedata = reshape(colorvoxels, size(sponge))
+
+    vt = VolumeTexture(dimensions(sponge)...)
+    textureimage(vt, texturedata)
+
+    vt
 end
 
 end
