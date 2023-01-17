@@ -17,7 +17,7 @@ module VolumeTextures
 using ModernGL
 
 export VolumeTexture
-export bind, textureimage
+export bindvolume, textureimage
 
 struct VolumeTexture
     id::Int
@@ -33,10 +33,10 @@ function VolumeTexture(width::Int, height::Int, depth::Int) :: VolumeTexture
     VolumeTexture(textureRef[], width, height, depth)
 end
 
-bind(vt::VolumeTexture) = glBindTexture(GL_TEXTURE_3D, vt.id)
+bindvolume(vt::VolumeTexture) = glBindTexture(GL_TEXTURE_3D, vt.id)
 
-function textureimage(vt::VolumeTexture, data::AbstractVector{GL_UNSIGNED_BYTE})
-    bind(vt)
+function textureimage(vt::VolumeTexture, data::AbstractVector{UInt8})
+    bindvolume(vt)
 
     levelofdetail = 0 # No mipmaps
     internalformat = GL_RGBA

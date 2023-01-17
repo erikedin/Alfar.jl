@@ -61,7 +61,7 @@ rendered!(t::Timing) = t.lastrender = time()
 
 mutable struct Object
     rendermesh::RenderMesh
-    texture::VolumeTexture
+    volumetexture::VolumeTexture
     translation::Matrix4{Float32}
     scaling::Matrix4{Float32}
     rotation::Matrix4{Float32}
@@ -69,11 +69,11 @@ end
 
 model(o::Object) :: Matrix4{Float32} = o.translation * o.scaling * o.rotation
 
-function draw(object::Object)
+function draw(object::Object, program::ShaderProgram)
     bindmesh(object.rendermesh)
-    bind(object.volumetexture)
-    uniform(app.program, "model", model(object))
-    draw(object.rendermesh)
+    bindvolume(object.volumetexture)
+    uniform(program, "model", model(object))
+    Meshs.draw(object.rendermesh)
     unbindmesh()
 end
 
@@ -179,7 +179,7 @@ function render(app::AlfarMain)
     uniform(app.program, "lightPosition", app.camera.position)
 
     for object in app.objects
-        draw(object.rendermesh)
+        draw(object, app.program)
     end
 
     rendered!(app.timing)
