@@ -224,12 +224,44 @@ end
 
 function generatetexture(width, height)
     texturedata = UInt8[]
-    for x = 1:width
-        for y = 1:height
-            r = UInt8(0)
-            g = round(UInt8, 127 * sin(2.0 * pi * x / Float32(width)) + 127)
-            b = round(UInt8, 127 * sin(2.0 * pi * y / Float32(height)) + 127)
-            a = UInt8(255)
+    for y = 1:height
+        for x = 1:width
+            isrightborder = x <= 2
+            isleftborder = x >= width - 1
+            istopborder = y <= 2
+            isbottomborder = y >= height - 1
+            isborder = isrightborder || isleftborder || istopborder || isbottomborder
+            iscross = x == width / 2 || x == width / 2 + 1
+
+            iscenterwidthquadrant1 = x == 3 * width / 4 || x == 3 * width / 4 + 1
+            iscenterheightquadrant1 = y == 3 * height / 4 || y == 3 * height / 4 + 1
+            iscenterquadrant1 = iscenterheightquadrant1 && iscenterwidthquadrant1
+
+            iscenterwidthquadrant2 = x == width / 4 || x == width / 4 + 1
+            iscenterheightquadrant2 = y == 3 * height / 4 || y == 3 * height / 4 + 1
+            iscenterquadrant2 = iscenterheightquadrant2 && iscenterwidthquadrant2
+
+            if iscenterquadrant1
+                r = UInt8(255)
+                g = UInt8(0)
+                b = UInt8(0)
+                a = UInt8(255)
+            elseif iscenterquadrant2
+                r = UInt8(0)
+                g = UInt8(0)
+                b = UInt8(0)
+                a = UInt8(255)
+            elseif isborder || iscross
+                r = UInt8(0)
+                g = UInt8(0)
+                b = UInt8(255)
+                a = UInt8(255)
+            else
+                r = UInt8(0)
+                g = UInt8(255)
+                b = UInt8(0)
+                a = UInt8(255)
+            end
 
             push!(texturedata, r)
             push!(texturedata, g)
