@@ -93,6 +93,7 @@ function AlfarMain()
     glActiveTexture(GL_TEXTURE0)
     rendermesh = RenderMesh(Render.viewingbox())
     volumetexture = Render.exampletexture()
+    #volumetexture = Render.mengerspongetexture()
     viewingcube = Object(rendermesh, volumetexture, translate(0f0, 0f0, 0f0), scale(1f0, 1f0, 1f0), rotatez(0f0))
 
     AlfarMain(Camera(), MouseState(), Timing(), program, [viewingcube])

@@ -286,10 +286,10 @@ function viewingbox()
 end
 
 function mengerspongetexture() :: VolumeTexture
-    sponge = MengerSponge{2}()
+    sponge = MengerSponge{4}()
     fractalvoxels = fractal(sponge)
 
-    voxelcolor = x -> if x == 1 (UInt8(0), UInt8(255), UInt8(0), UInt8(255)) else (UInt8(0), UInt8(0), UInt8(255), UInt8(255)) end
+    voxelcolor = x -> if x == 1 (UInt8(0), UInt8(255), UInt8(0), UInt8(64)) else (UInt8(0), UInt8(0), UInt8(255), UInt8(255)) end
 
     tupledvoxels = map(voxelcolor, fractalvoxels)
     colorvoxels = collect(Iterators.flatten(tupledvoxels))
@@ -303,19 +303,80 @@ function mengerspongetexture() :: VolumeTexture
 end
 
 function exampletexture() :: VolumeTexture
+    width = 16
+    height = 16
+    depth = 16
 
     texturedata = UInt8[]
-    for i = 1:(16*16*16)
-        push!(texturedata, UInt8(64))
-        push!(texturedata, UInt8(128))
-        push!(texturedata, UInt8(255))
-        push!(texturedata, UInt8(128))
+    for z = 1:depth
+        for y = 1:height
+            for x = 1:width
+                isrightborder = x <= 2
+                isleftborder = x >= width - 1
+                istopborder = y <= 2
+                isbottomborder = y >= height - 1
+                isborder = isrightborder || isleftborder || istopborder || isbottomborder
+                iscross = x == width / 2 || x == width / 2 + 1
+
+                iscenterwidthquadrant1 = x == 3 * width / 4 || x == 3 * width / 4 + 1
+                iscenterheightquadrant1 = y == 3 * height / 4 || y == 3 * height / 4 + 1
+                iscenterquadrant1 = iscenterheightquadrant1 && iscenterwidthquadrant1
+
+                iscenterwidthquadrant2 = x == width / 4 || x == width / 4 + 1
+                iscenterheightquadrant2 = y == 3 * height / 4 || y == 3 * height / 4 + 1
+                iscenterquadrant2 = iscenterheightquadrant2 && iscenterwidthquadrant2
+
+                iscolormarkergreen = x >= 3 && x <= 8 && y >= 3 && y <= 8
+                iscolormarkerred = x >= 9 && x <= 14 && y >= 3 && y <= 8
+
+                if iscenterquadrant1
+                    r = UInt8(255)
+                    g = UInt8(0)
+                    b = UInt8(255)
+                    a = UInt8(255)
+                elseif iscenterquadrant2
+                    r = UInt8(0)
+                    g = UInt8(0)
+                    b = UInt8(0)
+                    a = UInt8(255)
+                elseif isborder || iscross
+                    r = UInt8(0)
+                    g = UInt8(0)
+                    b = UInt8(255)
+                    a = UInt8(255)
+                elseif iscolormarkergreen
+                    r = UInt8(0)
+                    g = round(251)
+                    b = UInt8(0)
+                    a = UInt8(0)
+                elseif iscolormarkerred
+                    r = UInt8(251)
+                    g = round(0)
+                    b = UInt8(0)
+                    a = UInt8(0)
+                else
+                    r = UInt8(0)
+                    g = round(UInt8, 255f0 * (z - 1) / depth)
+                    b = UInt8(0)
+                    a = UInt8(255)
+
+                    if x == 10 && y == 10
+                        println("Texture z = $(z), g = ", g)
+                    end
+                end
+
+                push!(texturedata, r)
+                push!(texturedata, g)
+                push!(texturedata, b)
+                push!(texturedata, a)
+            end
+        end
     end
-    
+
     vt = VolumeTexture(16, 16, 16)
-    
+
     textureimage(vt, texturedata)
-    
+
     vt
 end
 
