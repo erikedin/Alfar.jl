@@ -45,6 +45,7 @@ function textureimage(vt::VolumeTexture, data::AbstractVector{UInt8})
     type = GL_UNSIGNED_BYTE
     voxels = Ref(data, 1)
     glTexImage3D(GL_TEXTURE_3D, levelofdetail, internalformat, vt.width, vt.height, vt.depth, border, format, type, voxels)
+    glGenerateMipmap(GL_TEXTURE_3D)
 end
 
 end
