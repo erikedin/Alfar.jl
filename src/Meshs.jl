@@ -38,10 +38,10 @@ function RenderMesh(vertices::Vector{Float32}) :: RenderMesh
     glBindBuffer(GL_ARRAY_BUFFER, vbo[])
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW)
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6*sizeof(GLfloat), C_NULL)
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 9*sizeof(GLfloat), C_NULL)
     glEnableVertexAttribArray(0)
 
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6*sizeof(GLfloat), Ptr{Cvoid}(3 * sizeof(GLfloat)))
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 9*sizeof(GLfloat), Ptr{Cvoid}(3 * sizeof(GLfloat)))
     glEnableVertexAttribArray(1)
 
     glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 9*sizeof(GLfloat), Ptr{Cvoid}(3 * sizeof(GLfloat)))

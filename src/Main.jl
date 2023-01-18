@@ -18,6 +18,7 @@ export configureinput, render
 export Camera, MouseState, AlfarMain
 
 using GLFW
+using ModernGL
 using Alfar.Math
 using Alfar.Render
 using Alfar.Meshs
@@ -70,6 +71,8 @@ end
 model(o::Object) :: Matrix4{Float32} = o.translation * o.scaling * o.rotation
 
 function draw(object::Object, program::ShaderProgram)
+    glActiveTexture(GL_TEXTURE0)
+    glBindImageTexture(0, object.volumetexture.id, 0, GL_TRUE, 0, GL_READ_WRITE, GL_RGBA);
     bindmesh(object.rendermesh)
     bindvolume(object.volumetexture)
     uniform(program, "model", model(object))
@@ -87,10 +90,9 @@ end
 
 function AlfarMain()
     program = ShaderProgram("shaders/vertex.glsl", "shaders/fragment.glsl")
-
-    # Read hard coded STL file for now
+    glActiveTexture(GL_TEXTURE0)
     rendermesh = RenderMesh(Render.viewingbox())
-    volumetexture = Render.mengerspongetexture()
+    volumetexture = Render.exampletexture()
     viewingcube = Object(rendermesh, volumetexture, translate(0f0, 0f0, 0f0), scale(1f0, 1f0, 1f0), rotatez(0f0))
 
     AlfarMain(Camera(), MouseState(), Timing(), program, [viewingcube])

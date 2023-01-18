@@ -289,7 +289,7 @@ function mengerspongetexture() :: VolumeTexture
     sponge = MengerSponge{2}()
     fractalvoxels = fractal(sponge)
 
-    voxelcolor = x -> if x == 1 (UInt8(255), UInt8(0), UInt8(0), UInt8(1)) else (UInt8(0), UInt8(0), UInt8(0), UInt8(0)) end
+    voxelcolor = x -> if x == 1 (UInt8(0), UInt8(255), UInt8(0), UInt8(255)) else (UInt8(0), UInt8(0), UInt8(255), UInt8(255)) end
 
     tupledvoxels = map(voxelcolor, fractalvoxels)
     colorvoxels = collect(Iterators.flatten(tupledvoxels))
@@ -299,6 +299,23 @@ function mengerspongetexture() :: VolumeTexture
     vt = VolumeTexture(dimensions(sponge)...)
     textureimage(vt, texturedata)
 
+    vt
+end
+
+function exampletexture() :: VolumeTexture
+
+    texturedata = UInt8[]
+    for i = 1:(16*16*16)
+        push!(texturedata, UInt8(64))
+        push!(texturedata, UInt8(128))
+        push!(texturedata, UInt8(255))
+        push!(texturedata, UInt8(128))
+    end
+    
+    vt = VolumeTexture(16, 16, 16)
+    
+    textureimage(vt, texturedata)
+    
     vt
 end
 
