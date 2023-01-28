@@ -273,7 +273,7 @@ function generatetexture(width, height, depth)
                     b = UInt8(0)
                     a = UInt8(255)
                 else
-                    r = UInt8(0)
+                    r = round(UInt8, 255f0 * (depth - z) / depth)
                     g = round(UInt8, 255f0 * (z - 1) / depth)
                     b = UInt8(0)
                     a = UInt8(255)
@@ -304,6 +304,10 @@ function maketexture()
 
     glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA, width, height, depth, 0, GL_RGBA, GL_UNSIGNED_BYTE, data)
     glGenerateMipmap(GL_TEXTURE_3D)
+
+    glTexParameterf(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
+    glTexParameterf(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
+    glTexParameterf(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE)
 
     textureid
 end
