@@ -27,13 +27,13 @@ end
 
 function makequad() :: Mesh
     vertices = GLfloat[
-        # Position                  # Texture coordinate
-         0.5f0, -0.5f0,  0.5f0,     1.0f0, 0.0f0, # Right bottom
-         0.5f0,  0.5f0,  0.5f0,     1.0f0, 1.0f0, # Right top
-        -0.5f0,  0.5f0,  0.5f0,     0.0f0, 1.0f0, # Left  top
-         0.5f0, -0.5f0,  0.5f0,     1.0f0, 0.0f0, # Right bottom
-        -0.5f0,  0.5f0,  0.5f0,     0.0f0, 1.0f0, # Left  top
-        -0.5f0, -0.5f0,  0.5f0,     0.0f0, 0.0f0, # Left  bottom
+        # Position
+         0.5f0, -0.5f0,
+         0.5f0,  0.5f0,
+        -0.5f0,  0.5f0,
+         0.5f0, -0.5f0,
+        -0.5f0,  0.5f0,
+        -0.5f0, -0.5f0,
     ]
 
     vao = Ref{GLuint}()
@@ -44,19 +44,15 @@ function makequad() :: Mesh
     vbo = Ref{GLuint}()
     glGenBuffers(1, vbo)
 
-    # Three position elements, x, y, z,
-    # and two texture coordinate elements s, t.
-    # The third texture coordinate is set in the vertex shader, based on a uniform value.
-    elementspervertex = 5
+    # Two position elements, x, y. The third Z coordinate is determined from a uniform value.
+    # The texture coordinates are determined from the vertex coordinates in the vertex shader.
+    elementspervertex = 2
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo[])
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW)
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, elementspervertex*sizeof(GLfloat), C_NULL)
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, elementspervertex*sizeof(GLfloat), C_NULL)
     glEnableVertexAttribArray(0)
-
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, elementspervertex*sizeof(GLfloat), Ptr{Cvoid}(3 * sizeof(GLfloat)))
-    glEnableVertexAttribArray(1)
 
     Mesh(vao[], length(vertices) / elementspervertex)
 end
@@ -68,8 +64,7 @@ end
 vertexsource = """
 #version 330 core
 
-layout (location = 0) in vec3 aPos;
-layout (location = 1) in vec2 aTextureCoordinate;
+layout (location = 0) in vec2 aPos;
 
 out vec3 TexCoord;
 
@@ -80,9 +75,9 @@ uniform float slice;
 
 void main()
 {
-    vec4 p = vec4(aPos.x, aPos.y, aPos.z, 1.0);
+    vec4 p = vec4(aPos.x, aPos.y, slice, 1.0);
     gl_Position = projection * view * model * p;
-    TexCoord = vec3(aTextureCoordinate.x, aTextureCoordinate.y, slice);
+    TexCoord = vec3(p.x, p.y, slice) + 0.5;
 }
 """
 
@@ -337,15 +332,18 @@ function whichslice(timeofstart, timenow)
 
     v = sin(2f0 * pi * timesincestart / interval)
 
-    # v is in the range [-1, 1], but we want [0, 1]
-    v / 2f0 + 0.5f0
+    # v is in the range [-1, 1], but we want [-0.5, 0.5]
+    # Note that this is different from the animated sample, which this sample originates from,
+    # because here this represents a vertex Z coordinate in the range [-0.5, 0.5].
+    # In the animated sample, this referred to a texture R coordinate in the range [0, 1].
+    v / 2f0
 end
 
 function run()
     camera = Camera(1024, 800)
 
     # Create a window and its OpenGL context
-    window = GLFW.CreateWindow(camera.windowwidth, camera.windowheight, "Julia animated 3D texture example")
+    window = GLFW.CreateWindow(camera.windowwidth, camera.windowheight, "Julia sliced 3D texture example")
 
     # Make the window's context current
     GLFW.MakeContextCurrent(window)
