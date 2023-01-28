@@ -44,6 +44,8 @@ function makequad() :: Mesh
     vbo = Ref{GLuint}()
     glGenBuffers(1, vbo)
 
+    # Three position elements, x, y, z,
+    # and two texture coordinate elements s, t.
     elementspervertex = 5
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo[])
@@ -241,10 +243,13 @@ function generatetexture(width, height)
             iscenterheightquadrant2 = y == 3 * height / 4 || y == 3 * height / 4 + 1
             iscenterquadrant2 = iscenterheightquadrant2 && iscenterwidthquadrant2
 
+            iscolormarkergreen = x >= 3 && x <= 8 && y >= 3 && y <= 8
+            iscolormarkerred = x >= 9 && x <= 14 && y >= 3 && y <= 8
+
             if iscenterquadrant1
                 r = UInt8(255)
                 g = UInt8(0)
-                b = UInt8(0)
+                b = UInt8(255)
                 a = UInt8(255)
             elseif iscenterquadrant2
                 r = UInt8(0)
@@ -255,6 +260,16 @@ function generatetexture(width, height)
                 r = UInt8(0)
                 g = UInt8(0)
                 b = UInt8(255)
+                a = UInt8(255)
+            elseif iscolormarkergreen
+                r = UInt8(0)
+                g = round(251)
+                b = UInt8(0)
+                a = UInt8(255)
+            elseif iscolormarkerred
+                r = UInt8(251)
+                g = round(0)
+                b = UInt8(0)
                 a = UInt8(255)
             else
                 r = UInt8(0)
@@ -309,7 +324,6 @@ function run()
     # Make the window's context current
     GLFW.MakeContextCurrent(window)
 
-    glEnable(GL_CULL_FACE)
     glEnable(GL_BLEND)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
     glEnable(GL_DEPTH_TEST)
@@ -320,7 +334,7 @@ function run()
 
     # Loop until the user closes the window
     while !GLFW.WindowShouldClose(window)
-        glClearColor(0.2f0, 0.3f0, 0.3f0, 1.0f0)
+        glClearColor(0.0f0, 0.0f0, 0.0f0, 1.0f0)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
         # Set uniforms

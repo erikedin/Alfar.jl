@@ -28,12 +28,12 @@ end
 function makequad() :: Mesh
     vertices = GLfloat[
         # Position                  # Texture coordinate
-         0.5f0, -0.5f0,  0.5f0,     1.0f0, 0.0f0, 0.0f0, # Right bottom
-         0.5f0,  0.5f0,  0.5f0,     1.0f0, 1.0f0, 0.0f0, # Right top
-        -0.5f0,  0.5f0,  0.5f0,     0.0f0, 1.0f0, 0.0f0, # Left  top
-         0.5f0, -0.5f0,  0.5f0,     1.0f0, 0.0f0, 0.0f0, # Right bottom
-        -0.5f0,  0.5f0,  0.5f0,     0.0f0, 1.0f0, 0.0f0, # Left  top
-        -0.5f0, -0.5f0,  0.5f0,     0.0f0, 0.0f0, 0.0f0, # Left  bottom
+         0.5f0, -0.5f0,  0.5f0,     1.0f0, 0.0f0, 1.0f0, # Right bottom
+         0.5f0,  0.5f0,  0.5f0,     1.0f0, 1.0f0, 1.0f0, # Right top
+        -0.5f0,  0.5f0,  0.5f0,     0.0f0, 1.0f0, 1.0f0, # Left  top
+         0.5f0, -0.5f0,  0.5f0,     1.0f0, 0.0f0, 1.0f0, # Right bottom
+        -0.5f0,  0.5f0,  0.5f0,     0.0f0, 1.0f0, 1.0f0, # Left  top
+        -0.5f0, -0.5f0,  0.5f0,     0.0f0, 0.0f0, 1.0f0, # Left  bottom
     ]
 
     vao = Ref{GLuint}()
@@ -44,6 +44,8 @@ function makequad() :: Mesh
     vbo = Ref{GLuint}()
     glGenBuffers(1, vbo)
 
+    # Three position elements, x, y, z,
+    # and three texture coordinate elements s, t, r.
     elementspervertex = 6
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo[])
@@ -217,9 +219,9 @@ function perspective(camera) :: Matrix{GLfloat}
 end
 
 #
-# Generate a 2D texture
+# Generate a 3D texture
 # The size needs to be a multiple of two at each dimension.
-# Making it a square 64x64 pixel texture.
+# Making it a square 64x64x64 pixel texture.
 #
 
 function generatetexture(width, height, depth)
@@ -264,21 +266,17 @@ function generatetexture(width, height, depth)
                     r = UInt8(0)
                     g = round(251)
                     b = UInt8(0)
-                    a = UInt8(0)
+                    a = UInt8(255)
                 elseif iscolormarkerred
                     r = UInt8(251)
                     g = round(0)
                     b = UInt8(0)
-                    a = UInt8(0)
+                    a = UInt8(255)
                 else
                     r = UInt8(0)
                     g = round(UInt8, 255f0 * (z - 1) / depth)
                     b = UInt8(0)
                     a = UInt8(255)
-
-                    if x == 10 && y == 10
-                        println("Texture z = $(z), g = ", g)
-                    end
                 end
 
                 push!(texturedata, r)
@@ -307,13 +305,6 @@ function maketexture()
     glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA, width, height, depth, 0, GL_RGBA, GL_UNSIGNED_BYTE, data)
     glGenerateMipmap(GL_TEXTURE_3D)
 
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER)
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER)
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_BORDER)
-    borderColor = GLuint[1.0f0, 1.0f0, 0.0f0, 1.0f0];
-    glTexParameterfv(GL_TEXTURE_3D, GL_TEXTURE_BORDER_COLOR, borderColor)
-
     textureid
 end
 
@@ -336,6 +327,10 @@ function run()
     # Make the window's context current
     GLFW.MakeContextCurrent(window)
 
+    glEnable(GL_BLEND)
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+    glEnable(GL_DEPTH_TEST)
+
     mesh = makequad()
     programid = makeprogram()
     textureid = maketexture()
@@ -343,7 +338,7 @@ function run()
     # Loop until the user closes the window
     while !GLFW.WindowShouldClose(window)
         glClearColor(0.0f0, 0.0f0, 0.0f0, 1.0f0)
-        glClear(GL_COLOR_BUFFER_BIT)
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
         # Set uniforms
         view = lookat()
