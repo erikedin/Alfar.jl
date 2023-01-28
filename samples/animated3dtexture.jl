@@ -28,12 +28,12 @@ end
 function makequad() :: Mesh
     vertices = GLfloat[
         # Position                  # Texture coordinate
-         0.5f0, -0.5f0,  0.5f0,     1.0f0, 0.0f0, 1.0f0, # Right bottom
-         0.5f0,  0.5f0,  0.5f0,     1.0f0, 1.0f0, 1.0f0, # Right top
-        -0.5f0,  0.5f0,  0.5f0,     0.0f0, 1.0f0, 1.0f0, # Left  top
-         0.5f0, -0.5f0,  0.5f0,     1.0f0, 0.0f0, 1.0f0, # Right bottom
-        -0.5f0,  0.5f0,  0.5f0,     0.0f0, 1.0f0, 1.0f0, # Left  top
-        -0.5f0, -0.5f0,  0.5f0,     0.0f0, 0.0f0, 1.0f0, # Left  bottom
+         0.5f0, -0.5f0,  0.5f0,     1.0f0, 0.0f0, # Right bottom
+         0.5f0,  0.5f0,  0.5f0,     1.0f0, 1.0f0, # Right top
+        -0.5f0,  0.5f0,  0.5f0,     0.0f0, 1.0f0, # Left  top
+         0.5f0, -0.5f0,  0.5f0,     1.0f0, 0.0f0, # Right bottom
+        -0.5f0,  0.5f0,  0.5f0,     0.0f0, 1.0f0, # Left  top
+        -0.5f0, -0.5f0,  0.5f0,     0.0f0, 0.0f0, # Left  bottom
     ]
 
     vao = Ref{GLuint}()
@@ -45,8 +45,9 @@ function makequad() :: Mesh
     glGenBuffers(1, vbo)
 
     # Three position elements, x, y, z,
-    # and three texture coordinate elements s, t, r.
-    elementspervertex = 6
+    # and two texture coordinate elements s, t.
+    # The third texture coordinate is set in the vertex shader, based on a uniform value.
+    elementspervertex = 5
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo[])
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW)
@@ -68,19 +69,20 @@ vertexsource = """
 #version 330 core
 
 layout (location = 0) in vec3 aPos;
-layout (location = 1) in vec3 aTextureCoordinate;
+layout (location = 1) in vec2 aTextureCoordinate;
 
 out vec3 TexCoord;
 
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
+uniform float slice;
 
 void main()
 {
     vec4 p = vec4(aPos.x, aPos.y, aPos.z, 1.0);
     gl_Position = projection * view * model * p;
-    TexCoord = aTextureCoordinate;
+    TexCoord = vec3(aTextureCoordinate.x, aTextureCoordinate.y, slice);
 }
 """
 
@@ -152,6 +154,11 @@ function uniform(program::GLuint, name::String, value::Matrix{GLfloat})
     location = uniformlocation(program, name)
     array = Ref([value...], 1)
     glUniformMatrix4fv(location, 1, GL_FALSE, array)
+end
+
+function uniform(program::GLuint, name::String, value::GLfloat)
+    location = uniformlocation(program, name)
+    glUniform1f(location, value)
 end
 
 #
@@ -322,11 +329,23 @@ function render(mesh::Mesh, textureid::GLuint)
     glDrawArrays(GL_TRIANGLES, 0, mesh.numberofvertices)
 end
 
+function whichslice(timeofstart, timenow)
+    timesincestart = Float32(timenow - timeofstart)
+
+    # One full interval is 10 seconds
+    interval = 10f0
+
+    v = sin(2f0 * pi * timesincestart / interval)
+
+    # v is in the range [-1, 1], but we want [0, 1]
+    v / 2f0 + 0.5f0
+end
+
 function run()
     camera = Camera(1024, 800)
 
     # Create a window and its OpenGL context
-    window = GLFW.CreateWindow(camera.windowwidth, camera.windowheight, "Julia 3D texture example")
+    window = GLFW.CreateWindow(camera.windowwidth, camera.windowheight, "Julia animated 3D texture example")
 
     # Make the window's context current
     GLFW.MakeContextCurrent(window)
@@ -338,6 +357,8 @@ function run()
     mesh = makequad()
     programid = makeprogram()
     textureid = maketexture()
+
+    timeofstart = time()
 
     # Loop until the user closes the window
     while !GLFW.WindowShouldClose(window)
@@ -351,6 +372,9 @@ function run()
         uniform(programid, "model", model)
         uniform(programid, "view", view)
         uniform(programid, "projection", projection)
+
+        timenow = time()
+        uniform(programid, "slice", whichslice(timeofstart, timenow))
 
         # Render here
         glUseProgram(programid)
