@@ -14,6 +14,7 @@
 
 using GLFW
 using ModernGL
+using LinearAlgebra
 
 #
 # Example mesh
@@ -25,15 +26,15 @@ struct Mesh
     numberofvertices::Int
 end
 
-function makequad() :: Mesh
+function makequad(z::GLfloat) :: Mesh
     vertices = GLfloat[
         # Position
-         0.5f0, -0.5f0,
-         0.5f0,  0.5f0,
-        -0.5f0,  0.5f0,
-         0.5f0, -0.5f0,
-        -0.5f0,  0.5f0,
-        -0.5f0, -0.5f0,
+         0.5f0, -0.5f0, z,
+         0.5f0,  0.5f0, z,
+        -0.5f0,  0.5f0, z,
+         0.5f0, -0.5f0, z,
+        -0.5f0,  0.5f0, z,
+        -0.5f0, -0.5f0, z,
     ]
 
     vao = Ref{GLuint}()
@@ -44,14 +45,14 @@ function makequad() :: Mesh
     vbo = Ref{GLuint}()
     glGenBuffers(1, vbo)
 
-    # Two position elements, x, y. The third Z coordinate is determined from a uniform value.
+    # 3 position elements, x, y, z.
     # The texture coordinates are determined from the vertex coordinates in the vertex shader.
-    elementspervertex = 2
+    elementspervertex = 3
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo[])
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW)
 
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, elementspervertex*sizeof(GLfloat), C_NULL)
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, elementspervertex*sizeof(GLfloat), C_NULL)
     glEnableVertexAttribArray(0)
 
     Mesh(vao[], length(vertices) / elementspervertex)
@@ -64,20 +65,19 @@ end
 vertexsource = """
 #version 330 core
 
-layout (location = 0) in vec2 aPos;
+layout (location = 0) in vec3 aPos;
 
 out vec3 TexCoord;
 
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
-uniform float slice;
 
 void main()
 {
-    vec4 p = vec4(aPos.x, aPos.y, slice, 1.0);
+    vec4 p = vec4(aPos.x, aPos.y, aPos.z, 1.0);
     gl_Position = projection * view * model * p;
-    TexCoord = vec3(p.x, p.y, slice) + 0.5;
+    TexCoord = vec3(p.x, p.y, p.z) + 0.5;
 }
 """
 
@@ -198,12 +198,19 @@ function objectmodel()
 end
 
 function lookat() :: Matrix{Float32}
-    Matrix{GLfloat}([
-        1f0 0f0  0f0  0f0;
-        0f0 1f0  0f0  0f0;
-        0f0 0f0 -1f0 -3f0;
-        0f0 0f0  0f0  1f0;
+    direction = Matrix{GLfloat}([
+         1f0 0f0  1.8f0  0f0;
+         0f0 1f0  1.4f0  0f0;
+         0f0 0f0 -1f0  0f0;
+         0f0 0f0  0f0  1f0;
     ])
+    translation = Matrix{GLfloat}([
+         1f0 0f0  0f0 -5f0;
+         0f0 1f0  0f0 -4f0;
+         0f0 0f0  1f0  3f0;
+         0f0 0f0  0f0  1f0;
+    ])
+    direction * translation
 end
 
 function perspective(camera) :: Matrix{GLfloat}
@@ -339,6 +346,16 @@ function whichslice(timeofstart, timenow)
     v / 2f0
 end
 
+struct Slices
+    quads::Vector{Mesh}
+end
+
+function render(slices::Slices, textureid::GLuint)
+    for quad in slices.quads
+        render(quad, textureid)
+    end
+end
+
 function run()
     camera = Camera(1024, 800)
 
@@ -352,7 +369,12 @@ function run()
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
     glEnable(GL_DEPTH_TEST)
 
-    mesh = makequad()
+    cubedepth = 1.0f0
+    numberofslices = 10
+    distancebetweenslices = cubedepth / numberofslices
+
+    quads = [makequad(z) for z in -0.5f0:distancebetweenslices:0.5f0]
+    slices = Slices(quads)
     programid = makeprogram()
     textureid = maketexture()
 
@@ -371,12 +393,9 @@ function run()
         uniform(programid, "view", view)
         uniform(programid, "projection", projection)
 
-        timenow = time()
-        uniform(programid, "slice", whichslice(timeofstart, timenow))
-
         # Render here
         glUseProgram(programid)
-        render(mesh, textureid)
+        render(slices, textureid)
 
         # Swap front and back buffers
         GLFW.SwapBuffers(window)
