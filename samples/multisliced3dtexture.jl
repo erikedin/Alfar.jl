@@ -285,7 +285,7 @@ function generatetexture(width, height, depth)
                     r = round(UInt8, 255f0 * (depth - z) / depth)
                     g = round(UInt8, 255f0 * (z - 1) / depth)
                     b = UInt8(0)
-                    a = UInt8(255)
+                    a = round(UInt8, 255f0 * (z - 1) / depth)
                 end
 
                 push!(texturedata, r)
@@ -373,7 +373,7 @@ function run()
     numberofslices = 10
     distancebetweenslices = cubedepth / numberofslices
 
-    quads = [makequad(z) for z in -0.5f0:distancebetweenslices:0.5f0]
+    quads = [makequad(z) for z in 0.5f0:-distancebetweenslices:-0.5f0]
     slices = Slices(quads)
     programid = makeprogram()
     textureid = maketexture()
