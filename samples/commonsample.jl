@@ -59,3 +59,30 @@ function makeprogram(vertexsource, fragmentsource)
 
     programid
 end
+
+#
+# Setting uniforms in shaders
+#
+
+uniformlocation(program::GLuint, name::String) = glGetUniformLocation(program, Ptr{GLchar}(pointer(name)))
+
+function uniform(program::GLuint, name::String, value::Matrix{GLfloat})
+    location = uniformlocation(program, name)
+    array = Ref([value...], 1)
+    glUniformMatrix4fv(location, 1, GL_FALSE, array)
+end
+
+#
+# Vector types
+#
+
+const Vector3{T} = NTuple{3, T}
+
+#
+# Mesh type
+#
+
+struct Mesh
+    vao::GLuint
+    numberofvertices::Int
+end

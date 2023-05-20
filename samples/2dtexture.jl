@@ -22,11 +22,6 @@ include("commonsample.jl")
 # This is just a quad, defined by two triangles, at z = 0.5.
 #
 
-struct Mesh
-    vao::GLuint
-    numberofvertices::Int
-end
-
 function makequad() :: Mesh
     vertices = GLfloat[
         # Position                  # Texture coordinate
@@ -50,13 +45,24 @@ function makequad() :: Mesh
     # and two texture coordinate elements s, t.
     elementspervertex = 5
 
+    # The stride is the number of bytes between one vertex element in vertices and the next.
+    stride = elementspervertex*sizeof(GLfloat)
+
     glBindBuffer(GL_ARRAY_BUFFER, vbo[])
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW)
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, elementspervertex*sizeof(GLfloat), C_NULL)
+    # The position has three elements, x, y z.
+    noofpositionelements = 3
+    glVertexAttribPointer(0, noofpositionelements, GL_FLOAT, GL_FALSE, stride, C_NULL)
     glEnableVertexAttribArray(0)
 
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, elementspervertex*sizeof(GLfloat), Ptr{Cvoid}(3 * sizeof(GLfloat)))
+    # The texture coordinate has two elements
+    nooftextureelements = 2
+    # textureoffset is how many bytes into the vertices array that the texture starts at.
+    # Before the texture starts, we have 3 vertex positions, and each vertex position is the size of a float.
+    textureoffset = Ptr{Cvoid}(3 * sizeof(GLfloat))
+
+    glVertexAttribPointer(1, nooftextureelements, GL_FLOAT, GL_FALSE, stride, textureoffset)
     glEnableVertexAttribArray(1)
 
     Mesh(vao[], length(vertices) / elementspervertex)
@@ -101,22 +107,9 @@ void main()
 """
 
 #
-# Shaders
-#
-
-uniformlocation(program::GLuint, name::String) = glGetUniformLocation(program, Ptr{GLchar}(pointer(name)))
-
-function uniform(program::GLuint, name::String, value::Matrix{GLfloat})
-    location = uniformlocation(program, name)
-    array = Ref([value...], 1)
-    glUniformMatrix4fv(location, 1, GL_FALSE, array)
-end
-
-#
 # Camera
 #
 
-const Vector3{T} = NTuple{3, T}
 
 struct Camera
     fov::Float32
