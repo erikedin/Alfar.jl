@@ -61,7 +61,67 @@ void main()
 # Making a 64x64x64 pixel texture.
 #
 
+function fill!(data, (width, height, depth), color)
+   for x = 1:width
+        for y = 1:height
+            for z = 1:depth
+                data[1, x, y, z] = UInt8(color[1])
+                data[2, x, y, z] = UInt8(color[2])
+                data[3, x, y, z] = UInt8(color[3])
+                data[4, x, y, z] = UInt8(color[4])
+            end
+        end
+    end
+end
+
 function generatetexture(width, height, depth)
+    channels = 4
+    flattexturedata = zeros(UInt8, width*height*depth*channels)
+    texturedata = reshape(flattexturedata, (channels, depth, height, width))
+
+    halfwidth = trunc(Int, width/2)
+    halfheight = trunc(Int, height/2)
+    halfdepth = trunc(Int, depth/2)
+
+    # Fill each quadrant
+    frontquadrant1 = @view texturedata[:, halfwidth+1:width    , halfheight+1:height    , 1:halfdepth]
+    frontquadrant2 = @view texturedata[:,           1:halfwidth, halfheight+1:height    , 1:halfdepth]
+    frontquadrant3 = @view texturedata[:,           1:halfwidth,            1:halfheight, 1:halfdepth]
+    frontquadrant4 = @view texturedata[:, halfwidth+1:width    ,            1:halfheight, 1:halfdepth]
+
+    backquadrant1  = @view texturedata[:, halfwidth+1:width    , halfheight+1:height    , halfdepth+1:depth]
+    backquadrant2  = @view texturedata[:,           1:halfwidth, halfheight+1:height    , halfdepth+1:depth]
+    backquadrant3  = @view texturedata[:,           1:halfwidth,            1:halfheight, halfdepth+1:depth]
+    backquadrant4  = @view texturedata[:, halfwidth+1:width    ,            1:halfheight, halfdepth+1:depth]
+
+    quadrantsize = (halfwidth, halfheight, halfdepth)
+    fill!(frontquadrant1, quadrantsize, (255, 255, 255, 32))
+    fill!(frontquadrant2, quadrantsize, (255,   0,   0, 255))
+    fill!(frontquadrant3, quadrantsize, (  0, 255,   0, 255))
+    fill!(frontquadrant4, quadrantsize, (  0,   0, 255, 255))
+
+    fill!(backquadrant1, quadrantsize, (  0,   0,   0,   0))
+    fill!(backquadrant2, quadrantsize, (255,   0, 255, 255))
+    fill!(backquadrant3, quadrantsize, (  0, 255, 255, 255))
+    fill!(backquadrant4, quadrantsize, (127, 255, 212, 255))
+
+    # Fill the center with a yellow bar.
+    barwidth = trunc(Int, width / 4)
+    barheight = trunc(Int, width / 4)
+    halfbarheight = trunc(Int, height / 8)
+    halfbarwidth = trunc(Int, width / 8)
+    halfbarheight = trunc(Int, height / 8)
+    yellowbar = @view texturedata[:,
+                                  halfwidth  - halfbarwidth  + 1:halfwidth  + halfbarwidth,
+                                  halfheight - halfbarheight + 1:halfheight + halfbarheight,
+                                  1:depth]
+    fill!(yellowbar, (barwidth, barheight, depth), (255, 255, 0, 255))
+
+
+    TextureDefinition3D(width, height, depth, flattexturedata)
+end
+
+function generatetextureold(width, height, depth)
     texturedata = UInt8[]
     for z = 1:depth
         for y = 1:height
@@ -164,12 +224,12 @@ end
 function squarevertices() :: MeshDefinition
     vertices = GLfloat[
         # Position                  # Texture coordinate
-         0.5f0, -0.5f0,  0.5f0,     1.0f0, 0.0f0, 1.0f0, # Right bottom
-         0.5f0,  0.5f0,  0.5f0,     1.0f0, 1.0f0, 1.0f0, # Right top
-        -0.5f0,  0.5f0,  0.5f0,     0.0f0, 1.0f0, 1.0f0, # Left  top
-         0.5f0, -0.5f0,  0.5f0,     1.0f0, 0.0f0, 1.0f0, # Right bottom
-        -0.5f0,  0.5f0,  0.5f0,     0.0f0, 1.0f0, 1.0f0, # Left  top
-        -0.5f0, -0.5f0,  0.5f0,     0.0f0, 0.0f0, 1.0f0, # Left  bottom
+         0.5f0, -0.5f0,  0.5f0,     1.0f0, 0.0f0, 0.0f0, # Right bottom
+         0.5f0,  0.5f0,  0.5f0,     1.0f0, 1.0f0, 0.0f0, # Right top
+        -0.5f0,  0.5f0,  0.5f0,     0.0f0, 1.0f0, 0.0f0, # Left  top
+         0.5f0, -0.5f0,  0.5f0,     1.0f0, 0.0f0, 0.0f0, # Right bottom
+        -0.5f0,  0.5f0,  0.5f0,     0.0f0, 1.0f0, 0.0f0, # Left  top
+        -0.5f0, -0.5f0,  0.5f0,     0.0f0, 0.0f0, 0.0f0, # Left  bottom
     ]
 
     # positionid corresponds to layout 0 in the vertex program:
