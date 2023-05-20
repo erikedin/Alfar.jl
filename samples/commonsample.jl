@@ -248,6 +248,30 @@ function fill!(data, (width, height, depth), color)
     end
 end
 
+# depthalpha calculates a transparency given the depth of the slice.
+function depthalpha(depth, r) :: UInt8
+    trunc(UInt8, (r - 1) / (depth - 1) * 255)
+end
+
+function fillwithalpha!(data, (width, height, depth), color, isalphareversed)
+    for x = 1:width
+        for y = 1:height
+            for z = 1:depth
+                alpha = if isalphareversed
+                    255 - depthalpha(depth, z)
+                else
+                    depthalpha(depth, z)
+                end
+
+                data[1, x, y, z] = UInt8(color[1])
+                data[2, x, y, z] = UInt8(color[2])
+                data[3, x, y, z] = UInt8(color[3])
+                data[4, x, y, z] = alpha
+            end
+        end
+    end
+end
+
 # This defines a 3D texture with 8 differently colored blocks,
 # and a yellow bar going through the middle.
 # It is the same for all 3D texture samples. The 2D texture is made to have the same
@@ -273,15 +297,15 @@ function generate3dtexture(width, height, depth)
     backquadrant4  = @view texturedata[:, halfwidth+1:width    ,            1:halfheight, halfdepth+1:depth]
 
     quadrantsize = (halfwidth, halfheight, halfdepth)
-    fill!(frontquadrant1, quadrantsize, (255, 255, 255, 32))
-    fill!(frontquadrant2, quadrantsize, (255,   0,   0, 255))
-    fill!(frontquadrant3, quadrantsize, (  0, 255,   0, 255))
-    fill!(frontquadrant4, quadrantsize, (  0,   0, 255, 255))
+    fillwithalpha!(frontquadrant1, quadrantsize, (255, 255, 255), true)
+    fillwithalpha!(frontquadrant2, quadrantsize, (255,   0,   0), true)
+    fillwithalpha!(frontquadrant3, quadrantsize, (  0, 255,   0), true)
+    fillwithalpha!(frontquadrant4, quadrantsize, (  0,   0, 255), true)
 
-    fill!(backquadrant1, quadrantsize, (  0,   0,   0,   0))
-    fill!(backquadrant2, quadrantsize, (255,   0, 255, 255))
-    fill!(backquadrant3, quadrantsize, (  0, 255, 255, 255))
-    fill!(backquadrant4, quadrantsize, (127, 255, 212, 255))
+    fillwithalpha!(backquadrant1, quadrantsize, (  0,   0,   0), false)
+    fillwithalpha!(backquadrant2, quadrantsize, (255,   0, 255), false)
+    fillwithalpha!(backquadrant3, quadrantsize, (  0, 255, 255), false)
+    fillwithalpha!(backquadrant4, quadrantsize, (127, 255, 212), false)
 
     # Fill the center with a yellow bar.
     barwidth = trunc(Int, width / 4)
