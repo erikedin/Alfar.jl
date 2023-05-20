@@ -141,3 +141,71 @@ function makemeshbuffer(meshdef::MeshDefinition) :: MeshBuffer
 
     MeshBuffer(vao[], length(meshdef.vertices) / meshdef.elementspervertex)
 end
+
+#
+# Camera functionality
+#
+# The camera isn't actually important for what the samples are meant to
+# do. Therefore, this file contains some things that are different between samples;
+# differences that would otherwise be highlighted in the sample files themselves.
+#
+
+struct Camera
+    fov::Float32
+    windowwidth::Int
+    windowheight::Int
+    near::Float32
+    far::Float32
+end
+
+function Camera(width, height) :: Camera
+    fov = 0.25f0*pi
+    near = 0.1f0
+    far = 100.0f0
+    Camera(
+        fov,
+        width,
+        height,
+        near,
+        far
+    )
+end
+
+#
+# Perspective and transformations
+#
+
+function objectmodel()
+    Matrix{GLfloat}([
+        1f0 0f0 0f0 0f0;
+        0f0 1f0 0f0 0f0;
+        0f0 0f0 1f0 0f0;
+        0f0 0f0 0f0 1f0;
+
+    ])
+end
+
+# This defines a "look at" matrix that looks at the square from the front,
+# in the negative Z direction.
+function lookatfromfront() :: Matrix{Float32}
+    Matrix{GLfloat}([
+        1f0 0f0  0f0  0f0;
+        0f0 1f0  0f0  0f0;
+        0f0 0f0 -1f0 -3f0;
+        0f0 0f0  0f0  1f0;
+    ])
+end
+
+function perspective(camera) :: Matrix{GLfloat}
+    tanhalf = tan(camera.fov/2f0)
+    aspect = Float32(camera.windowwidth) / Float32(camera.windowheight)
+    far = camera.far
+    near = camera.near
+
+    Matrix{GLfloat}(GLfloat[
+        1f0/(aspect*tanhalf) 0f0           0f0                          0f0;
+        0f0                  1f0/(tanhalf) 0f0                          0f0;
+        0f0                  0f0           -(far + near) / (far - near) -2f0*far*near / (far - near);
+        0.0f0                0f0           -1f0 0f0;
+    ])
+end
