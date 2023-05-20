@@ -15,6 +15,8 @@
 using GLFW
 using ModernGL
 
+include("commonsample.jl")
+
 #
 # Example mesh
 # This is just a quad, defined by two triangles, at z = 0.5.
@@ -101,50 +103,6 @@ void main()
 #
 # Shaders
 #
-
-struct ShaderError <: Exception
-    msg::String
-end
-
-function createshader(shadersource, shadertype)
-    shader = glCreateShader(shadertype)
-
-    glShaderSource(shader, 1, Ptr{GLchar}[pointer(shadersource)], C_NULL)
-    glCompileShader(shader)
-
-    issuccess = Ref{GLint}()
-    glGetShaderiv(shader, GL_COMPILE_STATUS, issuccess)
-    if issuccess[] != GL_TRUE
-        maxlength = 512
-        actuallength = Ref{GLsizei}()
-        infolog = Vector{GLchar}(undef, maxlength)
-        glGetShaderInfoLog(shader, maxlength, actuallength, infolog)
-        infomessage = String(infolog[1:actuallength[]])
-        errormsg = "Shader failed to compile: $(infomessage)"
-        throw(ShaderError(errormsg))
-    end
-
-    shader
-end
-
-function makeprogram()
-    programid = glCreateProgram()
-    vertexshader = createshader(vertexsource, GL_VERTEX_SHADER)
-    fragmentshader = createshader(fragmentsource, GL_FRAGMENT_SHADER)
-
-    glAttachShader(programid, vertexshader)
-    glAttachShader(programid, fragmentshader)
-
-    glLinkProgram(programid)
-
-    issuccess = Ref{GLint}()
-    glGetProgramiv(programid, GL_LINK_STATUS, issuccess)
-    if issuccess[] != GL_TRUE
-        throw(ShaderError("Shaders failed to link"))
-    end
-
-    programid
-end
 
 uniformlocation(program::GLuint, name::String) = glGetUniformLocation(program, Ptr{GLchar}(pointer(name)))
 
@@ -329,7 +287,7 @@ function run()
     glEnable(GL_DEPTH_TEST)
 
     mesh = makequad()
-    programid = makeprogram()
+    programid = makeprogram(vertexsource, fragmentsource)
     textureid = maketexture()
 
     # Loop until the user closes the window
