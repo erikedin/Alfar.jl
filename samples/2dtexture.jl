@@ -18,57 +18,6 @@ using ModernGL
 include("commonsample.jl")
 
 #
-# Example mesh
-# This is just a quad, defined by two triangles, at z = 0.5.
-#
-
-function makequad() :: Mesh
-    vertices = GLfloat[
-        # Position                  # Texture coordinate
-         0.5f0, -0.5f0,  0.5f0,     1.0f0, 0.0f0, # Right bottom
-         0.5f0,  0.5f0,  0.5f0,     1.0f0, 1.0f0, # Right top
-        -0.5f0,  0.5f0,  0.5f0,     0.0f0, 1.0f0, # Left  top
-         0.5f0, -0.5f0,  0.5f0,     1.0f0, 0.0f0, # Right bottom
-        -0.5f0,  0.5f0,  0.5f0,     0.0f0, 1.0f0, # Left  top
-        -0.5f0, -0.5f0,  0.5f0,     0.0f0, 0.0f0, # Left  bottom
-    ]
-
-    vao = Ref{GLuint}()
-    glGenVertexArrays(1, vao)
-
-    glBindVertexArray(vao[])
-
-    vbo = Ref{GLuint}()
-    glGenBuffers(1, vbo)
-
-    # Three position elements, x, y, z,
-    # and two texture coordinate elements s, t.
-    elementspervertex = 5
-
-    # The stride is the number of bytes between one vertex element in vertices and the next.
-    stride = elementspervertex*sizeof(GLfloat)
-
-    glBindBuffer(GL_ARRAY_BUFFER, vbo[])
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW)
-
-    # The position has three elements, x, y z.
-    noofpositionelements = 3
-    glVertexAttribPointer(0, noofpositionelements, GL_FLOAT, GL_FALSE, stride, C_NULL)
-    glEnableVertexAttribArray(0)
-
-    # The texture coordinate has two elements
-    nooftextureelements = 2
-    # textureoffset is how many bytes into the vertices array that the texture starts at.
-    # Before the texture starts, we have 3 vertex positions, and each vertex position is the size of a float.
-    textureoffset = Ptr{Cvoid}(3 * sizeof(GLfloat))
-
-    glVertexAttribPointer(1, nooftextureelements, GL_FLOAT, GL_FALSE, stride, textureoffset)
-    glEnableVertexAttribArray(1)
-
-    Mesh(vao[], length(vertices) / elementspervertex)
-end
-
-#
 # Shader sources
 #
 
@@ -257,10 +206,58 @@ function maketexture()
 end
 
 #
+# A square to draw the texture on
+# This square is defined as two triangles.
+# Note that this makes it have 6 vertices rather than the 4 that you would
+# normally think a square would have. 2 of the vertices are written down twice
+# in the list of vertices below.
+#
+
+function squarevertices() :: MeshDefinition
+    vertices = GLfloat[
+        # Position                  # Texture coordinate
+         0.5f0, -0.5f0,  0.5f0,     1.0f0, 0.0f0, # Right bottom
+         0.5f0,  0.5f0,  0.5f0,     1.0f0, 1.0f0, # Right top
+        -0.5f0,  0.5f0,  0.5f0,     0.0f0, 1.0f0, # Left  top
+         0.5f0, -0.5f0,  0.5f0,     1.0f0, 0.0f0, # Right bottom
+        -0.5f0,  0.5f0,  0.5f0,     0.0f0, 1.0f0, # Left  top
+        -0.5f0, -0.5f0,  0.5f0,     0.0f0, 0.0f0, # Left  bottom
+    ]
+
+    # positionid corresponds to layout 0 in the vertex program:
+    # layout (location = 0) in vec3 aPos;
+    positionid = 0
+    positionelements = 3 # The three first elements in each row in `vertices`
+    positionattribute = MeshAttribute(positionid, positionelements, GL_FLOAT, GL_FALSE, C_NULL)
+
+    # textureid corresponds to the layout 1 in the vertex program:
+    # layout (location = 1) in vec2 aTextureCoordinate;
+    textureid = 1
+
+    # The texture coordinate has two elements
+    nooftextureelements = 2 # the two last elements in each row in `vertices`
+
+    # textureoffset is how many bytes into the vertices array that the texture starts at.
+    # Before the texture starts, we have 3 vertex positions, and each vertex position is the size of a float.
+    textureoffset = Ptr{Cvoid}(positionelements * sizeof(GLfloat))
+
+    textureattribute =MeshAttribute(textureid, nooftextureelements, GL_FLOAT, GL_FALSE, textureoffset)
+
+    attributes = [positionattribute, textureattribute]
+
+    elementspervertex = 3 + 2 # position coordinates + texture coordinates
+    MeshDefinition(
+        vertices,
+        elementspervertex,
+        attributes
+    )
+end
+
+#
 # Main loop
 #
 
-function render(mesh::Mesh, textureid::GLuint)
+function render(mesh::MeshBuffer, textureid::GLuint)
     glBindTexture(GL_TEXTURE_2D, textureid)
     glBindVertexArray(mesh.vao)
     glDrawArrays(GL_TRIANGLES, 0, mesh.numberofvertices)
@@ -279,7 +276,8 @@ function run()
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
     glEnable(GL_DEPTH_TEST)
 
-    mesh = makequad()
+    #
+    mesh = makemeshbuffer(squarevertices())
     programid = makeprogram(vertexsource, fragmentsource)
     textureid = maketexture()
 
