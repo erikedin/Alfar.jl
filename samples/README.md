@@ -15,3 +15,10 @@ The square is shown from the front.
 # Sample: 02_3dtexture.jl
 This sample extends `01_2dtexture.jl` by making the texture 3D. It still uses the same square, and only
 shows one slice of the 3D texture. The effect is that this will show the exact same thing as the previous sample.
+
+# Sample: 03_animated3dtexture.jl
+This sample extends `02_3dtexture.jl`.
+
+The previous sample showed a single, static slice of the 3D texture. This sample still shows a single square,
+but changes which slice of the 3D texture that is rendered onto the square. Essentially, it's as if it moves the
+texture back and forth along the depth axis.
