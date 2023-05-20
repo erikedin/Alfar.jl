@@ -72,6 +72,11 @@ function uniform(program::GLuint, name::String, value::Matrix{GLfloat})
     glUniformMatrix4fv(location, 1, GL_FALSE, array)
 end
 
+function uniform(program::GLuint, name::String, value::GLfloat)
+    location = uniformlocation(program, name)
+    glUniform1f(location, value)
+end
+
 #
 # Vector types
 #
@@ -228,6 +233,19 @@ struct TextureDefinition3D
     height::Int
     depth::Int
     data
+end
+
+function fill!(data, (width, height, depth), color)
+   for x = 1:width
+        for y = 1:height
+            for z = 1:depth
+                data[1, x, y, z] = UInt8(color[1])
+                data[2, x, y, z] = UInt8(color[2])
+                data[3, x, y, z] = UInt8(color[3])
+                data[4, x, y, z] = UInt8(color[4])
+            end
+        end
+    end
 end
 
 # This defines a 3D texture with 8 differently colored blocks,

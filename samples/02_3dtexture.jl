@@ -61,19 +61,6 @@ void main()
 # Making a 64x64x64 pixel texture.
 #
 
-function fill!(data, (width, height, depth), color)
-   for x = 1:width
-        for y = 1:height
-            for z = 1:depth
-                data[1, x, y, z] = UInt8(color[1])
-                data[2, x, y, z] = UInt8(color[2])
-                data[3, x, y, z] = UInt8(color[3])
-                data[4, x, y, z] = UInt8(color[4])
-            end
-        end
-    end
-end
-
 function make3dtexture(texturedefinition::TextureDefinition3D)
     textureRef = Ref{GLuint}()
     glGenTextures(1, textureRef)
