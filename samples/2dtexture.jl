@@ -124,21 +124,26 @@ function generatetexture(width, height)
         end
     end
 
-    texturedata
+    TextureDefinition(width, height, texturedata)
 end
 
-function maketexture()
+# Create a 2D texture in OpenGL.
+function make2dtexture(texturedefinition::TextureDefinition)
     textureRef = Ref{GLuint}()
     glGenTextures(1, textureRef)
     textureid = textureRef[]
 
     glBindTexture(GL_TEXTURE_2D, textureid)
 
-    width = 64
-    height = 64
-    data = generatetexture(width, height)
-
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data)
+    glTexImage2D(GL_TEXTURE_2D,
+                 0,
+                 GL_RGBA,
+                 texturedefinition.width,
+                 texturedefinition.height,
+                 0,
+                 GL_RGBA,
+                 GL_UNSIGNED_BYTE,
+                 texturedefinition.data)
     glGenerateMipmap(GL_TEXTURE_2D)
 
     textureid
@@ -215,10 +220,14 @@ function run()
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
     glEnable(GL_DEPTH_TEST)
 
-    #
+    # Create an OpenGL vertex array object, using the mesh defined in `squarevertices`.
+    # This is essentially a square that the texture will be drawn on.
     mesh = makemeshbuffer(squarevertices())
     programid = makeprogram(vertexsource, fragmentsource)
-    textureid = maketexture()
+
+    # Create a 64x64 2D texture that will be drawn onto the square above.
+    texturedefinition = generatetexture(64, 64)
+    textureid = make2dtexture(texturedefinition)
 
     # Loop until the user closes the window
     while !GLFW.WindowShouldClose(window)

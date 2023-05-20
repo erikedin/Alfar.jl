@@ -209,3 +209,37 @@ function perspective(camera) :: Matrix{GLfloat}
         0.0f0                0f0           -1f0 0f0;
     ])
 end
+
+#
+# Textures
+#
+
+# This is a definition of a texture, which is used to create the OpenGL buffers
+# in methods like `make2dtexture`.
+struct TextureDefinition
+    width::Int
+    height::Int
+    data
+end
+
+
+function make2dtexture(texturedefinition::TextureDefinition)
+    textureRef = Ref{GLuint}()
+    glGenTextures(1, textureRef)
+    textureid = textureRef[]
+
+    glBindTexture(GL_TEXTURE_2D, textureid)
+
+    glTexImage2D(GL_TEXTURE_2D,
+                 0,
+                 GL_RGBA,
+                 texturedefinition.width,
+                 texturedefinition.height,
+                 0,
+                 GL_RGBA,
+                 GL_UNSIGNED_BYTE,
+                 texturedefinition.data)
+    glGenerateMipmap(GL_TEXTURE_2D)
+
+    textureid
+end
