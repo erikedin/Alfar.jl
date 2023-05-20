@@ -15,50 +15,7 @@
 using GLFW
 using ModernGL
 
-#
-# Example mesh
-# This is just a quad, defined by two triangles, at z = 0.5.
-#
-
-struct Mesh
-    vao::GLuint
-    numberofvertices::Int
-end
-
-function makequad() :: Mesh
-    vertices = GLfloat[
-        # Position                  # Texture coordinate
-         0.5f0, -0.5f0,  0.5f0,     1.0f0, 0.0f0, 1.0f0, # Right bottom
-         0.5f0,  0.5f0,  0.5f0,     1.0f0, 1.0f0, 1.0f0, # Right top
-        -0.5f0,  0.5f0,  0.5f0,     0.0f0, 1.0f0, 1.0f0, # Left  top
-         0.5f0, -0.5f0,  0.5f0,     1.0f0, 0.0f0, 1.0f0, # Right bottom
-        -0.5f0,  0.5f0,  0.5f0,     0.0f0, 1.0f0, 1.0f0, # Left  top
-        -0.5f0, -0.5f0,  0.5f0,     0.0f0, 0.0f0, 1.0f0, # Left  bottom
-    ]
-
-    vao = Ref{GLuint}()
-    glGenVertexArrays(1, vao)
-
-    glBindVertexArray(vao[])
-
-    vbo = Ref{GLuint}()
-    glGenBuffers(1, vbo)
-
-    # Three position elements, x, y, z,
-    # and three texture coordinate elements s, t, r.
-    elementspervertex = 6
-
-    glBindBuffer(GL_ARRAY_BUFFER, vbo[])
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW)
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, elementspervertex*sizeof(GLfloat), C_NULL)
-    glEnableVertexAttribArray(0)
-
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, elementspervertex*sizeof(GLfloat), Ptr{Cvoid}(3 * sizeof(GLfloat)))
-    glEnableVertexAttribArray(1)
-
-    Mesh(vao[], length(vertices) / elementspervertex)
-end
+include("commonsample.jl")
 
 #
 # Shader sources
@@ -99,129 +56,9 @@ void main()
 """
 
 #
-# Shaders
-#
-
-struct ShaderError <: Exception
-    msg::String
-end
-
-function createshader(shadersource, shadertype)
-    shader = glCreateShader(shadertype)
-
-    glShaderSource(shader, 1, Ptr{GLchar}[pointer(shadersource)], C_NULL)
-    glCompileShader(shader)
-
-    issuccess = Ref{GLint}()
-    glGetShaderiv(shader, GL_COMPILE_STATUS, issuccess)
-    if issuccess[] != GL_TRUE
-        maxlength = 512
-        actuallength = Ref{GLsizei}()
-        infolog = Vector{GLchar}(undef, maxlength)
-        glGetShaderInfoLog(shader, maxlength, actuallength, infolog)
-        infomessage = String(infolog[1:actuallength[]])
-        errormsg = "Shader failed to compile: $(infomessage)"
-        throw(ShaderError(errormsg))
-    end
-
-    shader
-end
-
-function makeprogram()
-    programid = glCreateProgram()
-    vertexshader = createshader(vertexsource, GL_VERTEX_SHADER)
-    fragmentshader = createshader(fragmentsource, GL_FRAGMENT_SHADER)
-
-    glAttachShader(programid, vertexshader)
-    glAttachShader(programid, fragmentshader)
-
-    glLinkProgram(programid)
-
-    issuccess = Ref{GLint}()
-    glGetProgramiv(programid, GL_LINK_STATUS, issuccess)
-    if issuccess[] != GL_TRUE
-        throw(ShaderError("Shaders failed to link"))
-    end
-
-    programid
-end
-
-uniformlocation(program::GLuint, name::String) = glGetUniformLocation(program, Ptr{GLchar}(pointer(name)))
-
-function uniform(program::GLuint, name::String, value::Matrix{GLfloat})
-    location = uniformlocation(program, name)
-    array = Ref([value...], 1)
-    glUniformMatrix4fv(location, 1, GL_FALSE, array)
-end
-
-#
-# Camera
-#
-
-const Vector3{T} = NTuple{3, T}
-
-struct Camera
-    fov::Float32
-    windowwidth::Int
-    windowheight::Int
-    near::Float32
-    far::Float32
-end
-
-function Camera(width, height) :: Camera
-    fov = 0.25f0*pi
-    near = 0.1f0
-    far = 100.0f0
-    Camera(
-        fov,
-        width,
-        height,
-        near,
-        far
-    )
-end
-
-#
-# Perspective and transformations
-#
-
-function objectmodel()
-    Matrix{GLfloat}([
-        1f0 0f0 0f0 0f0;
-        0f0 1f0 0f0 0f0;
-        0f0 0f0 1f0 0f0;
-        0f0 0f0 0f0 1f0;
-
-    ])
-end
-
-function lookat() :: Matrix{Float32}
-    Matrix{GLfloat}([
-        1f0 0f0  0f0  0f0;
-        0f0 1f0  0f0  0f0;
-        0f0 0f0 -1f0 -3f0;
-        0f0 0f0  0f0  1f0;
-    ])
-end
-
-function perspective(camera) :: Matrix{GLfloat}
-    tanhalf = tan(camera.fov/2f0)
-    aspect = Float32(camera.windowwidth) / Float32(camera.windowheight)
-    far = camera.far
-    near = camera.near
-
-    Matrix{GLfloat}(GLfloat[
-        1f0/(aspect*tanhalf) 0f0           0f0                          0f0;
-        0f0                  1f0/(tanhalf) 0f0                          0f0;
-        0f0                  0f0           -(far + near) / (far - near) -2f0*far*near / (far - near);
-        0.0f0                0f0           -1f0 0f0;
-    ])
-end
-
-#
 # Generate a 3D texture
 # The size needs to be a multiple of two at each dimension.
-# Making it a square 64x64x64 pixel texture.
+# Making a 64x64x64 pixel texture.
 #
 
 function generatetexture(width, height, depth)
@@ -287,22 +124,26 @@ function generatetexture(width, height, depth)
         end
     end
 
-    texturedata
+    TextureDefinition3D(width, height, depth, texturedata)
 end
 
-function maketexture()
+function make3dtexture(texturedefinition::TextureDefinition3D)
     textureRef = Ref{GLuint}()
     glGenTextures(1, textureRef)
     textureid = textureRef[]
 
     glBindTexture(GL_TEXTURE_3D, textureid)
 
-    width = 64
-    height = 64
-    depth = 64
-    data = generatetexture(width, height, depth)
-
-    glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA, width, height, depth, 0, GL_RGBA, GL_UNSIGNED_BYTE, data)
+    glTexImage3D(GL_TEXTURE_3D,
+                 0,
+                 GL_RGBA,
+                 texturedefinition.width,
+                 texturedefinition.height,
+                 texturedefinition.depth,
+                 0,
+                 GL_RGBA,
+                 GL_UNSIGNED_BYTE,
+                 texturedefinition.data)
     glGenerateMipmap(GL_TEXTURE_3D)
 
     glTexParameterf(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
@@ -313,10 +154,58 @@ function maketexture()
 end
 
 #
+# A square to draw the texture on
+# This square is defined as two triangles.
+# Note that this makes it have 6 vertices rather than the 4 that you would
+# normally think a square would have. 2 of the vertices are written down twice
+# in the list of vertices below.
+#
+
+function squarevertices() :: MeshDefinition
+    vertices = GLfloat[
+        # Position                  # Texture coordinate
+         0.5f0, -0.5f0,  0.5f0,     1.0f0, 0.0f0, 1.0f0, # Right bottom
+         0.5f0,  0.5f0,  0.5f0,     1.0f0, 1.0f0, 1.0f0, # Right top
+        -0.5f0,  0.5f0,  0.5f0,     0.0f0, 1.0f0, 1.0f0, # Left  top
+         0.5f0, -0.5f0,  0.5f0,     1.0f0, 0.0f0, 1.0f0, # Right bottom
+        -0.5f0,  0.5f0,  0.5f0,     0.0f0, 1.0f0, 1.0f0, # Left  top
+        -0.5f0, -0.5f0,  0.5f0,     0.0f0, 0.0f0, 1.0f0, # Left  bottom
+    ]
+
+    # positionid corresponds to layout 0 in the vertex program:
+    # layout (location = 0) in vec3 aPos;
+    positionid = 0
+    positionelements = 3 # The three first elements in each row in `vertices`
+    positionattribute = MeshAttribute(positionid, positionelements, GL_FLOAT, GL_FALSE, C_NULL)
+
+    # textureid corresponds to the layout 1 in the vertex program:
+    # layout (location = 1) in vec3 aTextureCoordinate;
+    textureid = 1
+
+    # The texture coordinate has three elements
+    nooftextureelements = 3 # the three last elements in each row in `vertices`
+
+    # textureoffset is how many bytes into the vertices array that the texture starts at.
+    # Before the texture starts, we have 3 vertex positions, and each vertex position is the size of a float.
+    textureoffset = Ptr{Cvoid}(positionelements * sizeof(GLfloat))
+
+    textureattribute = MeshAttribute(textureid, nooftextureelements, GL_FLOAT, GL_FALSE, textureoffset)
+
+    attributes = [positionattribute, textureattribute]
+
+    elementspervertex = positionelements + nooftextureelements
+    MeshDefinition(
+        vertices,
+        elementspervertex,
+        attributes
+    )
+end
+
+#
 # Main loop
 #
 
-function render(mesh::Mesh, textureid::GLuint)
+function render(mesh::MeshBuffer, textureid::GLuint)
     glBindTexture(GL_TEXTURE_3D, textureid)
     glBindVertexArray(mesh.vao)
     glDrawArrays(GL_TRIANGLES, 0, mesh.numberofvertices)
@@ -335,9 +224,14 @@ function run()
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
     glEnable(GL_DEPTH_TEST)
 
-    mesh = makequad()
-    programid = makeprogram()
-    textureid = maketexture()
+    # Create an OpenGL vertex array object, using the mesh defined in `squarevertices`.
+    # This is essentially a square that the texture will be drawn on.
+    mesh = makemeshbuffer(squarevertices())
+    programid = makeprogram(vertexsource, fragmentsource)
+
+    # Create a 64x64x64 3D texture that will be drawn onto the square above.
+    texturedefinition = generatetexture(64, 64, 64)
+    textureid = make3dtexture(texturedefinition)
 
     # Loop until the user closes the window
     while !GLFW.WindowShouldClose(window)
@@ -345,7 +239,7 @@ function run()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
         # Set uniforms
-        view = lookat()
+        view = lookatfromfront()
         projection = perspective(camera)
         model = objectmodel()
         uniform(programid, "model", model)

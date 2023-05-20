@@ -55,12 +55,10 @@ void main()
 }
 """
 
-
-
 #
 # Generate a 2D texture
 # The size needs to be a multiple of two at each dimension.
-# Making it a square 64x64 pixel texture.
+# Making a 64x64 pixel texture.
 #
 
 function generatetexture(width, height)
@@ -124,11 +122,11 @@ function generatetexture(width, height)
         end
     end
 
-    TextureDefinition(width, height, texturedata)
+    TextureDefinition2D(width, height, texturedata)
 end
 
 # Create a 2D texture in OpenGL.
-function make2dtexture(texturedefinition::TextureDefinition)
+function make2dtexture(texturedefinition::TextureDefinition2D)
     textureRef = Ref{GLuint}()
     glGenTextures(1, textureRef)
     textureid = textureRef[]
@@ -145,6 +143,10 @@ function make2dtexture(texturedefinition::TextureDefinition)
                  GL_UNSIGNED_BYTE,
                  texturedefinition.data)
     glGenerateMipmap(GL_TEXTURE_2D)
+
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE)
 
     textureid
 end
@@ -185,11 +187,11 @@ function squarevertices() :: MeshDefinition
     # Before the texture starts, we have 3 vertex positions, and each vertex position is the size of a float.
     textureoffset = Ptr{Cvoid}(positionelements * sizeof(GLfloat))
 
-    textureattribute =MeshAttribute(textureid, nooftextureelements, GL_FLOAT, GL_FALSE, textureoffset)
+    textureattribute = MeshAttribute(textureid, nooftextureelements, GL_FLOAT, GL_FALSE, textureoffset)
 
     attributes = [positionattribute, textureattribute]
 
-    elementspervertex = 3 + 2 # position coordinates + texture coordinates
+    elementspervertex = positionelements + nooftextureelements
     MeshDefinition(
         vertices,
         elementspervertex,
