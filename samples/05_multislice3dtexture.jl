@@ -60,18 +60,38 @@ void main()
 # Perspective and transformations
 #
 
-function lookat() :: Matrix{Float32}
+function normalize(v::Vector3{T}) where {T}
+    n = sqrt(v[1] * v[1] + v[2] * v[2] + v[3] * v[3])
+    (v[1] / n, v[2] / n, v[3] / n)
+end
+
+function cross(a::Vector3{T}, b::Vector3{T}) :: Vector3{T} where {T}
+    (
+        a[2]*b[3] - a[3]*b[2],
+        a[3]*b[1] - a[1]*b[3],
+        a[1]*b[2] - a[2]*b[1],
+    )
+end
+
+function Base.:-(a::Vector3{T}, b::Vector3{T}) :: Vector3{T} where {T}
+    (a[1] - b[1], a[2] - b[2], a[3] - b[3])
+end
+
+
+function lookat(cameraposition::Vector3{Float32}, cameratarget::Vector3{Float32}, up::Vector3{Float32}) :: Matrix{Float32}
+    direction = normalize(cameratarget - cameraposition)
+    right = cross(direction, up)
     direction = Matrix{GLfloat}([
-         1f0 0f0  1.8f0  0f0;
-         0f0 1f0  1.4f0  0f0;
-         0f0 0f0 -1f0  0f0;
-         0f0 0f0  0f0  1f0;
+            right[1]     right[2]     right[3] 0f0;
+               up[1]        up[2]        up[3] 0f0;
+        direction[1] direction[2] direction[3] 0f0;
+                 0f0          0f0          0f0 1f0;
     ])
     translation = Matrix{GLfloat}([
-         1f0 0f0  0f0 -5f0;
-         0f0 1f0  0f0 -4f0;
-         0f0 0f0  1f0  3f0;
-         0f0 0f0  0f0  1f0;
+         1f0 0f0  0f0 cameraposition[1];
+         0f0 1f0  0f0 cameraposition[2];
+         0f0 0f0  1f0 cameraposition[3];
+         0f0 0f0  0f0                1f0;
     ])
     direction * translation
 end
@@ -219,7 +239,11 @@ function run()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
         # Set uniforms
-        view = lookat()
+        cameraposition = (0f0, 0f0, 3f0)
+        cameratarget = (0f0, 0f0, 0f0)
+        up = (0f0, 1f0, 0f0)
+        view = lookat(cameraposition, cameratarget, up)
+        println(view)
         projection = perspective(camera)
         model = objectmodel()
         uniform(programid, "model", model)
