@@ -51,3 +51,9 @@ This sample extends `02_3dtexture.jl`.
 The previous sample showed a single, static slice of the 3D texture. This sample still shows a single square,
 but changes which slice of the 3D texture that is rendered onto the square. Essentially, it's as if it moves the
 texture back and forth along the depth axis.
+
+# Sample: 04_slice3dtexture.jl
+This sample extends `03_animated3dtexture.jl`.
+
+The previous sample showed a single slice of the 3D texture, but varied which part of the texture it displayed.
+This sample shows a single slice still, but moves the slice as it varies which part of the texture it displays.
