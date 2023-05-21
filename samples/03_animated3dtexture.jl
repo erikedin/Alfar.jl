@@ -158,6 +158,14 @@ function whichslice(timeofstart, timenow)
     # One full interval is 10 seconds
     interval = 10f0
 
+    # It's best if the first part of the texture shown is the same as in the previous
+    # static samples. Those samples show the closest part of the texture, which means the
+    # smallest depth value. In order for `v` to start off at the minimum value, we add a phase
+    # constant of `-2*pi/4`. In effect, when `timesincestart` is zero, at the beginning, then
+    # ```
+    # v = sin(0 - 2f0 * pi / 4f0) = -1
+    # ```
+    # which is the minimum.
     v = sin(2f0 * pi * timesincestart / interval - 2f0 * pi / 4f0)
 
     # v is in the range [-1, 1], but we want [0, 1]
