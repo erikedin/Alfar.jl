@@ -176,7 +176,7 @@ function run()
 
     programid = makeprogram(vertexsource, fragmentsource)
     # Create a 64x64x64 3D texture that will be drawn onto the square above.
-    texturedefinition = generate3dtexture(64, 64, 64)
+    texturedefinition = generate3dtexture(256, 256, 256)
     textureid = make3dtexture(texturedefinition)
 
     timeofstart = time()

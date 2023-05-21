@@ -228,7 +228,7 @@ function run()
     programid = makeprogram(vertexsource, fragmentsource)
 
     # Create a 64x64 2D texture that will be drawn onto the square above.
-    texturedefinition = generatetexture(64, 64)
+    texturedefinition = generatetexture(256, 256)
     textureid = make2dtexture(texturedefinition)
 
     # Loop until the user closes the window
