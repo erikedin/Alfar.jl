@@ -158,7 +158,7 @@ function whichslice(timeofstart, timenow)
     # One full interval is 10 seconds
     interval = 10f0
 
-    v = sin(2f0 * pi * timesincestart / interval)
+    v = sin(2f0 * pi * timesincestart / interval - 2f0 * pi / 4f0)
 
     # v is in the range [-1, 1], but we want [0, 1]
     v / 2f0 + 0.5f0
