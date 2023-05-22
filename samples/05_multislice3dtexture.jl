@@ -81,7 +81,7 @@ end
 function lookat(cameraposition::CameraPosition, cameratarget::Vector3{Float32}) :: Matrix{Float32}
     direction = normalize(cameraposition.position - cameratarget)
     up = cameraposition.up
-    right = cross(up, direction)
+    right = cross(direction, up)
     direction = Matrix{GLfloat}([
             right[1]     right[2]     right[3] 0f0;
                up[1]        up[2]        up[3] 0f0;
@@ -221,7 +221,7 @@ function run()
     glEnable(GL_DEPTH_TEST)
 
     cubedepth = 1.0f0
-    numberofslices = 10
+    numberofslices = 15
     distancebetweenslices = cubedepth / numberofslices
 
     quads = [makemeshbuffer(squarevertices(z, z + 0.5f0)) for z in 0.5f0:-distancebetweenslices:-0.5f0]
@@ -238,7 +238,7 @@ function run()
     # We'd like to see the volume from above and to the side, to see the transparency in effect.
     # Rotate it pi/4 radians along X, and then Y.
     originalcameraposition = CameraPosition((0f0, 0f0, -3f0), (0f0, 1f0, 0f0))
-    t = rotatey(pi / 4f0) * rotatex(pi / 4f0)
+    t = rotatey(-5f0 * pi / 16f0) * rotatex(pi / 8f0)
     cameraposition = transform(originalcameraposition, t)
 
 
