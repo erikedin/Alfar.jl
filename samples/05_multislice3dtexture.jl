@@ -221,7 +221,7 @@ function run()
     glEnable(GL_DEPTH_TEST)
 
     cubedepth = 1.0f0
-    numberofslices = 15
+    numberofslices = 20
     distancebetweenslices = cubedepth / numberofslices
 
     quads = [makemeshbuffer(squarevertices(z, z + 0.5f0)) for z in 0.5f0:-distancebetweenslices:-0.5f0]

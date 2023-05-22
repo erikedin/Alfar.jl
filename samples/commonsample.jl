@@ -344,7 +344,7 @@ function generate3dtexture(width, height, depth)
     backquadrant4  = @view texturedata[:, halfwidth+1:width    ,            1:halfheight, halfdepth+1:depth]
 
     quadrantsize = (halfwidth, halfheight, halfdepth)
-    fill!(frontquadrant1, quadrantsize, (255, 255, 255, 128))
+    fill!(frontquadrant1, quadrantsize, (255, 255, 255, 64))
     fillwithalpha!(frontquadrant2, quadrantsize, (255,   0,   0), true)
     fillwithalpha!(frontquadrant3, quadrantsize, (  0, 255,   0), true)
     fillwithalpha!(frontquadrant4, quadrantsize, (  0,   0, 255), true)
