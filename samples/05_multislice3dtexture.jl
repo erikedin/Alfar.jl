@@ -78,9 +78,10 @@ function Base.:-(a::Vector3{T}, b::Vector3{T}) :: Vector3{T} where {T}
 end
 
 
-function lookat(cameraposition::Vector3{Float32}, cameratarget::Vector3{Float32}, up::Vector3{Float32}) :: Matrix{Float32}
-    direction = normalize(cameratarget - cameraposition)
-    right = cross(direction, up)
+function lookat(cameraposition::CameraPosition, cameratarget::Vector3{Float32}) :: Matrix{Float32}
+    direction = normalize(cameraposition.position - cameratarget)
+    up = cameraposition.up
+    right = cross(up, direction)
     direction = Matrix{GLfloat}([
             right[1]     right[2]     right[3] 0f0;
                up[1]        up[2]        up[3] 0f0;
@@ -88,9 +89,9 @@ function lookat(cameraposition::Vector3{Float32}, cameratarget::Vector3{Float32}
                  0f0          0f0          0f0 1f0;
     ])
     translation = Matrix{GLfloat}([
-         1f0 0f0  0f0 cameraposition[1];
-         0f0 1f0  0f0 cameraposition[2];
-         0f0 0f0  1f0 cameraposition[3];
+         1f0 0f0  0f0 -cameraposition.position[1];
+         0f0 1f0  0f0 -cameraposition.position[2];
+         0f0 0f0  1f0 -cameraposition.position[3];
          0f0 0f0  0f0                1f0;
     ])
     direction * translation
@@ -233,17 +234,22 @@ function run()
 
     timeofstart = time()
 
+    # Camera position
+    # We'd like to see the volume from above and to the side, to see the transparency in effect.
+    # Rotate it pi/4 radians along X, and then Y.
+    originalcameraposition = CameraPosition((0f0, 0f0, -3f0), (0f0, 1f0, 0f0))
+    t = rotatey(pi / 4f0) * rotatex(pi / 4f0)
+    cameraposition = transform(originalcameraposition, t)
+
+
     # Loop until the user closes the window
     while !GLFW.WindowShouldClose(window)
         glClearColor(0.0f0, 0.0f0, 0.0f0, 1.0f0)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
         # Set uniforms
-        cameraposition = (0f0, 0f0, 3f0)
         cameratarget = (0f0, 0f0, 0f0)
-        up = (0f0, 1f0, 0f0)
-        view = lookat(cameraposition, cameratarget, up)
-        println(view)
+        view = lookat(cameraposition, cameratarget)
         projection = perspective(camera)
         model = objectmodel()
         uniform(programid, "model", model)

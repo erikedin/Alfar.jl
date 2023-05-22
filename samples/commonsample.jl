@@ -176,6 +176,53 @@ function Camera(width, height) :: Camera
     )
 end
 
+function Base.:*(a::Matrix{T}, b::Vector3{T}) where {T}
+    v = [b[1], b[2], b[3], zero(T)]
+    result = a * v
+    (result[1], result[2], result[3])
+end
+
+#
+# Camera transforms
+#
+
+struct CameraPosition
+    position::Vector3{Float32}
+    up::Vector3{Float32}
+end
+
+function rotatex(angle::Float32) :: Matrix{GLfloat}
+    Matrix{GLfloat}(GLfloat[
+        1f0 0f0 0f0 0f0;
+        0f0 cos(angle) -sin(angle) 0f0;
+        0f0 sin(angle) cos(angle) 0f0;
+        0f0 0f0 0f0 1f0;
+    ])
+end
+
+function rotatey(angle::Float32) :: Matrix{GLfloat}
+    Matrix{GLfloat}(GLfloat[
+        cos(angle) 0f0 sin(angle) 0f0;
+        0f0 1f0 0f0 0f0;
+        -sin(angle) 0f0 cos(angle) 0f0;
+        0f0 0f0 0f0 1f0;
+    ])
+end
+
+function rotatez(angle::Float32) :: Matrix{GLfloat}
+    Matrix{GLfloat}(GLfloat[
+        cos(angle) -sin(angle) 0f0 0f0;
+        sin(angle) cos(angle) 0f0 0f0;
+        0f0 0f0 1f0 0f0;
+        0f0 0f0 0f0 1f0;
+    ])
+end
+
+transform(c::CameraPosition, t::Matrix{GLfloat}) :: CameraPosition = CameraPosition(t * c.position, t * c.up)
+
+# TODO Add rotation functions
+# Then send position and up into new lookat
+
 #
 # Perspective and transformations
 #
