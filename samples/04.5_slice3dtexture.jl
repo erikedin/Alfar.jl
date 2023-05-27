@@ -181,6 +181,13 @@ function run()
 
     timeofstart = time()
 
+    # Camera position
+    # We'd like to see the volume from above and to the side, to see the transparency in effect.
+    # Rotate it pi/4 radians along X, and then Y.
+    originalcameraposition = CameraPosition((0f0, 0f0, -3f0), (0f0, 1f0, 0f0))
+    t = rotatey(-5f0 * pi / 16f0) * rotatex(pi / 8f0)
+    cameraposition = transform(originalcameraposition, t)
+
     # Loop until the user closes the window
     while !GLFW.WindowShouldClose(window)
         glClearColor(0.0f0, 0.0f0, 0.0f0, 1.0f0)
@@ -195,7 +202,8 @@ function run()
         mesh = makemeshbuffer(squarevertices(vertexz, texr))
 
         # Set uniforms
-        view = lookatfromfront()
+        cameratarget = (0f0, 0f0, 0f0)
+        view = lookat(cameraposition, cameratarget)
         projection = perspective(camera)
         model = objectmodel()
         uniform(programid, "model", model)
