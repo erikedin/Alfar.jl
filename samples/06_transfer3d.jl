@@ -52,7 +52,56 @@ uniform sampler3D mytexture;
 
 void main()
 {
-    FragColor = texture(mytexture, TexCoord);
+    vec4 sample = texture(mytexture, TexCoord);
+    float intensity = sample.r;
+
+    // Back octant 1 has value 16 => transparent
+    if (intensity >= 0.0 && intensity < 32.0/256.0)
+    {
+        FragColor = vec4(0.0, 0.0, 0.0, 0.0);
+    }
+    // Back octant 2 has value 48 => purple
+    else if (intensity >= 32.0/256.0 && intensity < 64.0/256.0)
+    {
+        FragColor = vec4(1.0, 0, 1.0, 1.0);
+    }
+    // Back octant 3 has value 0.3215 => cyan
+    else if (intensity >= 64.0/256.0 && intensity < 96.0/256.0)
+    {
+        FragColor = vec4(0, 1.0, 1.0, 1.0);
+    }
+    // Back octant 4 has value 112 => aq.0/256.0amarine
+    else if (intensity >= 96.0/256.0 && intensity < 128.0/256.0)
+    {
+        FragColor = vec4(0.5, 1.0, 0.828, 1.0);
+    }
+
+    // Front octant 1 has value 144 => semi-transparent white
+    else if (intensity >= 128.0/256.0 && intensity < 160.0/256.0)
+    {
+        FragColor = vec4(1.0, 1.0, 1.0, 0.25);
+    }
+    // Front octant 2 has value 176 => red
+    else if (intensity >= 160.0/256.0 && intensity < 192.0/256.0)
+    {
+        FragColor = vec4(1.0, 0, 0, 1.0);
+    }
+    // Front octant 3 has value 208 => bl.0/256.0e
+    else if (intensity >= 192.0/256.0 && intensity < 224.0/256.0)
+    {
+        FragColor = vec4(0, 1.0, 0, 1.0);
+    }
+    // Front octant 4 has value 240 => green
+    else if (intensity >= 224.0/256.0 && intensity < 255.0/256.0)
+    {
+        FragColor = vec4(0.0, 0.0, 1.0, 1.0);
+    }
+
+    // The yellow bar has intensity 256
+    else
+    {
+        FragColor = vec4(1.0, 1.0, 0.0, 1.0);
+    }
 }
 """
 
@@ -61,6 +110,64 @@ void main()
 # The size needs to be a multiple of two at each dimension.
 # Making it a square 64x64x64 pixel texture.
 #
+
+function fillintensity!(data, (width, height, depth), color)
+   for x = 1:width
+        for y = 1:height
+            for z = 1:depth
+                data[x, y, z] = UInt8(color)
+            end
+        end
+    end
+end
+
+# This defines a 3D texture with a single channel of intensity, rather than a color
+# as in the previous samples. The transfer function in the fragment shader converts these
+# intensities to colors.
+function generate3dintensitytexture(width, height, depth)
+    flattexturedata = zeros(UInt8, width*height*depth)
+    texturedata = reshape(flattexturedata, (depth, height, width))
+
+    halfwidth = trunc(Int, width/2)
+    halfheight = trunc(Int, height/2)
+    halfdepth = trunc(Int, depth/2)
+
+    # Fill each quadrant
+    frontquadrant1 = @view texturedata[halfwidth+1:width    , halfheight+1:height    , 1:halfdepth]
+    frontquadrant2 = @view texturedata[          1:halfwidth, halfheight+1:height    , 1:halfdepth]
+    frontquadrant3 = @view texturedata[          1:halfwidth,            1:halfheight, 1:halfdepth]
+    frontquadrant4 = @view texturedata[halfwidth+1:width    ,            1:halfheight, 1:halfdepth]
+
+    backquadrant1  = @view texturedata[halfwidth+1:width    , halfheight+1:height    , halfdepth+1:depth]
+    backquadrant2  = @view texturedata[          1:halfwidth, halfheight+1:height    , halfdepth+1:depth]
+    backquadrant3  = @view texturedata[          1:halfwidth,            1:halfheight, halfdepth+1:depth]
+    backquadrant4  = @view texturedata[halfwidth+1:width    ,            1:halfheight, halfdepth+1:depth]
+
+    quadrantsize = (halfwidth, halfheight, halfdepth)
+    fillintensity!(backquadrant1, quadrantsize, 16)
+    fillintensity!(backquadrant2, quadrantsize, 48)
+    fillintensity!(backquadrant3, quadrantsize, 80)
+    fillintensity!(backquadrant4, quadrantsize, 112)
+
+    fillintensity!(frontquadrant1, quadrantsize, 144)
+    fillintensity!(frontquadrant2, quadrantsize, 176)
+    fillintensity!(frontquadrant3, quadrantsize, 208)
+    fillintensity!(frontquadrant4, quadrantsize, 240)
+
+    # Fill the center with a yellow bar.
+    barwidth = trunc(Int, width / 4)
+    barheight = trunc(Int, width / 4)
+    halfbarheight = trunc(Int, height / 8)
+    halfbarwidth = trunc(Int, width / 8)
+    halfbarheight = trunc(Int, height / 8)
+    yellowbar = @view texturedata[halfwidth  - halfbarwidth  + 1:halfwidth  + halfbarwidth,
+                                  halfheight - halfbarheight + 1:halfheight + halfbarheight,
+                                  1:depth]
+    fillintensity!(yellowbar, (barwidth, barheight, depth), 255)
+
+
+    TextureDefinition3D(width, height, depth, flattexturedata)
+end
 
 function make3dtexture(texturedefinition::TextureDefinition3D)
     textureRef = Ref{GLuint}()
@@ -71,12 +178,12 @@ function make3dtexture(texturedefinition::TextureDefinition3D)
 
     glTexImage3D(GL_TEXTURE_3D,
                  0,
-                 GL_RGBA,
+                 GL_RED,
                  texturedefinition.width,
                  texturedefinition.height,
                  texturedefinition.depth,
                  0,
-                 GL_RGBA,
+                 GL_RED,
                  GL_UNSIGNED_BYTE,
                  texturedefinition.data)
     glGenerateMipmap(GL_TEXTURE_3D)
@@ -188,7 +295,7 @@ function run()
 
     programid = makeprogram(vertexsource, fragmentsource)
     # Create a 256x256x256 3D texture that will be drawn onto the square above.
-    texturedefinition = generate3dtexture(256, 256, 256)
+    texturedefinition = generate3dintensitytexture(256, 256, 256)
     textureid = make3dtexture(texturedefinition)
 
     timeofstart = time()
