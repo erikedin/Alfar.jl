@@ -23,7 +23,7 @@ include("commonsample.jl")
 #
 
 vertexsource = """
-#version 330 core
+#version 420 core
 
 layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec3 aTextureCoordinate;
@@ -43,19 +43,18 @@ void main()
 """
 
 fragmentsource = """
-#version 330 core
+#version 420 core
 
 in vec3 TexCoord;
 out vec4 FragColor;
 
-uniform sampler3D mytexture;
-uniform sampler1D transfer;
+layout (binding = 0) uniform sampler3D mytexture;
+layout (binding = 1) uniform sampler1D transfer;
 
 void main()
 {
     vec4 intensity = texture(mytexture, TexCoord);
-    // FragColor = texture(transfer, intensity.r);
-    FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+    FragColor = texture(transfer, intensity.r);
 }
 """
 
@@ -124,6 +123,8 @@ function generate3dintensitytexture(width, height, depth)
 end
 
 function make3dtexture(texturedefinition::TextureDefinition3D)
+    glActiveTexture(GL_TEXTURE0)
+
     textureRef = Ref{GLuint}()
     glGenTextures(1, textureRef)
     textureid = textureRef[]
@@ -168,11 +169,11 @@ function generatetexturetransferfunction() :: TextureDefinition1D
     # is moved here from the fragment shader. The fragment shader
     # can now be re-used for different transfer functions by
     # binding a different 1D texture.
-    depth = 4
+    channels = 4
     width = 256
 
-    flattransfer = zeros(UInt8, depth*width)
-    transfer = reshape(flattransfer, (depth, width))
+    flattransfer = zeros(UInt8, channels*width)
+    transfer = reshape(flattransfer, (channels, width))
 
     # Back octant 1, transparent
     fill1d!(transfer, 1, 32,   (  0,   0,   0,   0))
@@ -188,7 +189,7 @@ function generatetexturetransferfunction() :: TextureDefinition1D
     # Front octant 2
     fill1d!(transfer, 161, 192, (255,   0,   0, 255))
     # Front octant 3
-    fill1d!(transfer, 192, 224, (  0, 255,   0, 255))
+    fill1d!(transfer, 193, 224, (  0, 255,   0, 255))
     # Front octant 4
     fill1d!(transfer, 225, 254, (  0,   0, 255, 255))
 
@@ -199,6 +200,8 @@ function generatetexturetransferfunction() :: TextureDefinition1D
 end
 
 function maketransfertexture(texturedefinition::TextureDefinition1D)
+    glActiveTexture(GL_TEXTURE1)
+
     textureRef = Ref{GLuint}()
     glGenTextures(1, textureRef)
     textureid = textureRef[]
@@ -214,6 +217,8 @@ function maketransfertexture(texturedefinition::TextureDefinition1D)
                  GL_UNSIGNED_BYTE,
                  texturedefinition.data)
     glGenerateMipmap(GL_TEXTURE_1D)
+
+    glTexParameterf(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
 
     textureid
 end
@@ -303,12 +308,13 @@ function run()
     # Create a window and its OpenGL context
     window = GLFW.CreateWindow(camera.windowwidth, camera.windowheight, "Julia sliced 3D texture example")
 
-    # Make the window's context current
+    # # Make the window's context current
     GLFW.MakeContextCurrent(window)
 
     glEnable(GL_BLEND)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
     glEnable(GL_DEPTH_TEST)
+    glEnable(GL_TEXTURE_1D)
 
     cubedepth = 1.0f0
     numberofslices = 20
