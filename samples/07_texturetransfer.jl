@@ -112,11 +112,10 @@ function generate3dintensitytexture(width, height, depth)
     barheight = trunc(Int, width / 4)
     halfbarheight = trunc(Int, height / 8)
     halfbarwidth = trunc(Int, width / 8)
-    halfbarheight = trunc(Int, height / 8)
     yellowbar = @view texturedata[halfwidth  - halfbarwidth  + 1:halfwidth  + halfbarwidth,
                                   halfheight - halfbarheight + 1:halfheight + halfbarheight,
                                   1:depth]
-    fillintensity!(yellowbar, (barwidth, barheight, depth), 252)
+    fillintensity!(yellowbar, (barwidth, barheight, depth), 255)
 
 
     TextureDefinition3D(width, height, depth, flattexturedata)
@@ -194,7 +193,7 @@ function generatetexturetransferfunction() :: TextureDefinition1D
     fill1d!(transfer, 225, 249, (  0,   0, 255, 255))
 
     # Yellow bar
-    fill1d!(transfer, 250, 255, (255, 255,   0, 255))
+    fill1d!(transfer, 250, 256, (255, 255,   0, 255))
 
     TextureDefinition1D(width, flattransfer)
 end
@@ -218,7 +217,10 @@ function maketransfertexture(texturedefinition::TextureDefinition1D)
                  texturedefinition.data)
     glGenerateMipmap(GL_TEXTURE_1D)
 
-    glTexParameterf(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
+
+    bordercolor = GLfloat[1f0, 1f0, 0f0, 1f0]
+    glTexParameterfv(GL_TEXTURE_1D, GL_TEXTURE_BORDER_COLOR, Ref(bordercolor, 1))
+    glTexParameterf(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER)
 
     textureid
 end
