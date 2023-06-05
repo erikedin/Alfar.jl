@@ -116,7 +116,7 @@ function generate3dintensitytexture(width, height, depth)
     yellowbar = @view texturedata[halfwidth  - halfbarwidth  + 1:halfwidth  + halfbarwidth,
                                   halfheight - halfbarheight + 1:halfheight + halfbarheight,
                                   1:depth]
-    fillintensity!(yellowbar, (barwidth, barheight, depth), 255)
+    fillintensity!(yellowbar, (barwidth, barheight, depth), 252)
 
 
     TextureDefinition3D(width, height, depth, flattexturedata)
@@ -191,10 +191,10 @@ function generatetexturetransferfunction() :: TextureDefinition1D
     # Front octant 3
     fill1d!(transfer, 193, 224, (  0, 255,   0, 255))
     # Front octant 4
-    fill1d!(transfer, 225, 254, (  0,   0, 255, 255))
+    fill1d!(transfer, 225, 249, (  0,   0, 255, 255))
 
     # Yellow bar
-    fill1d!(transfer, 255, 255, (255, 255,   0, 255))
+    fill1d!(transfer, 250, 255, (255, 255,   0, 255))
 
     TextureDefinition1D(width, flattransfer)
 end
