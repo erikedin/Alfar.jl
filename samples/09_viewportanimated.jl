@@ -336,6 +336,7 @@ function run()
     transfertextureid = maketransfertexture(transfertexture)
 
     timeofstart = time()
+    fullcircle = 20 # seconds to go around
 
     # Camera position
     # The first view sees the object from the front.
@@ -344,8 +345,8 @@ function run()
     # In the second view we'd like to see the volume from above and to the side,
     # to see the transparency in effect.
     # Rotate it pi/4 radians along X, and then Y.
-    t = rotatey(-5f0 * pi / 16f0) * rotatex(pi / 8f0)
-    cameraposition = transform(originalcameraposition, t)
+    # t = rotatey(-5f0 * pi / 16f0) * rotatex(pi / 8f0)
+    # cameraposition = transform(originalcameraposition, t)
 
 
     # Loop until the user closes the window
@@ -356,6 +357,21 @@ function run()
         glClearColor(0.0f0, 0.0f0, 0.0f0, 1.0f0)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
+        # Calculate the viewing angle and transforms
+        now = time()
+        timesincestart = Float32(now - timeofstart)
+        # The viewangle is negative because we rotate the object in the opposite
+        # direction, rather than rotating the camera.
+        viewangle = -2f0 * pi * timesincestart / fullcircle
+
+        # We will rotate around the object on the XZ plane,
+        # but we want it slanted, so rotated slightly around the Z axis.
+        zangle = 1f0 * pi / 8f0
+        viewtransform = rotatez(zangle) * rotatey(viewangle)
+        camerapositionviewport1 = transform(originalcameraposition, viewtransform)
+        viewtransform2 = rotatez(zangle) * rotatey(viewangle - 5f0 * pi / 16f0)
+        camerapositionviewport2 = transform(originalcameraposition, viewtransform2)
+
         #
         # Viewport 1 (left)
         #
@@ -363,7 +379,7 @@ function run()
 
         # Set uniforms
         cameratarget = (0f0, 0f0, 0f0)
-        view = lookat(originalcameraposition, cameratarget)
+        view = lookat(camerapositionviewport1, cameratarget)
         projection = perspective(camera)
         model = objectmodel()
         uniform(programid, "model", model)
@@ -381,7 +397,7 @@ function run()
 
         # Set uniforms
         cameratarget = (0f0, 0f0, 0f0)
-        view = lookat(cameraposition, cameratarget)
+        view = lookat(camerapositionviewport2, cameratarget)
         projection = perspective(camera)
         model = objectmodel()
         uniform(programid, "model", model)
