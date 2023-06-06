@@ -309,7 +309,7 @@ function run()
     camera = Camera(1024, 800)
 
     # Create a window and its OpenGL context
-    window = GLFW.CreateWindow(camera.windowwidth, camera.windowheight, "Alfar Sample 07: Texture transfer function")
+    window = GLFW.CreateWindow(camera.windowwidth * 2, camera.windowheight, "Alfar Sample 08: Two views of the cube")
 
     # # Make the window's context current
     GLFW.MakeContextCurrent(window)
@@ -338,17 +338,46 @@ function run()
     timeofstart = time()
 
     # Camera position
-    # We'd like to see the volume from above and to the side, to see the transparency in effect.
-    # Rotate it pi/4 radians along X, and then Y.
+    # The first view sees the object from the front.
     originalcameraposition = CameraPosition((0f0, 0f0, -3f0), (0f0, 1f0, 0f0))
+
+    # In the second view we'd like to see the volume from above and to the side,
+    # to see the transparency in effect.
+    # Rotate it pi/4 radians along X, and then Y.
     t = rotatey(-5f0 * pi / 16f0) * rotatex(pi / 8f0)
     cameraposition = transform(originalcameraposition, t)
 
 
     # Loop until the user closes the window
     while !GLFW.WindowShouldClose(window)
+        # Clear the full viewport
+        glViewport(0, 0, camera.windowwidth * 2, camera.windowheight)
+
         glClearColor(0.0f0, 0.0f0, 0.0f0, 1.0f0)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+
+        #
+        # Viewport 1 (left)
+        #
+        glViewport(0, 0, camera.windowwidth, camera.windowheight)
+
+        # Set uniforms
+        cameratarget = (0f0, 0f0, 0f0)
+        view = lookat(originalcameraposition, cameratarget)
+        projection = perspective(camera)
+        model = objectmodel()
+        uniform(programid, "model", model)
+        uniform(programid, "view", view)
+        uniform(programid, "projection", projection)
+
+        # Render here
+        glUseProgram(programid)
+        render(slices, textureid, transfertextureid)
+
+        #
+        # Viewport 2 (left)
+        #
+        glViewport(camera.windowwidth, 0, camera.windowwidth, camera.windowheight)
 
         # Set uniforms
         cameratarget = (0f0, 0f0, 0f0)
