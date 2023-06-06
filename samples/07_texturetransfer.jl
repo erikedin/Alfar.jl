@@ -221,6 +221,7 @@ function maketransfertexture(texturedefinition::TextureDefinition1D)
     bordercolor = GLfloat[1f0, 1f0, 0f0, 1f0]
     glTexParameterfv(GL_TEXTURE_1D, GL_TEXTURE_BORDER_COLOR, Ref(bordercolor, 1))
     glTexParameterf(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER)
+    glTexParameterf(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
 
     textureid
 end
