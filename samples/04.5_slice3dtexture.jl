@@ -165,7 +165,7 @@ function run()
     camera = Camera(1024, 800)
 
     # Create a window and its OpenGL context
-    window = GLFW.CreateWindow(camera.windowwidth, camera.windowheight, "Julia sliced 3D texture example")
+    window = GLFW.CreateWindow(camera.windowwidth, camera.windowheight, "Alfar Sample 04.5: One moving slice, other viewing angle")
 
     # Make the window's context current
     GLFW.MakeContextCurrent(window)
