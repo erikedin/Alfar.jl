@@ -335,12 +335,23 @@ function run()
     transfertexture = generatetexturetransferfunction()
     transfertextureid = maketransfertexture(transfertexture)
 
-    timeofstart = time()
-    fullcircle = 20 # seconds to go around
+    fullcircle = 20f0 # seconds to go around
 
     # Camera position
     # The first view sees the object from the front.
     originalcameraposition = CameraPosition((0f0, 0f0, -3f0), (0f0, 1f0, 0f0))
+
+    # Key callbacks
+    # We want to stop spinning when space is pressed, so listen to callbacks here, and
+    # set a flag.
+    isspinning = true
+
+    togglespinningcallback = (window, key, scancode, action, mods) -> begin
+        if action == GLFW.PRESS
+            isspinning = !isspinning
+        end
+    end
+    GLFW.SetKeyCallback(window, togglespinningcallback)
 
     # In the second view we'd like to see the volume from above and to the side,
     # to see the transparency in effect.
@@ -348,9 +359,15 @@ function run()
     # t = rotatey(-5f0 * pi / 16f0) * rotatex(pi / 8f0)
     # cameraposition = transform(originalcameraposition, t)
 
+    startofmainloop = time()
+    viewangle = 0f0
 
     # Loop until the user closes the window
     while !GLFW.WindowShouldClose(window)
+        now = time()
+        timesincelastloop = Float32(now - startofmainloop)
+        startofmainloop = now
+
         # Clear the full viewport
         glViewport(0, 0, camera.windowwidth * 2, camera.windowheight)
 
@@ -358,11 +375,12 @@ function run()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
         # Calculate the viewing angle and transforms
-        now = time()
-        timesincestart = Float32(now - timeofstart)
-        # The viewangle is negative because we rotate the object in the opposite
-        # direction, rather than rotating the camera.
-        viewangle = -2f0 * pi * timesincestart / fullcircle
+        # Only when spinning. When spinning is disabled, don't update the angle.
+        if isspinning
+            # The viewangle is negative because we rotate the object in the opposite
+            # direction, rather than rotating the camera.
+            viewangle += Float32(-2f0 * pi * timesincelastloop / fullcircle)
+        end
 
         # We will rotate around the object on the XZ plane,
         # but we want it slanted, so rotated slightly around the Z axis.
