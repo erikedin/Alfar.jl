@@ -22,6 +22,7 @@ include("Format/Format.jl")
 include("Render.jl")
 include("Tools.jl")
 include("Main.jl")
+include("Visualization/Visualization.jl")
 
 using GLFW
 using ModernGL
