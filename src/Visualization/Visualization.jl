@@ -19,15 +19,36 @@ using ModernGL
 
 using Distributed
 
+using Alfar.Rendering.Shaders
+
 @everywhere using Alfar.Visualization
+
+struct VisualizationState
+    program::Union{Nothing, ShaderProgram}
+end
+
+VisualizationState() = VisualizationState(nothing)
 
 abstract type VizEvent end
 
 struct ExitEvent <: VizEvent end
 
-function handle(window, e::ExitEvent)
-    GLFW.SetWindowShouldClose(window, true)
+struct SelectShadersEvent <: VizEvent
+    vertexshader::String
+    fragmentshader::String
 end
+
+function handle(window, e::ExitEvent, state::VisualizationState)
+    GLFW.SetWindowShouldClose(window, true)
+    state
+end
+
+function handle(window, ev::SelectShadersEvent, state::VisualizationState)
+    newprogram = ShaderProgram(ev.vertexshader, ev.fragmentshader)
+    VisualizationState(newprogram)
+end
+
+Shaders.use(::Nothing) = nothing
 
 function runvisualizer(c::RemoteChannel)
     # Create a window and its OpenGL context
@@ -38,6 +59,9 @@ function runvisualizer(c::RemoteChannel)
 
     # Set background color to black
     glClearColor(0.0f0, 0.0f0, 0.0f0, 1.0f0)
+
+    # Create the initial state of the visualizer
+    state = VisualizationState()
 
     # Loop until the user closes the window
     while !GLFW.WindowShouldClose(window)

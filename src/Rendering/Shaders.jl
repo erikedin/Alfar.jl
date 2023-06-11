@@ -18,6 +18,10 @@ export ShaderProgram
 export use, uniform
 export VertexShader, FragmentShader
 
+using ModernGL
+
+using Alfar.Math
+
 #
 # Shader exceptions
 #

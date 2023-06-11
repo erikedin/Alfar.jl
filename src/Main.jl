@@ -24,6 +24,7 @@ using Alfar.Render
 using Alfar.Meshs
 using Alfar.Format.STL
 using Alfar.VolumeTextures
+using Alfar.Rendering.Shaders
 
 mutable struct Camera
     position::Vector3{Float32}
