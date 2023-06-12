@@ -23,7 +23,7 @@ include("Rendering/Rendering.jl")
 include("Render.jl")
 include("Tools.jl")
 include("Main.jl")
-include("Visualization/Visualization.jl")
+include("Visualizer/Visualizer.jl")
 
 using GLFW
 using ModernGL

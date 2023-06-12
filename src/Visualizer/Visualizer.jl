@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-module Visualization
+module Visualizer
 
 using GLFW
 using ModernGL
@@ -21,7 +21,7 @@ using Distributed
 
 using Alfar.Rendering.Shaders
 
-@everywhere using Alfar.Visualization
+@everywhere using Alfar.Visualizer
 
 struct VisualizationState
     program::Union{Nothing, ShaderProgram}
@@ -52,7 +52,7 @@ Shaders.use(::Nothing) = nothing
 
 function runvisualizer(c::RemoteChannel)
     # Create a window and its OpenGL context
-    window = GLFW.CreateWindow(640, 480, "Alfar Visualization")
+    window = GLFW.CreateWindow(640, 480, "Alfar Visualizer")
 
     # Make the window's context current
     GLFW.MakeContextCurrent(window)
@@ -86,21 +86,21 @@ function runvisualizer(c::RemoteChannel)
     GLFW.DestroyWindow(window)
 end
 
-struct VisualizationContext
+struct VisualizerContext
     channel::RemoteChannel
 end
 
 function start()
-    channel = RemoteChannel(() -> Channel{Visualization.VizEvent}(10))
+    channel = RemoteChannel(() -> Channel{Visualizer.VizEvent}(10))
 
     workerpid = Distributed.workers()[1]
 
-    remote_do(Visualization.runvisualizer, workerpid, channel)
+    remote_do(Visualizer.runvisualizer, workerpid, channel)
 
-    VisualizationContext(channel)
+    VisualizerContext(channel)
 end
 
-function stop(context::VisualizationContext)
+function stop(context::VisualizerContext)
     put!(context.channel, ExitEvent())
 end
 
