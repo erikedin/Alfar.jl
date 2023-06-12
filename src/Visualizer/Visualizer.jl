@@ -23,8 +23,14 @@ using Alfar.Rendering.Shaders
 
 @everywhere using Alfar.Visualizer
 
+include("visualization.jl")
+
+const PredefinedVisualizers = Dict{String, Visualization}([
+    ("ViewportAnimated09", ViewportAnimated09),
+])
+
 struct VisualizationState
-    program::Union{Nothing, ShaderProgram}
+    visualizer::Union{Nothing, Visualizer}
 end
 
 VisualizationState() = VisualizationState(nothing)
@@ -33,9 +39,8 @@ abstract type VizEvent end
 
 struct ExitEvent <: VizEvent end
 
-struct SelectShadersEvent <: VizEvent
-    vertexshader::String
-    fragmentshader::String
+struct SelectVisualizationEvent <: VizEvent
+    name::String
 end
 
 function handle(window, e::ExitEvent, state::VisualizationState)
@@ -43,10 +48,15 @@ function handle(window, e::ExitEvent, state::VisualizationState)
     state
 end
 
-function handle(window, ev::SelectShadersEvent, state::VisualizationState)
-    newprogram = ShaderProgram(ev.vertexshader, ev.fragmentshader)
-    VisualizationState(newprogram)
+function handle(window, ev::SelectVisualizationEvent, state::VisualizationState)
+    visualizer = get(PredefinedVisualizers, ev.name, nothing)
+
+    setflags(visualizer)
+    setup(visualizer)
+
+    VisualizationState(ev.visualizer)
 end
+
 
 Shaders.use(::Nothing) = nothing
 
@@ -65,19 +75,20 @@ function runvisualizer(c::RemoteChannel)
 
     # Loop until the user closes the window
     while !GLFW.WindowShouldClose(window)
-        glClear(GL_COLOR_BUFFER_BIT)
-
-	    # Render here
-
-	    # Swap front and back buffers
-	    GLFW.SwapBuffers(window)
-
         # If we have any events from the REPL, handle them.
         hasevents = isready(c)
         if hasevents
             ev = take!(c)
             handle(window, ev)
         end
+
+        glClear(GL_COLOR_BUFFER_BIT)
+
+	    # Render here
+        render(state.visualizer)
+
+	    # Swap front and back buffers
+	    GLFW.SwapBuffers(window)
 
 	    # Poll for and process events
 	    GLFW.PollEvents()
