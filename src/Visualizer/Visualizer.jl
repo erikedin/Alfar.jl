@@ -25,12 +25,12 @@ using Alfar.Rendering.Shaders
 
 include("visualization.jl")
 
-const PredefinedVisualizers = Dict{String, Visualization}([
+const PredefinedVisualizers = Dict{String, Type{<:Visualization}}([
     ("ViewportAnimated09", ViewportAnimated09),
 ])
 
 struct VisualizationState
-    visualizer::Union{Nothing, Visualizer}
+    visualizer::Union{Nothing, Visualization}
 end
 
 VisualizationState() = VisualizationState(nothing)
@@ -49,12 +49,16 @@ function handle(window, e::ExitEvent, state::VisualizationState)
 end
 
 function handle(window, ev::SelectVisualizationEvent, state::VisualizationState)
-    visualizer = get(PredefinedVisualizers, ev.name, nothing)
+    println("Selecting visualizer $(ev.name)")
+    visualizerfactory = get(PredefinedVisualizers, ev.name, nothing)
+    println("Got visualizerfactory $(visualizerfactory)")
+    visualizer = visualizerfactory()
+    println("Got visualizer $(visualizer)")
 
     setflags(visualizer)
     setup(visualizer)
 
-    VisualizationState(ev.visualizer)
+    VisualizationState(visualizer)
 end
 
 
@@ -78,8 +82,10 @@ function runvisualizer(c::RemoteChannel)
         # If we have any events from the REPL, handle them.
         hasevents = isready(c)
         if hasevents
+            println("Take event")
             ev = take!(c)
-            handle(window, ev)
+            println("Event: $(ev)")
+            handle(window, ev, state)
         end
 
         glClear(GL_COLOR_BUFFER_BIT)

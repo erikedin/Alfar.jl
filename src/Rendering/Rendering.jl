@@ -15,4 +15,5 @@
 
 module Rendering
 include("Shaders.jl")
+include("Textures.jl")
 end
