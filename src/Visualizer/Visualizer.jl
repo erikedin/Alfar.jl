@@ -85,7 +85,7 @@ function runvisualizer(c::RemoteChannel)
             println("Take event")
             ev = take!(c)
             println("Event: $(ev)")
-            handle(window, ev, state)
+            state = handle(window, ev, state)
         end
 
         glClear(GL_COLOR_BUFFER_BIT)

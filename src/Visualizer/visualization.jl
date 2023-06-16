@@ -13,6 +13,7 @@
 # limitations under the License.
 
 using Alfar.Rendering.Textures
+using Alfar.Rendering.Meshs
 using ModernGL
 
 abstract type Visualization end
@@ -139,16 +140,85 @@ function generate3dintensitytexture(width, height, depth)
     TextureData{3}(flattexturedata, width, height, depth)
 end
 
+# vertexz is the Z coordinate of the vertex.
+# texr is the corresponding coordinate of the texture.
+# However, the texture coordinate varies in the range [0, 1],
+# while the vertex coordinate varies from [-0.5, 0.5].
+function squarevertices(vertexz, texr) :: MeshDefinition
+    vertices = GLfloat[
+        # Position             # Texture coordinate
+         0.5f0, -0.5f0, vertexz,  1.0f0, 0.0f0, texr, # Right bottom
+         0.5f0,  0.5f0, vertexz,  1.0f0, 1.0f0, texr, # Right top
+        -0.5f0,  0.5f0, vertexz,  0.0f0, 1.0f0, texr, # Left  top
+         0.5f0, -0.5f0, vertexz,  1.0f0, 0.0f0, texr, # Right bottom
+        -0.5f0,  0.5f0, vertexz,  0.0f0, 1.0f0, texr, # Left  top
+        -0.5f0, -0.5f0, vertexz,  0.0f0, 0.0f0, texr, # Left  bottom
+    ]
+
+    # positionid corresponds to layout 0 in the vertex program:
+    # layout (location = 0) in vec3 aPos;
+    positionid = 0
+    positionelements = 3 # The three first elements in each row in `vertices`
+    positionattribute = MeshAttribute(positionid, positionelements, GL_FLOAT, GL_FALSE, C_NULL)
+
+    # textureid corresponds to the layout 1 in the vertex program:
+    # layout (location = 1) in vec3 aTextureCoordinate;
+    textureid = 1
+
+    nooftextureelements = 3 # the three last elements in each row in `vertices`
+
+    # textureoffset is how many bytes into the vertices array that the texture starts at.
+    # Before the texture starts, we have 3 vertex positions, and each vertex position is the size of a float.
+    textureoffset = Ptr{Cvoid}(positionelements * sizeof(GLfloat))
+
+    textureattribute = MeshAttribute(textureid, nooftextureelements, GL_FLOAT, GL_FALSE, textureoffset)
+
+    attributes = [positionattribute, textureattribute]
+
+    elementspervertex = positionelements + nooftextureelements
+    MeshDefinition(
+        vertices,
+        elementspervertex,
+        attributes
+    )
+end
+struct Slices
+    quads::Vector{MeshBuffer}
+end
+
+function render(mesh::MeshBuffer, textureid::GLuint, transfertextureid::GLuint)
+    glBindTexture(GL_TEXTURE_3D, textureid)
+    glBindTexture(GL_TEXTURE_1D, transfertextureid)
+    glBindVertexArray(mesh.vao)
+    glDrawArrays(GL_TRIANGLES, 0, mesh.numberofvertices)
+end
+
+
+function render(slices::Slices, textureid::GLuint, transfertextureid::GLuint)
+    for quad in slices.quads
+        render(quad, textureid, transfertextureid)
+    end
+end
+
 struct ViewportAnimated09 <: Visualization
     program::ShaderProgram
     volumetexture::Texture{3}
     transfertexture::Texture{1}
+    slices::Slices
 
     function ViewportAnimated09()
         program = ShaderProgram("shaders/visualization/basic3dvertex.glsl", "shaders/visualization/fragment1dtransfer.glsl")
         volumetexture = Texture{3}(generate3dintensitytexture(64, 64, 64))
         transfertexture = Texture{1}(generatetexturetransferfunction())
-        new(program, volumetexture, transfertexture)
+
+        cubedepth = 1.0f0
+        numberofslices = 20
+        distancebetweenslices = cubedepth / numberofslices
+
+        quads = [MeshBuffer(squarevertices(z, z + 0.5f0)) for z in 0.5f0:-distancebetweenslices:-0.5f0]
+        slices = Slices(quads)
+
+        new(program, volumetexture, transfertexture, slices)
     end
 end
 
@@ -164,6 +234,7 @@ function setup(::ViewportAnimated09)
     println("setup ViewportAnimated09")
 end
 
-function render(::ViewportAnimated09)
-    println("Rendering ViewportAnimated09")
+function render(v::ViewportAnimated09)
+    println("render ViewportAnimated09")
+    render(v.slices, v.volumetexture.textureid, v.transfertexture.textureid)
 end
