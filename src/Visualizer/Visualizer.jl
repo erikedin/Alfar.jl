@@ -27,7 +27,7 @@ using Alfar.Rendering.Cameras
 include("visualization.jl")
 
 const PredefinedVisualizers = Dict{String, Type{<:Visualization}}([
-    ("ViewportAnimated09", ViewportAnimated09),
+    ("ViewportAnimated09", ViewportAnimated09Visualization.ViewportAnimated09),
     ("ViewportAlignment", ViewportAlignmentAlgorithm.ViewportAlignment),
 ])
 
