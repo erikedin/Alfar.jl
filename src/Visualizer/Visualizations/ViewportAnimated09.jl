@@ -15,11 +15,14 @@
 module ViewportAnimated09Visualization
 
 using Alfar.Visualizer
+using Alfar.Rendering.Cameras
 using Alfar.Rendering.Meshs
 using Alfar.Rendering.Shaders
 using Alfar.Rendering.Textures
+using Alfar.Math
 
 using ModernGL
+using GLFW
 
 function fill1d!(data, from, to, color)
     for i = from:to
@@ -210,11 +213,11 @@ struct ViewportAnimated09 <: Visualization
     end
 end
 
-struct ViewportAnimated09State
-    startofmainloop::Int64
+struct ViewportAnimated09State <: Visualizer.VisualizationState
+    startofmainloop::Float64
     viewangle::Float32
     isspinning::Ref{Bool}
-    timesincelastloop::Float32
+    timesincelastloop::Float64
 end
 
 function Visualizer.setflags(::ViewportAnimated09)
@@ -228,36 +231,32 @@ end
 function Visualizer.setup(::ViewportAnimated09)
     println("setup ViewportAnimated09")
 
-    fullcircle = 20f0 # seconds to go around
-
-    # Camera position
-    # The first view sees the object from the front.
-    originalcameraposition = CameraPosition((0f0, 0f0, -3f0), (0f0, 1f0, 0f0))
-
     # Key callbacks
     # We want to stop spinning when space is pressed, so listen to callbacks here, and
     # set a flag.
     isspinning = Ref{Bool}(true)
 
-    togglespinningcallback = (window, key, scancode, action, mods) -> begin
-        if action == GLFW.PRESS && key == GLFW.KEY_ESCAPE
-            put!(exitchannel, ExitEvent())
-            GLFW.SetWindowShouldClose(window, true)
-        elseif action == GLFW.PRESS
-            isspinning[] = !isspinning[]
-        end
-    end
-    GLFW.SetKeyCallback(window, togglespinningcallback)
+    #togglespinningcallback = (window, key, scancode, action, mods) -> begin
+    #    if action == GLFW.PRESS && key == GLFW.KEY_ESCAPE
+    #        put!(exitchannel, ExitEvent())
+    #        GLFW.SetWindowShouldClose(window, true)
+    #    elseif action == GLFW.PRESS
+    #        isspinning[] = !isspinning[]
+    #    end
+    #end
+    #GLFW.SetKeyCallback(window, togglespinningcallback)
 
     startofmainloop = time()
     viewangle = 0f0
 
-    ViewportAnimated09State(startofmainloop, viewangle, isspinning, timesincelastloop)
+    ViewportAnimated09State(startofmainloop, viewangle, isspinning, 0f0)
 end
 
 function Visualizer.update(::ViewportAnimated09, state::ViewportAnimated09State)
     now = time()
-    timesincelastloop = Float32(now - startofmainloop)
+    timesincelastloop = Float32(now - state.startofmainloop)
+
+    fullcircle = 20f0 # seconds to go around
 
     # Calculate the viewing angle and transforms
     # Only when spinning. When spinning is disabled, don't update the angle.
@@ -272,11 +271,15 @@ function Visualizer.update(::ViewportAnimated09, state::ViewportAnimated09State)
     ViewportAnimated09State(now, state.viewangle + deltaviewangle, state.isspinning, timesincelastloop)
 end
 
-function Visualizer.render(v::ViewportAnimated09)
+function Visualizer.render(camera::Camera, v::ViewportAnimated09, state::ViewportAnimated09State)
+    # Camera position
+    # The first view sees the object from the front.
+    originalcameraposition = CameraPosition((0f0, 0f0, -3f0), (0f0, 1f0, 0f0))
+
     zangle = 1f0 * pi / 8f0
-    viewtransform = rotatez(zangle) * rotatey(viewangle)
+    viewtransform = rotatez(zangle) * rotatey(state.viewangle)
     camerapositionviewport1 = transform(originalcameraposition, viewtransform)
-    viewtransform2 = rotatez(zangle) * rotatey(viewangle - 5f0 * pi / 16f0)
+    viewtransform2 = rotatez(zangle) * rotatey(state.viewangle - 5f0 * pi / 16f0)
     camerapositionviewport2 = transform(originalcameraposition, viewtransform2)
 
     #
@@ -290,11 +293,11 @@ function Visualizer.render(v::ViewportAnimated09)
     projection = perspective(camera)
     model = objectmodel()
 
-    uniform(program(state.visualizer), "model", model)
-    uniform(program(state.visualizer), "view", view)
-    uniform(program(state.visualizer), "projection", projection)
+    uniform(v.program, "model", model)
+    uniform(v.program, "view", view)
+    uniform(v.program, "projection", projection)
 
-    use(state.visualizer)
+    use(v.program)
     render(v.slices, v.volumetexture.textureid, v.transfertexture.textureid)
 
     #
@@ -307,11 +310,11 @@ function Visualizer.render(v::ViewportAnimated09)
     view = lookat(camerapositionviewport2, cameratarget)
     projection = perspective(camera)
     model = objectmodel()
-    uniform(program(state.visualizer), "model", model)
-    uniform(program(state.visualizer), "view", view)
-    uniform(program(state.visualizer), "projection", projection)
+    uniform(v.program, "model", model)
+    uniform(v.program, "view", view)
+    uniform(v.program, "projection", projection)
 
-    use(state.visualizer)
+    use(v.program)
     render(v.slices, v.volumetexture.textureid, v.transfertexture.textureid)
 end
 end

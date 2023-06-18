@@ -12,15 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+using Alfar.Rendering.Cameras
+
 export Visualization, VisualizationState
 
 abstract type Visualization end
 abstract type VisualizationState end
-
-use(viz::Visualization) = Shaders.use(viz.program)
-# TODO This program method is temporary, and should be removed as it breaks
-# the abstraction.
-program(viz::Visualization) = viz.program
 
 #
 # Define the Visualization methods for `Nothing`, so that we don't have to
@@ -29,8 +26,8 @@ program(viz::Visualization) = viz.program
 
 setflags(::Nothing) = nothing
 setup(::Nothing) = nothing
-update(::Nothing) = nothing
-render(::Nothing) = nothing
+update(::Nothing, ::Nothing) = nothing
+render(camera::Camera, ::Nothing, ::Nothing) = nothing
 
 include("Visualizations/ViewportAlignmentAlgorithm.jl")
 include("Visualizations/ViewportAnimated09.jl")

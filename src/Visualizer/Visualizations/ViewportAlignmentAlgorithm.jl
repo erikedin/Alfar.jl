@@ -15,6 +15,7 @@
 module ViewportAlignmentAlgorithm
 
 using Alfar.Visualizer
+using Alfar.Rendering.Cameras
 using Alfar.Rendering.Shaders
 
 struct ViewportAlignment <: Visualizer.Visualization
@@ -25,8 +26,11 @@ struct ViewportAlignment <: Visualizer.Visualization
     end
 end
 
+struct ViewportAlignmentState <: Visualizer.VisualizationState end
+
 Visualizer.setflags(::ViewportAlignment) = nothing
-Visualizer.setup(::ViewportAlignment) = nothing
-Visualizer.render(::ViewportAlignment) = nothing
+Visualizer.setup(::ViewportAlignment) = ViewportAlignmentState()
+Visualizer.update(::ViewportAlignment, ::ViewportAlignmentState) = ViewportAlignmentState()
+Visualizer.render(::Camera, ::ViewportAlignment, ::ViewportAlignmentState) = nothing
 
 end

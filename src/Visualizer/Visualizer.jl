@@ -32,7 +32,7 @@ const PredefinedVisualizers = Dict{String, Type{<:Visualization}}([
 ])
 
 mutable struct VisualizerState
-    visualizer::Union{Nothing, Visualization}
+    visualization::Union{Nothing, Visualization}
     visualizationstate::Union{Nothing, VisualizationState}
 end
 
@@ -101,7 +101,7 @@ function runvisualizer(c::RemoteChannel, exitchannel::RemoteChannel)
         glViewport(0, 0, camera.windowwidth * 2, camera.windowheight)
 
 	    # Render here
-        render(state.visualizer)
+        render(camera, state.visualization, state.visualizationstate)
 
 	    # Swap front and back buffers
 	    GLFW.SwapBuffers(window)
