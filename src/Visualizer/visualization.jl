@@ -32,6 +32,8 @@ setflags(::Nothing) = nothing
 setup(::Nothing) = nothing
 render(::Nothing) = nothing
 
+include("Visualizations/ViewportAlignmentAlgorithm.jl")
+
 #
 # Visualization: ViewportAnimated09
 #

@@ -28,6 +28,7 @@ include("visualization.jl")
 
 const PredefinedVisualizers = Dict{String, Type{<:Visualization}}([
     ("ViewportAnimated09", ViewportAnimated09),
+    ("ViewportAlignment", ViewportAlignmentAlgorithm.ViewportAlignment),
 ])
 
 struct VisualizationState
