@@ -18,7 +18,10 @@ using ModernGL
 
 abstract type Visualization end
 
-use(viz::Visualization) = use(viz.program)
+use(viz::Visualization) = Shaders.use(viz.program)
+# TODO This program method is temporary, and should be removed as it breaks
+# the abstraction.
+program(viz::Visualization) = viz.program
 
 #
 # Define the Visualization methods for `Nothing`, so that we don't have to

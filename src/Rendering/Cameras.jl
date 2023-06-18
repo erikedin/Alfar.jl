@@ -111,9 +111,9 @@ function perspective(camera) :: Matrix{GLfloat}
 end
 
 function lookat(cameraposition::CameraPosition, cameratarget::Vector3{Float32}) :: Matrix{Float32}
-    direction = normalize(cameraposition.position - cameratarget)
+    direction = Math.normalize(cameraposition.position - cameratarget)
     up = cameraposition.up
-    right = cross(direction, up)
+    right = Math.cross(direction, up)
     direction = Matrix{GLfloat}([
             right[1]     right[2]     right[3] 0f0;
                up[1]        up[2]        up[3] 0f0;

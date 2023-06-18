@@ -83,5 +83,13 @@ function Base.:*(a::Matrix4{T}, b::Matrix4{T}) where {T}
     Matrix4{T}(e)
 end
 
+# TODO I should probably use _one_ specific Matrix type, and
+# that would be Matrix4 above, but for now I'm going to keep
+# this Matrix multiplication so I don't have to rewrite this now.
+function Base.:*(a::Matrix{T}, b::Vector3{T}) where {T}
+    v = [b[1], b[2], b[3], zero(T)]
+    result = a * v
+    (result[1], result[2], result[3])
+end
 
 end # module Math
