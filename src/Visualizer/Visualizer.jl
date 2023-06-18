@@ -69,7 +69,7 @@ function runvisualizer(c::RemoteChannel)
     camera = Camera(1024, 800)
 
     # Create a window and its OpenGL context
-    window = GLFW.CreateWindow(1024, 800, "Alfar Visualizer")
+    window = GLFW.CreateWindow(2048, 800, "Alfar Visualizer")
 
     # Make the window's context current
     GLFW.MakeContextCurrent(window)
@@ -116,10 +116,10 @@ function runvisualizer(c::RemoteChannel)
         timesincelastloop = Float32(now - startofmainloop)
         startofmainloop = now
 
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+
         # Clear the full viewport
         glViewport(0, 0, camera.windowwidth * 2, camera.windowheight)
-
-        glClear(GL_COLOR_BUFFER_BIT)
 
         # Calculate the viewing angle and transforms
         # Only when spinning. When spinning is disabled, don't update the angle.

@@ -211,7 +211,7 @@ struct ViewportAnimated09 <: Visualization
 
     function ViewportAnimated09()
         program = ShaderProgram("shaders/visualization/basic3dvertex.glsl", "shaders/visualization/fragment1dtransfer.glsl")
-        volumetexture = Texture{3}(generate3dintensitytexture(64, 64, 64))
+        volumetexture = Texture{3}(generate3dintensitytexture(256, 256, 256))
         transfertexture = Texture{1}(generatetexturetransferfunction())
 
         cubedepth = 1.0f0
@@ -238,6 +238,5 @@ function setup(::ViewportAnimated09)
 end
 
 function render(v::ViewportAnimated09)
-    println("render ViewportAnimated09")
     render(v.slices, v.volumetexture.textureid, v.transfertexture.textureid)
 end
