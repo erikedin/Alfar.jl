@@ -31,11 +31,12 @@ const PredefinedVisualizers = Dict{String, Type{<:Visualization}}([
     ("ViewportAlignment", ViewportAlignmentAlgorithm.ViewportAlignment),
 ])
 
-struct VisualizationState
+mutable struct VisualizerState
     visualizer::Union{Nothing, Visualization}
+    visualizationstate::Union{Nothing, VisualizationState}
 end
 
-VisualizationState() = VisualizationState(nothing)
+VisualizerState() = VisualizerState(nothing, nothing)
 
 abstract type VizEvent end
 
@@ -45,12 +46,12 @@ struct SelectVisualizationEvent <: VizEvent
     name::String
 end
 
-function handle(window, e::ExitEvent, state::VisualizationState)
+function handle(window, e::ExitEvent, state::VisualizerState)
     GLFW.SetWindowShouldClose(window, true)
     state
 end
 
-function handle(window, ev::SelectVisualizationEvent, state::VisualizationState)
+function handle(window, ev::SelectVisualizationEvent, state::VisualizerState)
     println("Selecting visualizer $(ev.name)")
     visualizerfactory = get(PredefinedVisualizers, ev.name, nothing)
     println("Got visualizerfactory $(visualizerfactory)")
@@ -58,9 +59,9 @@ function handle(window, ev::SelectVisualizationEvent, state::VisualizationState)
     println("Got visualizer $(visualizer)")
 
     setflags(visualizer)
-    setup(visualizer)
+    visualizationstate = setup(visualizer)
 
-    VisualizationState(visualizer)
+    VisualizerState(visualizer, visualizationstate)
 end
 
 
@@ -79,31 +80,7 @@ function runvisualizer(c::RemoteChannel, exitchannel::RemoteChannel)
     glClearColor(0.0f0, 0.0f0, 0.0f0, 1.0f0)
 
     # Create the initial state of the visualizer
-    state = VisualizationState()
-
-    fullcircle = 20f0 # seconds to go around
-
-    # Camera position
-    # The first view sees the object from the front.
-    originalcameraposition = CameraPosition((0f0, 0f0, -3f0), (0f0, 1f0, 0f0))
-
-    # Key callbacks
-    # We want to stop spinning when space is pressed, so listen to callbacks here, and
-    # set a flag.
-    isspinning = true
-
-    togglespinningcallback = (window, key, scancode, action, mods) -> begin
-        if action == GLFW.PRESS && key == GLFW.KEY_ESCAPE
-            put!(exitchannel, ExitEvent())
-            GLFW.SetWindowShouldClose(window, true)
-        elseif action == GLFW.PRESS
-            isspinning = !isspinning
-        end
-    end
-    GLFW.SetKeyCallback(window, togglespinningcallback)
-
-    startofmainloop = time()
-    viewangle = 0f0
+    state = VisualizerState()
 
     # Loop until the user closes the window
     while !GLFW.WindowShouldClose(window)
@@ -116,63 +93,14 @@ function runvisualizer(c::RemoteChannel, exitchannel::RemoteChannel)
             state = handle(window, ev, state)
         end
 
-        now = time()
-        timesincelastloop = Float32(now - startofmainloop)
-        startofmainloop = now
+        state.visualizationstate = update(state.visualization, state.visualizationstate)
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
         # Clear the full viewport
         glViewport(0, 0, camera.windowwidth * 2, camera.windowheight)
 
-        # Calculate the viewing angle and transforms
-        # Only when spinning. When spinning is disabled, don't update the angle.
-        if isspinning
-            # The viewangle is negative because we rotate the object in the opposite
-            # direction, rather than rotating the camera.
-            viewangle += Float32(-2f0 * pi * timesincelastloop / fullcircle)
-        end
-
-        zangle = 1f0 * pi / 8f0
-        viewtransform = rotatez(zangle) * rotatey(viewangle)
-        camerapositionviewport1 = transform(originalcameraposition, viewtransform)
-        viewtransform2 = rotatez(zangle) * rotatey(viewangle - 5f0 * pi / 16f0)
-        camerapositionviewport2 = transform(originalcameraposition, viewtransform2)
-
 	    # Render here
-
-        #
-        # Viewport 1 (left)
-        #
-        glViewport(0, 0, camera.windowwidth, camera.windowheight)
-
-        # Set uniforms
-        cameratarget = (0f0, 0f0, 0f0)
-        view = lookat(camerapositionviewport1, cameratarget)
-        projection = perspective(camera)
-        model = objectmodel()
-        uniform(program(state.visualizer), "model", model)
-        uniform(program(state.visualizer), "view", view)
-        uniform(program(state.visualizer), "projection", projection)
-
-        use(state.visualizer)
-        render(state.visualizer)
-
-        #
-        # Viewport 2 (left)
-        #
-        glViewport(camera.windowwidth, 0, camera.windowwidth, camera.windowheight)
-
-        # Set uniforms
-        cameratarget = (0f0, 0f0, 0f0)
-        view = lookat(camerapositionviewport2, cameratarget)
-        projection = perspective(camera)
-        model = objectmodel()
-        uniform(program(state.visualizer), "model", model)
-        uniform(program(state.visualizer), "view", view)
-        uniform(program(state.visualizer), "projection", projection)
-
-        use(state.visualizer)
         render(state.visualizer)
 
 	    # Swap front and back buffers

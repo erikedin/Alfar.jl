@@ -210,6 +210,13 @@ struct ViewportAnimated09 <: Visualization
     end
 end
 
+struct ViewportAnimated09State
+    startofmainloop::Int64
+    viewangle::Float32
+    isspinning::Ref{Bool}
+    timesincelastloop::Float32
+end
+
 function Visualizer.setflags(::ViewportAnimated09)
     println("setflags ViewportAnimated09")
     glEnable(GL_BLEND)
@@ -220,9 +227,91 @@ end
 
 function Visualizer.setup(::ViewportAnimated09)
     println("setup ViewportAnimated09")
+
+    fullcircle = 20f0 # seconds to go around
+
+    # Camera position
+    # The first view sees the object from the front.
+    originalcameraposition = CameraPosition((0f0, 0f0, -3f0), (0f0, 1f0, 0f0))
+
+    # Key callbacks
+    # We want to stop spinning when space is pressed, so listen to callbacks here, and
+    # set a flag.
+    isspinning = Ref{Bool}(true)
+
+    togglespinningcallback = (window, key, scancode, action, mods) -> begin
+        if action == GLFW.PRESS && key == GLFW.KEY_ESCAPE
+            put!(exitchannel, ExitEvent())
+            GLFW.SetWindowShouldClose(window, true)
+        elseif action == GLFW.PRESS
+            isspinning[] = !isspinning[]
+        end
+    end
+    GLFW.SetKeyCallback(window, togglespinningcallback)
+
+    startofmainloop = time()
+    viewangle = 0f0
+
+    ViewportAnimated09State(startofmainloop, viewangle, isspinning, timesincelastloop)
+end
+
+function Visualizer.update(::ViewportAnimated09, state::ViewportAnimated09State)
+    now = time()
+    timesincelastloop = Float32(now - startofmainloop)
+
+    # Calculate the viewing angle and transforms
+    # Only when spinning. When spinning is disabled, don't update the angle.
+    deltaviewangle = if state.isspinning[]
+        # The viewangle is negative because we rotate the object in the opposite
+        # direction, rather than rotating the camera.
+        Float32(-2f0 * pi * timesincelastloop / fullcircle)
+    else
+        0f0
+    end
+
+    ViewportAnimated09State(now, state.viewangle + deltaviewangle, state.isspinning, timesincelastloop)
 end
 
 function Visualizer.render(v::ViewportAnimated09)
+    zangle = 1f0 * pi / 8f0
+    viewtransform = rotatez(zangle) * rotatey(viewangle)
+    camerapositionviewport1 = transform(originalcameraposition, viewtransform)
+    viewtransform2 = rotatez(zangle) * rotatey(viewangle - 5f0 * pi / 16f0)
+    camerapositionviewport2 = transform(originalcameraposition, viewtransform2)
+
+    #
+    # Viewport 1 (left)
+    #
+    glViewport(0, 0, camera.windowwidth, camera.windowheight)
+
+    # Set uniforms
+    cameratarget = (0f0, 0f0, 0f0)
+    view = lookat(camerapositionviewport1, cameratarget)
+    projection = perspective(camera)
+    model = objectmodel()
+
+    uniform(program(state.visualizer), "model", model)
+    uniform(program(state.visualizer), "view", view)
+    uniform(program(state.visualizer), "projection", projection)
+
+    use(state.visualizer)
+    render(v.slices, v.volumetexture.textureid, v.transfertexture.textureid)
+
+    #
+    # Viewport 2 (left)
+    #
+    glViewport(camera.windowwidth, 0, camera.windowwidth, camera.windowheight)
+
+    # Set uniforms
+    cameratarget = (0f0, 0f0, 0f0)
+    view = lookat(camerapositionviewport2, cameratarget)
+    projection = perspective(camera)
+    model = objectmodel()
+    uniform(program(state.visualizer), "model", model)
+    uniform(program(state.visualizer), "view", view)
+    uniform(program(state.visualizer), "projection", projection)
+
+    use(state.visualizer)
     render(v.slices, v.volumetexture.textureid, v.transfertexture.textureid)
 end
 end
