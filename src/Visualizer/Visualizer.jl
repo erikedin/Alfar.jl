@@ -66,7 +66,7 @@ end
 
 Shaders.use(::Nothing) = nothing
 
-function runvisualizer(c::RemoteChannel)
+function runvisualizer(c::RemoteChannel, exitchannel::RemoteChannel)
     camera = Camera(1024, 800)
 
     # Create a window and its OpenGL context
@@ -93,7 +93,10 @@ function runvisualizer(c::RemoteChannel)
     isspinning = true
 
     togglespinningcallback = (window, key, scancode, action, mods) -> begin
-        if action == GLFW.PRESS
+        if action == GLFW.PRESS && key == GLFW.KEY_ESCAPE
+            put!(exitchannel, ExitEvent())
+            GLFW.SetWindowShouldClose(window, true)
+        elseif action == GLFW.PRESS
             isspinning = !isspinning
         end
     end
@@ -184,20 +187,26 @@ end
 
 struct VisualizerContext
     channel::RemoteChannel
+    exitchannel::RemoteChannel
 end
 
 function start()
     channel = RemoteChannel(() -> Channel{Visualizer.VizEvent}(10))
+    exitchannel = RemoteChannel(() -> Channel{Visualizer.VizEvent}(10))
 
     workerpid = Distributed.workers()[1]
 
-    remote_do(Visualizer.runvisualizer, workerpid, channel)
+    remote_do(Visualizer.runvisualizer, workerpid, channel, exitchannel)
 
-    VisualizerContext(channel)
+    VisualizerContext(channel, exitchannel)
 end
 
 function stop(context::VisualizerContext)
     put!(context.channel, ExitEvent())
+end
+
+function waituntilstop(context::VisualizerContext)
+    take!(context.exitchannel)
 end
 
 end
