@@ -54,11 +54,8 @@ function handle(window, e::ExitEvent, state::VisualizerState)
 end
 
 function handle(window, ev::SelectVisualizationEvent, state::VisualizerState)
-    println("Selecting visualizer $(ev.name)")
     visualizerfactory = get(PredefinedVisualizers, ev.name, nothing)
-    println("Got visualizerfactory $(visualizerfactory)")
     visualizer = visualizerfactory()
-    println("Got visualizer $(visualizer)")
 
     setflags(visualizer)
     visualizationstate = setup(visualizer)
@@ -99,9 +96,7 @@ function runvisualizer(c::RemoteChannel, exitchannel::RemoteChannel)
         # If we have any events from the REPL, handle them.
         hasevents = isready(c)
         if hasevents
-            println("Take event")
             ev = take!(c)
-            println("Event: $(ev)")
             state = handle(window, ev, state)
         end
 

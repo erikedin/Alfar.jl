@@ -216,12 +216,11 @@ end
 struct ViewportAnimated09State <: Visualizer.VisualizationState
     startofmainloop::Float64
     viewangle::Float32
-    isspinning::Ref{Bool}
+    isspinning::Ref{Bool} # TODO No longer needs to be a ref, due to callbacks working differently
     timesincelastloop::Float64
 end
 
 function Visualizer.setflags(::ViewportAnimated09)
-    println("setflags ViewportAnimated09")
     glEnable(GL_BLEND)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
     glEnable(GL_DEPTH_TEST)
@@ -229,8 +228,6 @@ function Visualizer.setflags(::ViewportAnimated09)
 end
 
 function Visualizer.setup(::ViewportAnimated09)
-    println("setup ViewportAnimated09")
-
     isspinning = Ref{Bool}(true)
 
     startofmainloop = time()
