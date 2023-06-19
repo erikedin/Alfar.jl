@@ -231,25 +231,19 @@ end
 function Visualizer.setup(::ViewportAnimated09)
     println("setup ViewportAnimated09")
 
-    # Key callbacks
-    # We want to stop spinning when space is pressed, so listen to callbacks here, and
-    # set a flag.
     isspinning = Ref{Bool}(true)
-
-    #togglespinningcallback = (window, key, scancode, action, mods) -> begin
-    #    if action == GLFW.PRESS && key == GLFW.KEY_ESCAPE
-    #        put!(exitchannel, ExitEvent())
-    #        GLFW.SetWindowShouldClose(window, true)
-    #    elseif action == GLFW.PRESS
-    #        isspinning[] = !isspinning[]
-    #    end
-    #end
-    #GLFW.SetKeyCallback(window, togglespinningcallback)
 
     startofmainloop = time()
     viewangle = 0f0
 
     ViewportAnimated09State(startofmainloop, viewangle, isspinning, 0f0)
+end
+
+function Visualizer.onkeyboardinput(::ViewportAnimated09, state::ViewportAnimated09State, keyevent::KeyboardInputEvent)
+    if keyevent.action == GLFW.PRESS
+        state.isspinning[] = !state.isspinning[]
+    end
+    state
 end
 
 function Visualizer.update(::ViewportAnimated09, state::ViewportAnimated09State)

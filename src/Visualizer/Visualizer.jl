@@ -22,6 +22,8 @@ using Distributed
 using Alfar.Rendering.Shaders
 using Alfar.Rendering.Cameras
 
+export KeyboardInputEvent
+
 @everywhere using Alfar.Visualizer
 
 include("visualization.jl")
@@ -64,7 +66,6 @@ function handle(window, ev::SelectVisualizationEvent, state::VisualizerState)
     VisualizerState(visualizer, visualizationstate)
 end
 
-
 Shaders.use(::Nothing) = nothing
 
 function runvisualizer(c::RemoteChannel, exitchannel::RemoteChannel)
@@ -81,6 +82,17 @@ function runvisualizer(c::RemoteChannel, exitchannel::RemoteChannel)
 
     # Create the initial state of the visualizer
     state = VisualizerState()
+
+    keyboardcallback = (window, key, scancode, action, mods) -> begin
+        if action == GLFW.PRESS && key == GLFW.KEY_ESCAPE
+            put!(exitchannel, ExitEvent())
+            GLFW.SetWindowShouldClose(window, true)
+        else
+            keyevent = KeyboardInputEvent(window, key, scancode, action, mods)
+            state.visualizationstate = onkeyboardinput(state.visualization, state.visualizationstate, keyevent)
+        end
+    end
+    GLFW.SetKeyCallback(window, keyboardcallback)
 
     # Loop until the user closes the window
     while !GLFW.WindowShouldClose(window)

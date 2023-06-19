@@ -14,10 +14,19 @@
 
 using Alfar.Rendering.Cameras
 
-export Visualization, VisualizationState
+export Visualization, VisualizationState, KeyboardInputEvent
 
 abstract type Visualization end
 abstract type VisualizationState end
+
+struct KeyboardInputEvent
+    window
+    key
+    scancode
+    action
+    mods
+end
+
 
 #
 # Define the Visualization methods for `Nothing`, so that we don't have to
@@ -28,6 +37,7 @@ setflags(::Nothing) = nothing
 setup(::Nothing) = nothing
 update(::Nothing, ::Nothing) = nothing
 render(camera::Camera, ::Nothing, ::Nothing) = nothing
+onkeyboardinput(::Visualization, ::VisualizationState, ::KeyboardInputEvent) = nothing
 
 include("Visualizations/ViewportAlignmentAlgorithm.jl")
 include("Visualizations/ViewportAnimated09.jl")
