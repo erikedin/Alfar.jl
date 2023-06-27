@@ -82,7 +82,6 @@ function runvisualizer(c::RemoteChannel, exitchannel::RemoteChannel)
 
     keyboardcallback = (window, key, scancode, action, mods) -> begin
         if action == GLFW.PRESS && key == GLFW.KEY_ESCAPE
-            put!(exitchannel, ExitEvent())
             GLFW.SetWindowShouldClose(window, true)
         else
             keyevent = KeyboardInputEvent(window, key, scancode, action, mods)
@@ -118,6 +117,8 @@ function runvisualizer(c::RemoteChannel, exitchannel::RemoteChannel)
     end
 
     GLFW.DestroyWindow(window)
+
+    put!(exitchannel, ExitEvent())
 end
 
 struct VisualizerContext

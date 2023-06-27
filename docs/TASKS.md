@@ -5,6 +5,8 @@ This is a TODO-list, to keep track of what needs to be done.
 - [ ] Visualizer: Remove hard-coded window dimensions
 - [ ] Visualizer: Re-create the window on new visualizations if necessary
 - [ ] Visualizer: Handle all events, not just one, in each render loop
+- [ ] ViewportAlignment: Add a volume wireframe
+- [ ] ViewportAlignment: Color the wireframe according to the algorithm
 
 # Completed
 - [x] Visualizer: Extract the visualization-specific code
