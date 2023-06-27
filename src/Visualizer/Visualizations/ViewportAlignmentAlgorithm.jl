@@ -14,15 +14,67 @@
 
 module ViewportAlignmentAlgorithm
 
+using ModernGL
+
 using Alfar.Visualizer
 using Alfar.Rendering.Cameras
 using Alfar.Rendering.Shaders
+using Alfar.Rendering.Meshs
 
 struct ViewportAlignment <: Visualizer.Visualization
     program::Union{Nothing, ShaderProgram}
+    mesh::MeshBuffer
 
     function ViewportAlignment()
-        new(nothing)
+        program = ShaderProgram("shaders/visualization/mvp3dvertex.glsl",
+                                "shaders/visualization/uniformcolorfragment.glsl")
+
+        wireframevertices = GLfloat[
+            # Lines from front right bottom, around, counterclockwise
+             0.5f0, -0.5f0, -0.5f0, # Right bottom front
+             0.5f0,  0.5f0, -0.5f0, # Right top    front
+
+             0.5f0,  0.5f0, -0.5f0, # Right top    front
+            -0.5f0,  0.5f0, -0.5f0, # Left  top    front
+
+            -0.5f0,  0.5f0, -0.5f0, # Left  top    front
+            -0.5f0, -0.5f0, -0.5f0, # Left  bottom front
+
+            -0.5f0, -0.5f0, -0.5f0, # Left  bottom front
+             0.5f0, -0.5f0, -0.5f0, # Right bottom front
+
+            # Lines from front to back
+             0.5f0, -0.5f0, -0.5f0, # Right bottom front
+             0.5f0, -0.5f0,  0.5f0, # Right bottom back
+
+             0.5f0,  0.5f0, -0.5f0, # Right top    front
+             0.5f0,  0.5f0,  0.5f0, # Right top    back
+
+            -0.5f0,  0.5f0, -0.5f0, # Left  top    front
+            -0.5f0,  0.5f0,  0.5f0, # Left  top    back
+
+            -0.5f0, -0.5f0, -0.5f0, # Left  bottom front
+            -0.5f0, -0.5f0,  0.5f0, # Left  bottom back
+
+            # Lines from back right bottom, around, counterclockwise
+             0.5f0, -0.5f0,  0.5f0, # Right bottom back
+             0.5f0,  0.5f0,  0.5f0, # Right top    back
+
+             0.5f0,  0.5f0,  0.5f0, # Right top    back
+            -0.5f0,  0.5f0,  0.5f0, # Left  top    back
+
+            -0.5f0,  0.5f0,  0.5f0, # Left  top    back
+            -0.5f0, -0.5f0,  0.5f0, # Left  bottom back
+
+            -0.5f0, -0.5f0,  0.5f0, # Left  bottom back
+             0.5f0, -0.5f0,  0.5f0, # Right bottom back
+        ]
+        numberofelementspervertex = 3
+        attributetype = GL_FLOAT
+        positionattribute = MeshAttribute(0, numberofelementspervertex, attributetype, GL_FALSE, C_NULL)
+        meshdefinition = MeshDefinition(wireframevertices, numberofelementspervertex, [positionattribute])
+        mesh = MeshBuffer(meshdefinition)
+        new(program, mesh)
     end
 end
 
@@ -31,6 +83,60 @@ struct ViewportAlignmentState <: Visualizer.VisualizationState end
 Visualizer.setflags(::ViewportAlignment) = nothing
 Visualizer.setup(::ViewportAlignment) = ViewportAlignmentState()
 Visualizer.update(::ViewportAlignment, ::ViewportAlignmentState) = ViewportAlignmentState()
-Visualizer.render(::Camera, ::ViewportAlignment, ::ViewportAlignmentState) = nothing
+
+function rendercubewireframe(mesh::MeshBuffer)
+    glBindVertexArray(mesh.vao)
+    glDrawArrays(GL_LINES, 0, mesh.numberofvertices)
+end
+
+function Visualizer.render(camera::Camera, v::ViewportAlignment, ::ViewportAlignmentState)
+    # Camera position
+    # The first view sees the object from the front.
+    originalcameraposition = CameraPosition((0f0, 0f0, -3f0), (0f0, 1f0, 0f0))
+
+    zangle = 1f0 * pi / 8f0
+    viewtransform1 = rotatez(0f0) * rotatey(0f0)
+    viewtransform2 = rotatez(zangle) * rotatey(- 5f0 * pi / 16f0)
+    camerapositionviewport1 = transform(originalcameraposition, viewtransform1)
+    camerapositionviewport2 = transform(originalcameraposition, viewtransform2)
+
+    #
+    # Viewport 1 (left)
+    #
+    glViewport(0, 0, camera.windowwidth, camera.windowheight)
+
+    cameratarget = (0f0, 0f0, 0f0)
+    view = lookat(camerapositionviewport1, cameratarget)
+    projection = perspective(camera)
+    model = objectmodel()
+    uniform(v.program, "model", model)
+    uniform(v.program, "view", view)
+    uniform(v.program, "projection", projection)
+
+    # Set a single color, RED, for the wireframe
+    uniform(v.program, "color", (1f0, 0f0, 0f0, 1f0))
+
+    use(v.program)
+    rendercubewireframe(v.mesh)
+
+    #
+    # Viewport 2 (right)
+    #
+    glViewport(camera.windowwidth, 0, camera.windowwidth, camera.windowheight)
+
+    cameratarget = (0f0, 0f0, 0f0)
+    view = lookat(camerapositionviewport2, cameratarget)
+    projection = perspective(camera)
+    model = objectmodel()
+    uniform(v.program, "model", model)
+    uniform(v.program, "view", view)
+    uniform(v.program, "projection", projection)
+
+    # Set a single color, GREEN, for the wireframe
+    uniform(v.program, "color", (0f0, 1f0, 0f0, 1f0))
+
+    use(v.program)
+    rendercubewireframe(v.mesh)
+end
 
 end
