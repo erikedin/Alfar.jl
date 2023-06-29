@@ -26,8 +26,8 @@ struct ViewportAlignment <: Visualizer.Visualization
     wireframe::VertexArray{GL_LINES}
 
     function ViewportAlignment()
-        program = ShaderProgram("shaders/visualization/mvp3dvertex.glsl",
-                                "shaders/visualization/uniformcolorfragment.glsl")
+        program = ShaderProgram("shaders/visualization/vertexdiscrete3d.glsl",
+                                "shaders/visualization/fragmentdiscrete1dtransfer.glsl")
 
         wireframevertices = GLfloat[
             # Lines from front right bottom, around, counterclockwise
@@ -69,6 +69,9 @@ struct ViewportAlignment <: Visualizer.Visualization
             -0.5f0, -0.5f0,  0.5f0, # Left  bottom back
              0.5f0, -0.5f0,  0.5f0, # Right bottom back
         ]
+        wireframecolors = GLuint[
+            0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12
+        ]
         #numberofelementspervertex = 3
         #attributetype = GL_FLOAT
         #positionattribute = MeshAttribute(0, numberofelementspervertex, attributetype, GL_FALSE, C_NULL)
@@ -78,7 +81,10 @@ struct ViewportAlignment <: Visualizer.Visualization
         positionattribute = VertexAttribute(0, 3, GL_FLOAT, GL_FALSE, C_NULL)
         wireframedata = VertexData{GLfloat}(wireframevertices, VertexAttribute[positionattribute])
 
-        wireframe = VertexArray{GL_LINES}(wireframedata)
+        colorattribute = VertexAttribute(1, 1, GL_UINT, GL_FALSE, C_NULL)
+        wireframecolordata = VertexData{GLuint}(wireframecolors, VertexAttribute[colorattribute])
+
+        wireframe = VertexArray{GL_LINES}(wireframedata, wireframecolordata)
 
         new(program, wireframe)
     end
