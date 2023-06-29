@@ -17,6 +17,8 @@ module Meshs
 using ModernGL
 
 export MeshBuffer, MeshAttribute, MeshDefinition
+export VertexArray, VertexAttribute, VertexBuffer, VertexData
+export renderarray
 
 # MeshBuffer is the OpenGL buffer that contains the mesh data.
 struct MeshBuffer
@@ -76,6 +78,77 @@ function MeshBuffer(meshdef::MeshDefinition) :: MeshBuffer
     end
 
     MeshBuffer(vao[], length(meshdef.vertices) / meshdef.elementspervertex)
+end
+
+struct VertexAttribute
+    attributeid::Int
+    elementcount::Int
+    attributetype::GLenum
+    isnormalized::GLboolean
+    offset::Ptr{Cvoid}
+end
+
+struct VertexData{T}
+    data::Vector{T}
+    attributes::Vector{VertexAttribute}
+end
+
+elementscount(v::VertexData{T}) where {T} = sum([a.elementcount for a in v.attributes])
+stride(v::VertexData{T}) where {T} = sum([a.elementcount*sizeof(T) for a in v.attributes])
+
+struct VertexBuffer
+    id::GLuint
+
+    function VertexBuffer()
+        vbo = Ref{GLuint}()
+        glGenBuffers(1, vbo)
+        new(vbo[])
+    end
+end
+
+function bind(v::VertexBuffer)
+    glBindBuffer(GL_ARRAY_BUFFER, v.id)
+end
+
+function bufferdata(vbo::VertexBuffer, data::Vector{T}, mode::GLenum) where {T}
+    bind(vbo)
+    glBufferData(GL_ARRAY_BUFFER, sizeof(data), data, mode)
+end
+
+struct VertexArray{Primitive}
+    id::GLuint
+    count::Int
+end
+
+function VertexArray{Primitive}(vertexdatas...) where {Primitive}
+    vaoid = Ref{GLuint}()
+    glGenVertexArrays(1, vaoid)
+    glBindVertexArray(vaoid[])
+
+    firstvertexdata = vertexdatas[1]
+    count = trunc(Int, length(firstvertexdata.data) / elementscount(firstvertexdata))
+
+    for vertexdata in vertexdatas
+        vbo = VertexBuffer()
+        bufferdata(vbo, vertexdata.data, GL_DYNAMIC_DRAW)
+
+        for attribute in vertexdata.attributes
+            glVertexAttribPointer(attribute.attributeid,
+                                  attribute.elementcount,
+                                  attribute.attributetype,
+                                  attribute.isnormalized,
+                                  stride(vertexdata),
+                                  attribute.offset)
+            glEnableVertexAttribArray(attribute.attributeid)
+        end
+    end
+
+    VertexArray{Primitive}(vaoid[], count)
+end
+
+function renderarray(v::VertexArray{Primitive}) where {Primitive}
+    glBindVertexArray(v.id)
+    glDrawArrays(Primitive, 0, v.count)
 end
 
 end

@@ -23,7 +23,7 @@ using Alfar.Rendering.Meshs
 
 struct ViewportAlignment <: Visualizer.Visualization
     program::Union{Nothing, ShaderProgram}
-    mesh::MeshBuffer
+    wireframe::VertexArray{GL_LINES}
 
     function ViewportAlignment()
         program = ShaderProgram("shaders/visualization/mvp3dvertex.glsl",
@@ -69,12 +69,18 @@ struct ViewportAlignment <: Visualizer.Visualization
             -0.5f0, -0.5f0,  0.5f0, # Left  bottom back
              0.5f0, -0.5f0,  0.5f0, # Right bottom back
         ]
-        numberofelementspervertex = 3
-        attributetype = GL_FLOAT
-        positionattribute = MeshAttribute(0, numberofelementspervertex, attributetype, GL_FALSE, C_NULL)
-        meshdefinition = MeshDefinition(wireframevertices, numberofelementspervertex, [positionattribute])
-        mesh = MeshBuffer(meshdefinition)
-        new(program, mesh)
+        #numberofelementspervertex = 3
+        #attributetype = GL_FLOAT
+        #positionattribute = MeshAttribute(0, numberofelementspervertex, attributetype, GL_FALSE, C_NULL)
+        #meshdefinition = MeshDefinition(wireframevertices, numberofelementspervertex, [positionattribute])
+        #mesh = MeshBuffer(meshdefinition)
+
+        positionattribute = VertexAttribute(0, 3, GL_FLOAT, GL_FALSE, C_NULL)
+        wireframedata = VertexData{GLfloat}(wireframevertices, VertexAttribute[positionattribute])
+
+        wireframe = VertexArray{GL_LINES}(wireframedata)
+
+        new(program, wireframe)
     end
 end
 
@@ -83,11 +89,6 @@ struct ViewportAlignmentState <: Visualizer.VisualizationState end
 Visualizer.setflags(::ViewportAlignment) = nothing
 Visualizer.setup(::ViewportAlignment) = ViewportAlignmentState()
 Visualizer.update(::ViewportAlignment, ::ViewportAlignmentState) = ViewportAlignmentState()
-
-function rendercubewireframe(mesh::MeshBuffer)
-    glBindVertexArray(mesh.vao)
-    glDrawArrays(GL_LINES, 0, mesh.numberofvertices)
-end
 
 function Visualizer.render(camera::Camera, v::ViewportAlignment, ::ViewportAlignmentState)
     # Camera position
@@ -117,7 +118,7 @@ function Visualizer.render(camera::Camera, v::ViewportAlignment, ::ViewportAlign
     uniform(v.program, "color", (1f0, 0f0, 0f0, 1f0))
 
     use(v.program)
-    rendercubewireframe(v.mesh)
+    renderarray(v.wireframe)
 
     #
     # Viewport 2 (right)
@@ -136,7 +137,7 @@ function Visualizer.render(camera::Camera, v::ViewportAlignment, ::ViewportAlign
     uniform(v.program, "color", (0f0, 1f0, 0f0, 1f0))
 
     use(v.program)
-    rendercubewireframe(v.mesh)
+    renderarray(v.wireframe)
 end
 
 end
