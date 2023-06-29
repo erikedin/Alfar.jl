@@ -14,12 +14,18 @@
 
 #version 420 core
 
-flat in uint DiscreteTextureCoordinate;
-out vec4 FragColor;
+layout (location = 0) in vec3 aPos;
+layout (location = 1) in uint aDiscreteTextureCoordinate;
 
-layout (binding = 0) uniform sampler1D transfer;
+flat out uint DiscreteTextureCoordinate;
+
+uniform mat4 model;
+uniform mat4 view;
+uniform mat4 projection;
 
 void main()
 {
-    FragColor = texture(transfer, DiscreteTextureCoordinate);
+    vec4 p = vec4(aPos.x, aPos.y, aPos.z, 1.0);
+    gl_Position = projection * view * model * p;
+    DiscreteTextureCoordinate = aDiscreteTextureCoordinate;
 }

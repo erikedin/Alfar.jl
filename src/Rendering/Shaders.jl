@@ -108,7 +108,14 @@ function ShaderProgram(vertexShaderPath::String, fragmentShaderPath) :: ShaderPr
     issuccess = Ref{GLint}()
     glGetProgramiv(program.id, GL_LINK_STATUS, issuccess)
     if issuccess[] != GL_TRUE
-        throw(ShaderLinkingError("Shaders failed to link"))
+        maxlength = 512
+        actuallength = Ref{GLsizei}()
+        infolog = Vector{GLchar}(undef, maxlength)
+        glGetProgramInfoLog(program.id, maxlength, actuallength, infolog)
+        infomessage = String(infolog[1:actuallength[]])
+
+        errormsg = "Shaders failed to link: $(infomessage)"
+        throw(ShaderLinkingError(errormsg))
     end
 
     delete(vertexshader)

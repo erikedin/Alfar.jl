@@ -20,10 +20,48 @@ using Alfar.Visualizer
 using Alfar.Rendering.Cameras
 using Alfar.Rendering.Shaders
 using Alfar.Rendering.Meshs
+using Alfar.Rendering.Textures
+
+function fill1d!(data, i, color)
+    data[1, i] = UInt8(color[1])
+    data[2, i] = UInt8(color[2])
+    data[3, i] = UInt8(color[3])
+    data[4, i] = UInt8(color[4])
+end
+
+function makewireframetexture() :: TextureData{1}
+    channels = 4
+    # We need at most 12 colors, because there are 12 edges in a cube wireframe,
+    # but use 16 because it's the closest larger power of two.
+    width = 16
+
+    flattransfer = zeros(UInt8, channels*width)
+    transfer = reshape(flattransfer, (channels, width))
+
+    fill1d!(transfer,  1, (  255,   0,   0,   255))
+    fill1d!(transfer,  2, (    0, 255,   0,   255))
+    fill1d!(transfer,  3, (    0,   0, 255,   255))
+    fill1d!(transfer,  4, (  255, 255,   0,   255))
+    fill1d!(transfer,  5, (  255,   0, 255,   255))
+    fill1d!(transfer,  6, (    0, 255, 255,   255))
+    fill1d!(transfer,  7, (  128, 255,   0,   255))
+    fill1d!(transfer,  8, (  128, 128,   0,   255))
+    fill1d!(transfer,  9, (  128, 128,  64,   255))
+    fill1d!(transfer, 10, (   64, 128,   0,   255))
+    fill1d!(transfer, 11, (   64, 128,  64,   255))
+    fill1d!(transfer, 12, (  127, 255, 212,   255))
+    fill1d!(transfer, 13, (  255, 255, 255,   255))
+    fill1d!(transfer, 14, (  255, 255, 255,   255))
+    fill1d!(transfer, 15, (  255, 255, 255,   255))
+    fill1d!(transfer, 16, (  255, 255, 255,   255))
+
+    TextureData{1}(flattransfer, width)
+end
 
 struct ViewportAlignment <: Visualizer.Visualization
     program::Union{Nothing, ShaderProgram}
     wireframe::VertexArray{GL_LINES}
+    wireframetexture::Texture{1}
 
     function ViewportAlignment()
         program = ShaderProgram("shaders/visualization/vertexdiscrete3d.glsl",
@@ -70,7 +108,7 @@ struct ViewportAlignment <: Visualizer.Visualization
              0.5f0, -0.5f0,  0.5f0, # Right bottom back
         ]
         wireframecolors = GLuint[
-            0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12
+            0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11
         ]
         #numberofelementspervertex = 3
         #attributetype = GL_FLOAT
@@ -81,12 +119,13 @@ struct ViewportAlignment <: Visualizer.Visualization
         positionattribute = VertexAttribute(0, 3, GL_FLOAT, GL_FALSE, C_NULL)
         wireframedata = VertexData{GLfloat}(wireframevertices, VertexAttribute[positionattribute])
 
-        colorattribute = VertexAttribute(1, 1, GL_UINT, GL_FALSE, C_NULL)
+        colorattribute = VertexAttribute(1, 1, GL_UNSIGNED_INT, GL_FALSE, C_NULL)
         wireframecolordata = VertexData{GLuint}(wireframecolors, VertexAttribute[colorattribute])
 
         wireframe = VertexArray{GL_LINES}(wireframedata, wireframecolordata)
 
-        new(program, wireframe)
+        wireframetexture = Texture{1}(makewireframetexture())
+        new(program, wireframe, wireframetexture)
     end
 end
 
@@ -124,6 +163,7 @@ function Visualizer.render(camera::Camera, v::ViewportAlignment, ::ViewportAlign
     uniform(v.program, "color", (1f0, 0f0, 0f0, 1f0))
 
     use(v.program)
+    glBindTexture(GL_TEXTURE_1D, v.wireframetexture.textureid)
     renderarray(v.wireframe)
 
     #
@@ -143,6 +183,7 @@ function Visualizer.render(camera::Camera, v::ViewportAlignment, ::ViewportAlign
     uniform(v.program, "color", (0f0, 1f0, 0f0, 1f0))
 
     use(v.program)
+    glBindTexture(GL_TEXTURE_1D, v.wireframetexture.textureid)
     renderarray(v.wireframe)
 end
 

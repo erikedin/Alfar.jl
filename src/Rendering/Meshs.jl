@@ -118,32 +118,33 @@ end
 struct VertexArray{Primitive}
     id::GLuint
     count::Int
-end
 
-function VertexArray{Primitive}(vertexdatas...) where {Primitive}
-    vaoid = Ref{GLuint}()
-    glGenVertexArrays(1, vaoid)
-    glBindVertexArray(vaoid[])
+    function VertexArray{Primitive}(vertexdatas...) where {Primitive}
+        vaoid = Ref{GLuint}()
+        glGenVertexArrays(1, vaoid)
+        glBindVertexArray(vaoid[])
 
-    firstvertexdata = vertexdatas[1]
-    count = trunc(Int, length(firstvertexdata.data) / elementscount(firstvertexdata))
+        firstvertexdata = vertexdatas[1]
+        count = trunc(Int, length(firstvertexdata.data) / elementscount(firstvertexdata))
 
-    for vertexdata in vertexdatas
-        vbo = VertexBuffer()
-        bufferdata(vbo, vertexdata.data, GL_DYNAMIC_DRAW)
+        for vertexdata in vertexdatas
+            vbo = VertexBuffer()
+            bufferdata(vbo, vertexdata.data, GL_DYNAMIC_DRAW)
 
-        for attribute in vertexdata.attributes
-            glVertexAttribPointer(attribute.attributeid,
-                                  attribute.elementcount,
-                                  attribute.attributetype,
-                                  attribute.isnormalized,
-                                  stride(vertexdata),
-                                  attribute.offset)
-            glEnableVertexAttribArray(attribute.attributeid)
+            for attribute in vertexdata.attributes
+                glVertexAttribPointer(attribute.attributeid,
+                                    attribute.elementcount,
+                                    attribute.attributetype,
+                                    attribute.isnormalized,
+                                    stride(vertexdata),
+                                    attribute.offset)
+                glEnableVertexAttribArray(attribute.attributeid)
+            end
         end
+
+        new(vaoid[], count)
     end
 
-    VertexArray{Primitive}(vaoid[], count)
 end
 
 function renderarray(v::VertexArray{Primitive}) where {Primitive}
