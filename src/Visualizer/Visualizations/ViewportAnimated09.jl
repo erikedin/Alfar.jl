@@ -199,8 +199,22 @@ struct ViewportAnimated09 <: Visualization
 
     function ViewportAnimated09()
         program = ShaderProgram("shaders/visualization/basic3dvertex.glsl", "shaders/visualization/fragment1dtransfer.glsl")
+
+        glActiveTexture(GL_TEXTURE0)
         volumetexture = Texture{3}(generate3dintensitytexture(256, 256, 256))
+        glTexParameterf(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
+        glTexParameterf(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
+        glTexParameterf(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE)
+
+
+        glActiveTexture(GL_TEXTURE1)
         transfertexture = Texture{1}(generatetexturetransferfunction())
+        # TODO Move this somewhere else, because it's specific to the
+        # texture in the sample I'm currently basing this off of.
+        bordercolor = GLfloat[1f0, 1f0, 0f0, 1f0]
+        glTexParameterfv(GL_TEXTURE_1D, GL_TEXTURE_BORDER_COLOR, Ref(bordercolor, 1))
+        glTexParameterf(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER)
+        glTexParameterf(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
 
         cubedepth = 1.0f0
         numberofslices = 20

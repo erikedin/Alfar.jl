@@ -32,8 +32,6 @@ struct Texture{N}
 end
 
 function Texture{3}(texturedata::TextureData{3})
-    # TODO Move this somewhere else.
-    glActiveTexture(GL_TEXTURE0)
 
     textureRef = Ref{GLuint}()
     glGenTextures(1, textureRef)
@@ -51,19 +49,10 @@ function Texture{3}(texturedata::TextureData{3})
                  texturedata.data)
     glGenerateMipmap(GL_TEXTURE_3D)
 
-    # TODO Move this somewhere else, because it's specific to the
-    # texture in the sample I'm currently basing this off of.
-    glTexParameterf(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
-    glTexParameterf(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
-    glTexParameterf(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE)
-
     Texture{3}(textureid)
 end
 
 function Texture{1}(texturedata::TextureData{1})
-    # TODO Move this somewhere else.
-    glActiveTexture(GL_TEXTURE1)
-
     textureRef = Ref{GLuint}()
     glGenTextures(1, textureRef)
     textureid = textureRef[]
@@ -79,13 +68,6 @@ function Texture{1}(texturedata::TextureData{1})
                  GL_UNSIGNED_BYTE,
                  texturedata.data)
     glGenerateMipmap(GL_TEXTURE_1D)
-
-    # TODO Move this somewhere else, because it's specific to the
-    # texture in the sample I'm currently basing this off of.
-    bordercolor = GLfloat[1f0, 1f0, 0f0, 1f0]
-    glTexParameterfv(GL_TEXTURE_1D, GL_TEXTURE_BORDER_COLOR, Ref(bordercolor, 1))
-    glTexParameterf(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER)
-    glTexParameterf(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
 
     Texture{1}(textureid)
 end
