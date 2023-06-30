@@ -14,12 +14,12 @@
 
 #version 420 core
 
-flat in uint DiscreteTextureCoordinate;
+flat in int TextureCoordinate;
 out vec4 FragColor;
 
 layout (binding = 0) uniform sampler1D transfer;
 
 void main()
 {
-    FragColor = texture(transfer, DiscreteTextureCoordinate);
+    FragColor = texelFetch(transfer, TextureCoordinate, 0);
 }

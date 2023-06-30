@@ -38,22 +38,22 @@ function makewireframetexture() :: TextureData{1}
     flattransfer = zeros(UInt8, channels*width)
     transfer = reshape(flattransfer, (channels, width))
 
-    fill1d!(transfer,  1, (  255,   0,   0,   255))
-    fill1d!(transfer,  2, (    0, 255,   0,   255))
-    fill1d!(transfer,  3, (    0,   0, 255,   255))
-    fill1d!(transfer,  4, (  255, 255,   0,   255))
-    fill1d!(transfer,  5, (  255,   0, 255,   255))
-    fill1d!(transfer,  6, (    0, 255, 255,   255))
-    fill1d!(transfer,  7, (  128, 255,   0,   255))
-    fill1d!(transfer,  8, (  128, 128,   0,   255))
-    fill1d!(transfer,  9, (  128, 128,  64,   255))
-    fill1d!(transfer, 10, (   64, 128,   0,   255))
-    fill1d!(transfer, 11, (   64, 128,  64,   255))
-    fill1d!(transfer, 12, (  127, 255, 212,   255))
-    fill1d!(transfer, 13, (  255, 255, 255,   255))
-    fill1d!(transfer, 14, (  255, 255, 255,   255))
-    fill1d!(transfer, 15, (  255, 255, 255,   255))
-    fill1d!(transfer, 16, (  255, 255, 255,   255))
+    fill1d!(transfer,  1, (  255,  20, 147,   255)) # DEEP PINK
+    fill1d!(transfer,  2, (    0, 255,   0,   255)) # GREEN
+    fill1d!(transfer,  3, (    0,   0, 255,   255)) # BLUE
+    fill1d!(transfer,  4, (  255, 255,   0,   255)) # YELLOW
+    fill1d!(transfer,  5, (  255,   0, 255,   255)) # FUCHSIA
+    fill1d!(transfer,  6, (    0, 255, 255,   255)) # AQUA
+    fill1d!(transfer,  7, (  128,   0,   0,   255)) # MAROON
+    fill1d!(transfer,  8, (  128, 128,   0,   255)) # OLIVE
+    fill1d!(transfer,  9, (  255, 165,   0,   255)) # ORANGE
+    fill1d!(transfer, 10, (  255,   0,   0,   255)) # RED
+    fill1d!(transfer, 11, (    0,   0, 255,   255)) # BLUE AGAIN
+    fill1d!(transfer, 12, (    0, 128,   0,   255)) # LOW GREEN
+    fill1d!(transfer, 13, (    0,   0, 128,   255)) # LOW BLUE
+    fill1d!(transfer, 14, (    0, 128, 128,   255)) # TEAL
+    fill1d!(transfer, 15, (  255, 255, 255,   255)) # WHITE
+    fill1d!(transfer, 16, (  128, 128, 128,   255)) # GRAY
 
     TextureData{1}(flattransfer, width)
 end
@@ -69,47 +69,48 @@ struct ViewportAlignment <: Visualizer.Visualization
 
         wireframevertices = GLfloat[
             # Lines from front right bottom, around, counterclockwise
-             0.5f0, -0.5f0, -0.5f0, # Right bottom front
+             0.5f0, -0.5f0, -0.5f0, # Right bottom front # DEEP PINK
              0.5f0,  0.5f0, -0.5f0, # Right top    front
 
-             0.5f0,  0.5f0, -0.5f0, # Right top    front
+             0.5f0,  0.5f0, -0.5f0, # Right top    front # GREEN
             -0.5f0,  0.5f0, -0.5f0, # Left  top    front
 
-            -0.5f0,  0.5f0, -0.5f0, # Left  top    front
+            -0.5f0,  0.5f0, -0.5f0, # Left  top    front # BLUE
             -0.5f0, -0.5f0, -0.5f0, # Left  bottom front
 
-            -0.5f0, -0.5f0, -0.5f0, # Left  bottom front
+            -0.5f0, -0.5f0, -0.5f0, # Left  bottom front # YELLOW
              0.5f0, -0.5f0, -0.5f0, # Right bottom front
 
             # Lines from front to back
-             0.5f0, -0.5f0, -0.5f0, # Right bottom front
+             0.5f0, -0.5f0, -0.5f0, # Right bottom front # FUCHSIA
              0.5f0, -0.5f0,  0.5f0, # Right bottom back
 
-             0.5f0,  0.5f0, -0.5f0, # Right top    front
+             0.5f0,  0.5f0, -0.5f0, # Right top    front # AQUA
              0.5f0,  0.5f0,  0.5f0, # Right top    back
 
-            -0.5f0,  0.5f0, -0.5f0, # Left  top    front
+            -0.5f0,  0.5f0, -0.5f0, # Left  top    front # MAROON
             -0.5f0,  0.5f0,  0.5f0, # Left  top    back
 
-            -0.5f0, -0.5f0, -0.5f0, # Left  bottom front
+            -0.5f0, -0.5f0, -0.5f0, # Left  bottom front # OLIVE
             -0.5f0, -0.5f0,  0.5f0, # Left  bottom back
 
             # Lines from back right bottom, around, counterclockwise
-             0.5f0, -0.5f0,  0.5f0, # Right bottom back
+             0.5f0, -0.5f0,  0.5f0, # Right bottom back # ORANGE
              0.5f0,  0.5f0,  0.5f0, # Right top    back
 
-             0.5f0,  0.5f0,  0.5f0, # Right top    back
+             0.5f0,  0.5f0,  0.5f0, # Right top    back # RED
             -0.5f0,  0.5f0,  0.5f0, # Left  top    back
 
-            -0.5f0,  0.5f0,  0.5f0, # Left  top    back
+            -0.5f0,  0.5f0,  0.5f0, # Left  top    back # BLUE
             -0.5f0, -0.5f0,  0.5f0, # Left  bottom back
 
-            -0.5f0, -0.5f0,  0.5f0, # Left  bottom back
+            -0.5f0, -0.5f0,  0.5f0, # Left  bottom back # LOW GREEN
              0.5f0, -0.5f0,  0.5f0, # Right bottom back
         ]
-        wireframecolors = GLuint[
-            0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11
+        wireframecolors = GLint[
+            0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11
         ]
+
         #numberofelementspervertex = 3
         #attributetype = GL_FLOAT
         #positionattribute = MeshAttribute(0, numberofelementspervertex, attributetype, GL_FALSE, C_NULL)
@@ -119,19 +120,30 @@ struct ViewportAlignment <: Visualizer.Visualization
         positionattribute = VertexAttribute(0, 3, GL_FLOAT, GL_FALSE, C_NULL)
         wireframedata = VertexData{GLfloat}(wireframevertices, VertexAttribute[positionattribute])
 
-        colorattribute = VertexAttribute(1, 1, GL_UNSIGNED_INT, GL_FALSE, C_NULL)
-        wireframecolordata = VertexData{GLuint}(wireframecolors, VertexAttribute[colorattribute])
+        colorattribute = VertexAttribute(1, 1, GL_INT, GL_FALSE, C_NULL)
+        wireframecolordata = VertexData{GLint}(wireframecolors, VertexAttribute[colorattribute])
 
         wireframe = VertexArray{GL_LINES}(wireframedata, wireframecolordata)
 
         wireframetexture = Texture{1}(makewireframetexture())
+        #bordercolor = GLfloat[1f0, 0f0, 0f0, 1f0]
+        #glTexParameterfv(GL_TEXTURE_1D, GL_TEXTURE_BORDER_COLOR, Ref(bordercolor, 1))
+        #glTexParameterf(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER)
+        #glTexParameterf(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
+
         new(program, wireframe, wireframetexture)
     end
 end
 
 struct ViewportAlignmentState <: Visualizer.VisualizationState end
 
-Visualizer.setflags(::ViewportAlignment) = nothing
+function Visualizer.setflags(::ViewportAlignment)
+    #glEnable(GL_BLEND)
+    #glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+    #glEnable(GL_DEPTH_TEST)
+    #glEnable(GL_TEXTURE_1D)
+end
+
 Visualizer.setup(::ViewportAlignment) = ViewportAlignmentState()
 Visualizer.update(::ViewportAlignment, ::ViewportAlignmentState) = ViewportAlignmentState()
 
@@ -159,9 +171,6 @@ function Visualizer.render(camera::Camera, v::ViewportAlignment, ::ViewportAlign
     uniform(v.program, "view", view)
     uniform(v.program, "projection", projection)
 
-    # Set a single color, RED, for the wireframe
-    uniform(v.program, "color", (1f0, 0f0, 0f0, 1f0))
-
     use(v.program)
     glBindTexture(GL_TEXTURE_1D, v.wireframetexture.textureid)
     renderarray(v.wireframe)
@@ -178,9 +187,6 @@ function Visualizer.render(camera::Camera, v::ViewportAlignment, ::ViewportAlign
     uniform(v.program, "model", model)
     uniform(v.program, "view", view)
     uniform(v.program, "projection", projection)
-
-    # Set a single color, GREEN, for the wireframe
-    uniform(v.program, "color", (0f0, 1f0, 0f0, 1f0))
 
     use(v.program)
     glBindTexture(GL_TEXTURE_1D, v.wireframetexture.textureid)

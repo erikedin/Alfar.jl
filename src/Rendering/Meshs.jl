@@ -94,7 +94,15 @@ struct VertexData{T}
 end
 
 elementscount(v::VertexData{T}) where {T} = sum([a.elementcount for a in v.attributes])
-stride(v::VertexData{T}) where {T} = sum([a.elementcount*sizeof(T) for a in v.attributes])
+
+function vertexAttribPointer(v::VertexData{T}, a::VertexAttribute) where {T}
+    glVertexAttribPointer(a.attributeid, a.elementcount, a.attributetype, a.isnormalized, 0, a.offset)
+end
+
+function vertexAttribPointer(v::VertexData{GLint}, a::VertexAttribute)
+    println(a.attributeid, " ", a.elementcount, " ", a.attributetype, " ", 0, " ", a.offset)
+    glVertexAttribIPointer(a.attributeid, a.elementcount, a.attributetype, 0, a.offset)
+end
 
 struct VertexBuffer
     id::GLuint
@@ -132,12 +140,7 @@ struct VertexArray{Primitive}
             bufferdata(vbo, vertexdata.data, GL_DYNAMIC_DRAW)
 
             for attribute in vertexdata.attributes
-                glVertexAttribPointer(attribute.attributeid,
-                                    attribute.elementcount,
-                                    attribute.attributetype,
-                                    attribute.isnormalized,
-                                    stride(vertexdata),
-                                    attribute.offset)
+                vertexAttribPointer(vertexdata, attribute)
                 glEnableVertexAttribArray(attribute.attributeid)
             end
         end
