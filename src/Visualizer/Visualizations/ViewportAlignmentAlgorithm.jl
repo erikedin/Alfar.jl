@@ -69,42 +69,42 @@ struct ViewportAlignment <: Visualizer.Visualization
 
         wireframevertices = GLfloat[
             # Lines from front right bottom, around, counterclockwise
-             0.5f0, -0.5f0, -0.5f0, # Right bottom front # DEEP PINK
+             0.5f0, -0.5f0, -0.5f0, # Right bottom front
              0.5f0,  0.5f0, -0.5f0, # Right top    front
 
-             0.5f0,  0.5f0, -0.5f0, # Right top    front # GREEN
+             0.5f0,  0.5f0, -0.5f0, # Right top    front
             -0.5f0,  0.5f0, -0.5f0, # Left  top    front
 
-            -0.5f0,  0.5f0, -0.5f0, # Left  top    front # BLUE
+            -0.5f0,  0.5f0, -0.5f0, # Left  top    front
             -0.5f0, -0.5f0, -0.5f0, # Left  bottom front
 
-            -0.5f0, -0.5f0, -0.5f0, # Left  bottom front # YELLOW
+            -0.5f0, -0.5f0, -0.5f0, # Left  bottom front
              0.5f0, -0.5f0, -0.5f0, # Right bottom front
 
             # Lines from front to back
-             0.5f0, -0.5f0, -0.5f0, # Right bottom front # FUCHSIA
+             0.5f0, -0.5f0, -0.5f0, # Right bottom front
              0.5f0, -0.5f0,  0.5f0, # Right bottom back
 
-             0.5f0,  0.5f0, -0.5f0, # Right top    front # AQUA
+             0.5f0,  0.5f0, -0.5f0, # Right top    front
              0.5f0,  0.5f0,  0.5f0, # Right top    back
 
-            -0.5f0,  0.5f0, -0.5f0, # Left  top    front # MAROON
+            -0.5f0,  0.5f0, -0.5f0, # Left  top    front
             -0.5f0,  0.5f0,  0.5f0, # Left  top    back
 
-            -0.5f0, -0.5f0, -0.5f0, # Left  bottom front # OLIVE
+            -0.5f0, -0.5f0, -0.5f0, # Left  bottom front
             -0.5f0, -0.5f0,  0.5f0, # Left  bottom back
 
             # Lines from back right bottom, around, counterclockwise
-             0.5f0, -0.5f0,  0.5f0, # Right bottom back # ORANGE
+             0.5f0, -0.5f0,  0.5f0, # Right bottom back
              0.5f0,  0.5f0,  0.5f0, # Right top    back
 
-             0.5f0,  0.5f0,  0.5f0, # Right top    back # RED
+             0.5f0,  0.5f0,  0.5f0, # Right top    back
             -0.5f0,  0.5f0,  0.5f0, # Left  top    back
 
-            -0.5f0,  0.5f0,  0.5f0, # Left  top    back # BLUE
+            -0.5f0,  0.5f0,  0.5f0, # Left  top    back
             -0.5f0, -0.5f0,  0.5f0, # Left  bottom back
 
-            -0.5f0, -0.5f0,  0.5f0, # Left  bottom back # LOW GREEN
+            -0.5f0, -0.5f0,  0.5f0, # Left  bottom back
              0.5f0, -0.5f0,  0.5f0, # Right bottom back
         ]
         wireframecolors = GLint[
@@ -127,12 +127,6 @@ struct ViewportAlignment <: Visualizer.Visualization
             1, 1, # GREEN     # v5 -> v7 # Left  bottom back -> Right bottom back
         ]
 
-        #numberofelementspervertex = 3
-        #attributetype = GL_FLOAT
-        #positionattribute = MeshAttribute(0, numberofelementspervertex, attributetype, GL_FALSE, C_NULL)
-        #meshdefinition = MeshDefinition(wireframevertices, numberofelementspervertex, [positionattribute])
-        #mesh = MeshBuffer(meshdefinition)
-
         positionattribute = VertexAttribute(0, 3, GL_FLOAT, GL_FALSE, C_NULL)
         wireframedata = VertexData{GLfloat}(wireframevertices, VertexAttribute[positionattribute])
 
@@ -142,10 +136,6 @@ struct ViewportAlignment <: Visualizer.Visualization
         wireframe = VertexArray{GL_LINES}(wireframedata, wireframecolordata)
 
         wireframetexture = Texture{1}(makewireframetexture())
-        #bordercolor = GLfloat[1f0, 0f0, 0f0, 1f0]
-        #glTexParameterfv(GL_TEXTURE_1D, GL_TEXTURE_BORDER_COLOR, Ref(bordercolor, 1))
-        #glTexParameterf(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER)
-        #glTexParameterf(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
 
         new(program, wireframe, wireframetexture)
     end
@@ -154,10 +144,6 @@ end
 struct ViewportAlignmentState <: Visualizer.VisualizationState end
 
 function Visualizer.setflags(::ViewportAlignment)
-    #glEnable(GL_BLEND)
-    #glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-    #glEnable(GL_DEPTH_TEST)
-    #glEnable(GL_TEXTURE_1D)
 end
 
 Visualizer.setup(::ViewportAlignment) = ViewportAlignmentState()

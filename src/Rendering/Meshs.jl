@@ -100,7 +100,6 @@ function vertexAttribPointer(v::VertexData{T}, a::VertexAttribute) where {T}
 end
 
 function vertexAttribPointer(v::VertexData{GLint}, a::VertexAttribute)
-    println(a.attributeid, " ", a.elementcount, " ", a.attributetype, " ", 0, " ", a.offset)
     glVertexAttribIPointer(a.attributeid, a.elementcount, a.attributetype, 0, a.offset)
 end
 
