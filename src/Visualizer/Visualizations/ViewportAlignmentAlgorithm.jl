@@ -38,22 +38,22 @@ function makewireframetexture() :: TextureData{1}
     flattransfer = zeros(UInt8, channels*width)
     transfer = reshape(flattransfer, (channels, width))
 
-    fill1d!(transfer,  1, (  255,  20, 147,   255)) # DEEP PINK
+    fill1d!(transfer,  1, (  255,   0,   0,   255)) # RED
     fill1d!(transfer,  2, (    0, 255,   0,   255)) # GREEN
     fill1d!(transfer,  3, (    0,   0, 255,   255)) # BLUE
-    fill1d!(transfer,  4, (  255, 255,   0,   255)) # YELLOW
-    fill1d!(transfer,  5, (  255,   0, 255,   255)) # FUCHSIA
-    fill1d!(transfer,  6, (    0, 255, 255,   255)) # AQUA
-    fill1d!(transfer,  7, (  128,   0,   0,   255)) # MAROON
-    fill1d!(transfer,  8, (  128, 128,   0,   255)) # OLIVE
-    fill1d!(transfer,  9, (  255, 165,   0,   255)) # ORANGE
-    fill1d!(transfer, 10, (  255,   0,   0,   255)) # RED
-    fill1d!(transfer, 11, (    0,   0, 255,   255)) # BLUE AGAIN
-    fill1d!(transfer, 12, (    0, 128,   0,   255)) # LOW GREEN
-    fill1d!(transfer, 13, (    0,   0, 128,   255)) # LOW BLUE
-    fill1d!(transfer, 14, (    0, 128, 128,   255)) # TEAL
-    fill1d!(transfer, 15, (  255, 255, 255,   255)) # WHITE
-    fill1d!(transfer, 16, (  128, 128, 128,   255)) # GRAY
+    fill1d!(transfer,  4, (   64,   0,   0,   255)) # LOW RED
+    fill1d!(transfer,  5, (    0,  64,   0,   255)) # LOW GREEN
+    fill1d!(transfer,  6, (    0,   0,  64,   255)) # LOW BLUE
+    fill1d!(transfer,  7, (  255, 255,   0,   255)) # YELLOW
+    fill1d!(transfer,  8, (  255, 255,   0,   255)) # YELLOW
+    fill1d!(transfer,  9, (  255, 255,   0,   255)) # YELLOW
+    fill1d!(transfer, 10, (  255, 255,   0,   255)) # YELLOW
+    fill1d!(transfer, 11, (  255, 255,   0,   255)) # YELLOW
+    fill1d!(transfer, 12, (  255, 255,   0,   255)) # YELLOW
+    fill1d!(transfer, 13, (  255, 255,   0,   255)) # YELLOW
+    fill1d!(transfer, 14, (  255, 255,   0,   255)) # YELLOW
+    fill1d!(transfer, 15, (  255, 255,   0,   255)) # YELLOW
+    fill1d!(transfer, 16, (  255, 255,   0,   255)) # YELLOW
 
     TextureData{1}(flattransfer, width)
 end
@@ -108,7 +108,23 @@ struct ViewportAlignment <: Visualizer.Visualization
              0.5f0, -0.5f0,  0.5f0, # Right bottom back
         ]
         wireframecolors = GLint[
-            0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11
+            # Lines from front right bottom, around, counterclockwise
+            1, 1, # GREEN     # v0 -> v2 # Right bottom front -> Right top front
+            2, 2, # BLUE      # v0 -> v3 # Right top    front -> Left  top    front
+            2, 2, # BLUE      # v3 -> v6 # Left  top    front -> Left  bottom front
+            4, 4, # LOW GREEN # v2 -> v6 # Left  bottom front -> Right bottom front
+
+            # Lines from front to back
+            1, 1, # GREEN # v2 -> v5 # Right bottom front -> Right bottom back
+            0, 0, # RED       # v0 -> v1 # Right top    front -> Right top    back
+            5, 5, # LOW BLUE  # v3 -> v4 # Left  top    front -> Left  top    back
+            2, 2, # BLUE      # v6 -> v7 # Left  bottom front -> Left  bottom back
+
+            # Lines from back right bottom, around, counterclockwise
+            3, 3, # LOW RED   # v1 -> v5 # Right bottom back -> Right top    back
+            0, 0, # RED       # v1 -> v4 # Right top    back -> Left  top    back
+            0, 0, # RED       # v4 -> v7 # Left  top    back -> Left  bottom back
+            1, 1, # GREEN     # v5 -> v7 # Left  bottom back -> Right bottom back
         ]
 
         #numberofelementspervertex = 3
