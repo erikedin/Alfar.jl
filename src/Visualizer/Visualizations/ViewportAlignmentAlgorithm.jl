@@ -25,24 +25,40 @@ using Alfar.Rendering.Textures
 struct IntersectingPlane
     program::ShaderProgram
     color::NTuple{4, Float32}
+    planevertices::VertexArray{GL_TRIANGLES}
 
-    IntersectingPlane() = new(
-        Program("shaders/visualization/mvp3dvertex.glsl", "shaders/visualization/uniformcolorfragment.glsl"),
-        (0f0, 0f0, 1f0, 0.2f0))
+    function IntersectingPlane()
+        program = ShaderProgram("shaders/visualization/vertex3dplane.glsl", "shaders/visualization/uniformcolorfragment.glsl")
+        color = (0f0, 0f0, 1f0, 0.2f0)
+
+        vertices = GLfloat[
+            # Lines from front right bottom, around, counterclockwise
+             1.0f0, -1.0f0, # Right bottom
+             1.0f0,  1.0f0, # Right top
+            -1.0f0,  1.0f0, # Left top
+
+             1.0f0, -1.0f0, # Right bottom
+            -1.0f0,  1.0f0, # Left top
+            -1.0f0, -1.0f0, # Left bottom
+        ]
+        attribute = VertexAttribute(0, 2, GL_FLOAT, GL_FALSE, C_NULL)
+        vertexdata = VertexData{GLfloat}(vertices, VertexAttribute[attribute])
+        planevertices = VertexArray{GL_TRIANGLES}(vertexdata)
+
+        new(program, color, planevertices)
+    end
 end
 
-function render(plane::IntersectingPlane, camera::Camera, camerastate::CameraState, distance::Float64)
+function render(plane::IntersectingPlane, camera::Camera, distance::Float32)
     use(plane.program)
 
-    # Camera transforms
-    view = lookat(camerastate)
     projection = perspective(camera)
-    model = objectmodel()
-    uniform(v.program, "model", model)
-    uniform(v.program, "view", view)
-    uniform(v.program, "projection", projection)
+    uniform(plane.program, "projection", projection)
 
+    uniform(plane.program, "distance", -distance)
     uniform(plane.program, "color", plane.color)
+
+    renderarray(plane.planevertices)
 end
 
 function fill1d!(data, i, color)
@@ -85,6 +101,7 @@ struct ViewportAlignment <: Visualizer.Visualization
     program::Union{Nothing, ShaderProgram}
     wireframe::VertexArray{GL_LINES}
     wireframetexture::Texture{1}
+    plane::IntersectingPlane
 
     function ViewportAlignment()
         program = ShaderProgram("shaders/visualization/vertexdiscrete3d.glsl",
@@ -160,7 +177,7 @@ struct ViewportAlignment <: Visualizer.Visualization
 
         wireframetexture = Texture{1}(makewireframetexture())
 
-        new(program, wireframe, wireframetexture)
+        new(program, wireframe, wireframetexture, IntersectingPlane())
     end
 end
 
@@ -169,6 +186,9 @@ struct ViewportAlignmentState <: Visualizer.VisualizationState
 end
 
 function Visualizer.setflags(::ViewportAlignment)
+    glEnable(GL_BLEND)
+    glEnable(GL_DEPTH_TEST)
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 end
 
 Visualizer.setup(::ViewportAlignment) = ViewportAlignmentState(0f0)
@@ -178,7 +198,7 @@ function Visualizer.onmousescroll(::ViewportAlignment, state::ViewportAlignmentS
     ViewportAlignmentState(state.distance + yoffset / 10f0)
 end
 
-function Visualizer.render(camera::Camera, v::ViewportAlignment, ::ViewportAlignmentState)
+function Visualizer.render(camera::Camera, v::ViewportAlignment, state::ViewportAlignmentState)
     # Camera position
     # The first view sees the object from the front.
     originalcameraposition = CameraPosition((0f0, 0f0, -3f0), (0f0, 1f0, 0f0))
@@ -207,11 +227,14 @@ function Visualizer.render(camera::Camera, v::ViewportAlignment, ::ViewportAlign
     glBindTexture(GL_TEXTURE_1D, v.wireframetexture.textureid)
     renderarray(v.wireframe)
 
+    render(v.plane, camera, Float32(state.distance))
+
     #
     # Viewport 2 (right)
     #
     glViewport(camera.windowwidth, 0, camera.windowwidth, camera.windowheight)
 
+    use(v.program)
     view = lookat(camerastateviewport2)
     projection = perspective(camera)
     model = objectmodel()
@@ -219,7 +242,6 @@ function Visualizer.render(camera::Camera, v::ViewportAlignment, ::ViewportAlign
     uniform(v.program, "view", view)
     uniform(v.program, "projection", projection)
 
-    use(v.program)
     glBindTexture(GL_TEXTURE_1D, v.wireframetexture.textureid)
     renderarray(v.wireframe)
 end
