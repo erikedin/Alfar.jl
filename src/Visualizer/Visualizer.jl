@@ -90,6 +90,13 @@ function runvisualizer(c::RemoteChannel, exitchannel::RemoteChannel)
     end
     GLFW.SetKeyCallback(window, keyboardcallback)
 
+    # Scrolling callback
+    scrollcallback = (window, xoffset, yoffset) -> begin
+        println("Scroll: $(xoffset):$(yoffset)")
+        state.visualizationstate = onmousescroll(state.visualization, state.visualizationstate, (xoffset, yoffset))
+    end
+    GLFW.SetScrollCallback(window, scrollcallback)
+
     # Loop until the user closes the window
     while !GLFW.WindowShouldClose(window)
         # If we have any events from the REPL, handle them.

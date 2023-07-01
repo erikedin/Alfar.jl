@@ -22,6 +22,29 @@ using Alfar.Rendering.Shaders
 using Alfar.Rendering.Meshs
 using Alfar.Rendering.Textures
 
+struct IntersectingPlane
+    program::ShaderProgram
+    color::NTuple{4, Float32}
+
+    IntersectingPlane() = new(
+        Program("shaders/visualization/mvp3dvertex.glsl", "shaders/visualization/uniformcolorfragment.glsl"),
+        (0f0, 0f0, 1f0, 0.2f0))
+end
+
+function render(plane::IntersectingPlane, camera::Camera, camerastate::CameraState, distance::Float64)
+    use(plane.program)
+
+    # Camera transforms
+    view = lookat(camerastate)
+    projection = perspective(camera)
+    model = objectmodel()
+    uniform(v.program, "model", model)
+    uniform(v.program, "view", view)
+    uniform(v.program, "projection", projection)
+
+    uniform(plane.program, "color", plane.color)
+end
+
 function fill1d!(data, i, color)
     data[1, i] = UInt8(color[1])
     data[2, i] = UInt8(color[2])
@@ -141,32 +164,39 @@ struct ViewportAlignment <: Visualizer.Visualization
     end
 end
 
-struct ViewportAlignmentState <: Visualizer.VisualizationState end
+struct ViewportAlignmentState <: Visualizer.VisualizationState
+    distance::Float64
+end
 
 function Visualizer.setflags(::ViewportAlignment)
 end
 
-Visualizer.setup(::ViewportAlignment) = ViewportAlignmentState()
-Visualizer.update(::ViewportAlignment, ::ViewportAlignmentState) = ViewportAlignmentState()
+Visualizer.setup(::ViewportAlignment) = ViewportAlignmentState(0f0)
+Visualizer.update(::ViewportAlignment, state::ViewportAlignmentState) = state
+
+function Visualizer.onmousescroll(::ViewportAlignment, state::ViewportAlignmentState, (xoffset, yoffset)::Tuple{Float64, Float64})
+    ViewportAlignmentState(state.distance + yoffset / 10f0)
+end
 
 function Visualizer.render(camera::Camera, v::ViewportAlignment, ::ViewportAlignmentState)
     # Camera position
     # The first view sees the object from the front.
     originalcameraposition = CameraPosition((0f0, 0f0, -3f0), (0f0, 1f0, 0f0))
 
+    camerastate = CameraState(originalcameraposition, (0f0, 0f0, 0f0))
+
     zangle = 1f0 * pi / 8f0
     viewtransform1 = rotatez(0f0) * rotatey(0f0)
     viewtransform2 = rotatez(zangle) * rotatey(- 5f0 * pi / 16f0)
-    camerapositionviewport1 = transform(originalcameraposition, viewtransform1)
-    camerapositionviewport2 = transform(originalcameraposition, viewtransform2)
+    camerastateviewport1 = transform(camerastate, viewtransform1)
+    camerastateviewport2 = transform(camerastate, viewtransform2)
 
     #
     # Viewport 1 (left)
     #
     glViewport(0, 0, camera.windowwidth, camera.windowheight)
 
-    cameratarget = (0f0, 0f0, 0f0)
-    view = lookat(camerapositionviewport1, cameratarget)
+    view = lookat(camerastateviewport1)
     projection = perspective(camera)
     model = objectmodel()
     uniform(v.program, "model", model)
@@ -182,8 +212,7 @@ function Visualizer.render(camera::Camera, v::ViewportAlignment, ::ViewportAlign
     #
     glViewport(camera.windowwidth, 0, camera.windowwidth, camera.windowheight)
 
-    cameratarget = (0f0, 0f0, 0f0)
-    view = lookat(camerapositionviewport2, cameratarget)
+    view = lookat(camerastateviewport2)
     projection = perspective(camera)
     model = objectmodel()
     uniform(v.program, "model", model)

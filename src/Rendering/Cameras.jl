@@ -18,7 +18,7 @@ using Alfar.Math
 using LinearAlgebra
 using ModernGL
 
-export Camera, CameraPosition
+export Camera, CameraPosition, CameraState
 export rotatex, rotatey, rotatez
 export transform
 export lookat, perspective, objectmodel
@@ -128,5 +128,13 @@ function lookat(cameraposition::CameraPosition, cameratarget::Vector3{Float32}) 
     ])
     direction * translation
 end
+
+struct CameraState
+    position::CameraPosition
+    target::Vector3{Float32}
+end
+
+lookat(state::CameraState) :: Matrix{Float32} = lookat(state.position, state.target)
+transform(state::CameraState, t::Matrix{GLfloat}) :: CameraState = CameraState(transform(state.position, t), state.target)
 
 end
