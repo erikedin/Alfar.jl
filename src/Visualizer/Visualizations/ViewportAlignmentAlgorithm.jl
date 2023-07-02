@@ -65,6 +65,50 @@ function render(plane::IntersectingPlane, camera::Camera, view::Matrix{GLfloat},
     renderarray(plane.planevertices)
 end
 
+struct XYZMarker
+    program::ShaderProgram
+    lines::VertexArray{GL_LINES}
+
+    function XYZMarker()
+        program = ShaderProgram("shaders/visualization/vertex3dcolorlines.glsl", "shaders/visualization/fragmentcolorfromvertex.glsl")
+
+        vertices = GLfloat[
+            # X            # RED
+            0f0, 0f0, 0f0, 1f0, 0f0, 0f0, 1f0,
+            1f0, 0f0, 0f0, 1f0, 0f0, 0f0, 1f0,
+
+            # Y            # GREEN
+            0f0, 0f0, 0f0, 0f0, 1f0, 0f0, 1f0,
+            0f0, 1f0, 0f0, 0f0, 1f0, 0f0, 1f0,
+
+            # Z            # BLUE
+            0f0, 0f0, 0f0, 0f0, 0f0, 1f0, 1f0,
+            0f0, 0f0, 1f0, 0f0, 0f0, 1f0, 1f0,
+        ]
+        attribute = VertexAttribute(0, 3, GL_FLOAT, GL_FALSE, C_NULL)
+        coloroffset = Ptr{Cvoid}(3 * sizeof(GLfloat))
+        colorattribute = VertexAttribute(1, 4, GL_FLOAT, GL_FALSE, coloroffset)
+        vertexdata = VertexData{GLfloat}(vertices, VertexAttribute[attribute, colorattribute])
+        lines = VertexArray{GL_LINES}(vertexdata)
+
+        new(program, lines)
+    end
+end
+
+function render(marker::XYZMarker, camera::Camera, camerastate::CameraState)
+    use(marker.program)
+
+    projection = perspective(camera)
+    model = objectmodel()
+    view = lookat(camerastate)
+
+    uniform(marker.program, "projection", projection)
+    uniform(marker.program, "view", view)
+    uniform(marker.program, "model", model)
+
+    renderarray(marker.lines)
+end
+
 function fill1d!(data, i, color)
     data[1, i] = UInt8(color[1])
     data[2, i] = UInt8(color[2])
@@ -106,6 +150,7 @@ struct ViewportAlignment <: Visualizer.Visualization
     wireframe::VertexArray{GL_LINES}
     wireframetexture::Texture{1}
     plane::IntersectingPlane
+    marker::XYZMarker
 
     function ViewportAlignment()
         program = ShaderProgram("shaders/visualization/vertexdiscrete3d.glsl",
@@ -181,17 +226,20 @@ struct ViewportAlignment <: Visualizer.Visualization
 
         wireframetexture = Texture{1}(makewireframetexture())
 
-        new(program, wireframe, wireframetexture, IntersectingPlane())
+        new(program, wireframe, wireframetexture, IntersectingPlane(), XYZMarker())
     end
 end
 
 struct ViewportAlignmentState <: Visualizer.VisualizationState
     distance::Float64
     camerastate::CameraState
+    cameratransform::Matrix{GLfloat}
     dragtransform::Matrix{GLfloat}
 end
 
-camerastate(v::ViewportAlignmentState) = transform(v.camerastate, v.dragtransform)
+function camerastate(v::ViewportAlignmentState)
+    transform(v.camerastate, v.dragtransform * v.cameratransform)
+end
 
 function Visualizer.setflags(::ViewportAlignment)
     glEnable(GL_BLEND)
@@ -202,21 +250,22 @@ end
 function Visualizer.setup(::ViewportAlignment)
     originalcameraposition = CameraPosition((0f0, 0f0, -3f0), (0f0, 1f0, 0f0))
     camerastate = CameraState(originalcameraposition, (0f0, 0f0, 0f0))
+    cameratransform = identitytransform()
 
-    ViewportAlignmentState(0f0, camerastate, identitytransform())
+    ViewportAlignmentState(0f0, camerastate, cameratransform, identitytransform())
 end
 
 Visualizer.update(::ViewportAlignment, state::ViewportAlignmentState) = state
 
 function Visualizer.onmousescroll(::ViewportAlignment, state::ViewportAlignmentState, (xoffset, yoffset)::Tuple{Float64, Float64})
     newdistance = state.distance + yoffset / 20.0
-    ViewportAlignmentState(newdistance, state.camerastate, state.dragtransform)
+    ViewportAlignmentState(newdistance, state.camerastate, state.cameratransform, state.dragtransform)
 end
 
 function Visualizer.onmousedrag(::ViewportAlignment, state::ViewportAlignmentState, ::MouseDragEndEvent)
     println("Drag: End")
-    newcamerastate = transform(state.camerastate, state.dragtransform)
-    ViewportAlignmentState(state.distance, newcamerastate, identitytransform())
+    newcameratransform = state.dragtransform * state.cameratransform
+    ViewportAlignmentState(state.distance, state.camerastate, newcameratransform, identitytransform())
 end
 
 function Visualizer.onmousedrag(::ViewportAlignment, state::ViewportAlignmentState, drag::MouseDragPositionEvent)
@@ -228,7 +277,7 @@ function Visualizer.onmousedrag(::ViewportAlignment, state::ViewportAlignmentSta
     radians = drag.direction * Float64(pi) # This converts the coordinate to radians in the range [-pi, pi]
 
     dragtransform = rotatex(Float32(radians[2])) * rotatey(Float32(radians[1]))
-    ViewportAlignmentState(state.distance, state.camerastate, dragtransform)
+    ViewportAlignmentState(state.distance, state.camerastate, state.cameratransform, dragtransform)
 end
 
 function Visualizer.render(camera::Camera, v::ViewportAlignment, state::ViewportAlignmentState)
@@ -238,7 +287,8 @@ function Visualizer.render(camera::Camera, v::ViewportAlignment, state::Viewport
     zangle = 1f0 * pi / 8f0
     #viewtransform2 = rotatez(zangle) * rotatey(- 5f0 * pi / 16f0)
     #viewtransform2 = rotatey(- 5f0 * pi / 16f0)
-    viewtransform2 = rotatez(zangle)
+    perspectiveshift = rotatey(1f0 * pi / 2f0)
+    viewtransform2 = perspectiveshift
     camerastateviewport2 = transform(camerastate(state), viewtransform2)
 
     #
@@ -257,10 +307,12 @@ function Visualizer.render(camera::Camera, v::ViewportAlignment, state::Viewport
     glBindTexture(GL_TEXTURE_1D, v.wireframetexture.textureid)
     renderarray(v.wireframe)
 
+    render(v.marker, camera, camerastateviewport1)
+
     planecameraposition1 = CameraPosition((0f0, 0f0, -3f0), (0f0, 1f0, 0f0))
     planecamerastate1 = CameraState(planecameraposition1, (0f0, 0f0, 0f0))
     planeview1 = lookat(planecamerastate1)
-    render(v.plane, camera, planeview1, Float32(state.distance))
+    #render(v.plane, camera, planeview1, Float32(state.distance))
 
     #
     # Viewport 2 (right)
@@ -278,9 +330,12 @@ function Visualizer.render(camera::Camera, v::ViewportAlignment, state::Viewport
     glBindTexture(GL_TEXTURE_1D, v.wireframetexture.textureid)
     renderarray(v.wireframe)
 
-    planecamerastate2 = transform(planecamerastate1, viewtransform2)
+    render(v.marker, camera, camerastateviewport2)
+
+    planecamerastate2 = transform(planecamerastate1, perspectiveshift)
     planeview2 = lookat(planecamerastate2)
-    render(v.plane, camera, planeview2, Float32(state.distance))
+    #render(v.plane, camera, planeview2, Float32(state.distance))
+
 end
 
 end

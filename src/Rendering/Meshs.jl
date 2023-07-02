@@ -94,13 +94,14 @@ struct VertexData{T}
 end
 
 elementscount(v::VertexData{T}) where {T} = sum([a.elementcount for a in v.attributes])
+stride(v::VertexData{T}) where {T} = elementscount(v) * sizeof(T)
 
 function vertexAttribPointer(v::VertexData{T}, a::VertexAttribute) where {T}
-    glVertexAttribPointer(a.attributeid, a.elementcount, a.attributetype, a.isnormalized, 0, a.offset)
+    glVertexAttribPointer(a.attributeid, a.elementcount, a.attributetype, a.isnormalized, stride(v), a.offset)
 end
 
 function vertexAttribPointer(v::VertexData{GLint}, a::VertexAttribute)
-    glVertexAttribIPointer(a.attributeid, a.elementcount, a.attributetype, 0, a.offset)
+    glVertexAttribIPointer(a.attributeid, a.elementcount, a.attributetype, stride(v), a.offset)
 end
 
 struct VertexBuffer
