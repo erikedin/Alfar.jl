@@ -47,7 +47,6 @@ struct MouseDragStartEvent <: MouseDragEvent end
 struct MouseDragEndEvent <: MouseDragEvent end
 struct MouseDragPositionEvent <: MouseDragEvent
     direction::NTuple{2, Float64}
-    strength::Float64
 end
 
 onkeyboardinput(::Visualization, state::VisualizationState, ::KeyboardInputEvent) = state

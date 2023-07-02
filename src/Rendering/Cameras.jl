@@ -20,7 +20,7 @@ using ModernGL
 
 export Camera, CameraPosition, CameraState
 export rotatex, rotatey, rotatez
-export transform
+export transform, identitytransform
 export lookat, perspective, objectmodel
 
 #
@@ -85,16 +85,16 @@ function rotatez(angle::Float32) :: Matrix{GLfloat}
 end
 
 transform(c::CameraPosition, t::Matrix{GLfloat}) :: CameraPosition = CameraPosition(t * c.position, t * c.up)
-
-function objectmodel()
+function identitytransform() :: Matrix{GLfloat}
     Matrix{GLfloat}([
         1f0 0f0 0f0 0f0;
         0f0 1f0 0f0 0f0;
         0f0 0f0 1f0 0f0;
         0f0 0f0 0f0 1f0;
-
     ])
 end
+
+objectmodel() = identitytransform()
 
 function perspective(camera) :: Matrix{GLfloat}
     tanhalf = tan(camera.fov/2f0)

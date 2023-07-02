@@ -75,10 +75,14 @@ end
 Shaders.use(::Nothing) = nothing
 
 function runvisualizer(c::RemoteChannel, exitchannel::RemoteChannel)
-    camera = Camera(1024, 800)
+    windowwidth = 2048
+    halfwindowwidth = windowwidth / 2
+    windowheight = 800
+    halfwindowheight = windowheight / 2
+    camera = Camera(halfwindowwidth, windowheight)
 
     # Create a window and its OpenGL context
-    window = GLFW.CreateWindow(2048, 800, "Alfar Visualizer")
+    window = GLFW.CreateWindow(windowwidth, windowheight, "Alfar Visualizer")
 
     # Make the window's context current
     GLFW.MakeContextCurrent(window)
@@ -113,23 +117,31 @@ function runvisualizer(c::RemoteChannel, exitchannel::RemoteChannel)
         if button == GLFW.MOUSE_BUTTON_LEFT && action == GLFW.PRESS
             currentposition = GLFW.GetCursorPos(window)
             mousestate = MouseInputState((currentposition.x, currentposition.y))
-            onmousedrag(state.visualization, state.visualizationstate, MouseDragStartEvent())
+            state.visualizationstate = onmousedrag(state.visualization, state.visualizationstate, MouseDragStartEvent())
         elseif button == GLFW.MOUSE_BUTTON_LEFT && action == GLFW.RELEASE
             mousestate = MouseInputState()
-            onmousedrag(state.visualization, state.visualizationstate, MouseDragEndEvent())
+            state.visualizationstate = onmousedrag(state.visualization, state.visualizationstate, MouseDragEndEvent())
         end
     end
     GLFW.SetMouseButtonCallback(window, mousebuttoncallback)
 
+    # Convert from window pixels [-half width, half width] to relative coordinate [-1, 1]
+    relativepixels = (v::NTuple{2, Float64}) -> begin
+        x = v[1]
+        y = v[2]
+        relativex = x / halfwindowwidth
+        relativey = y / halfwindowheight
+        (relativex, relativey)
+    end
     # Mouse position callback
     mousepositioncallback = (window, xposition, yposition) -> begin
         if mousestate.isdragging
-            position = (xposition, yposition)
-            direction = normalize(position - mousestate.dragorigin)
-            strength = norm(position - mousestate.dragorigin)
+            fromorigin = (xposition, yposition) - mousestate.dragorigin
+            direction = relativepixels(fromorigin)
+
             if !isnan(direction[1]) && !isnan(direction[2])
-                positionevent = MouseDragPositionEvent(direction, strength)
-                onmousedrag(state.visualization, state.visualizationstate, positionevent)
+                positionevent = MouseDragPositionEvent(direction)
+                state.visualizationstate = onmousedrag(state.visualization, state.visualizationstate, positionevent)
             end
         end
     end

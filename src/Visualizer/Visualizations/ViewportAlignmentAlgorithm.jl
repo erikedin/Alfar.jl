@@ -189,7 +189,10 @@ end
 struct ViewportAlignmentState <: Visualizer.VisualizationState
     distance::Float64
     camerastate::CameraState
+    dragtransform::Matrix{GLfloat}
 end
+
+camerastate(v::ViewportAlignmentState) = transform(v.camerastate, v.dragtransform)
 
 function Visualizer.setflags(::ViewportAlignment)
     glEnable(GL_BLEND)
@@ -201,28 +204,38 @@ function Visualizer.setup(::ViewportAlignment)
     originalcameraposition = CameraPosition((0f0, 0f0, -3f0), (0f0, 1f0, 0f0))
     camerastate = CameraState(originalcameraposition, (0f0, 0f0, 0f0))
 
-    ViewportAlignmentState(0f0, camerastate)
+    ViewportAlignmentState(0f0, camerastate, identitytransform())
 end
 
 Visualizer.update(::ViewportAlignment, state::ViewportAlignmentState) = state
 
 function Visualizer.onmousescroll(::ViewportAlignment, state::ViewportAlignmentState, (xoffset, yoffset)::Tuple{Float64, Float64})
-    ViewportAlignmentState(state.distance + yoffset / 20f0)
+    ViewportAlignmentState(state.distance + yoffset / 20f0, state.camerastate, state.dragtransform)
 end
 
 function Visualizer.onmousedrag(::ViewportAlignment, state::ViewportAlignmentState, ::MouseDragEndEvent)
     println("Drag: End")
-    state
+    newcamerastate = transform(state.camerastate, state.dragtransform)
+    ViewportAlignmentState(state.distance, newcamerastate, identitytransform())
 end
 
 function Visualizer.onmousedrag(::ViewportAlignment, state::ViewportAlignmentState, drag::MouseDragPositionEvent)
-    println("Drag: $(drag.direction) with strength $(drag.strength)")
-    state
+    println("Drag: $(drag)")
+    # The `drag` position is in the range [-1, 1] for both the X and Y coordinate, as long as the mouse is in
+    # the window. Note that it can be outside that range when the mouse pointer goes outside the window during
+    # a drag.
+    # The idea is that dragging from one end of the other will lead to one full rotation. So dragging from 0 to 1
+    # is a half rotation, or \pi radians.
+    radians = drag.direction * Float64(pi) # This converts the coordinate to radians in the range [-pi, pi]
+
+    dragtransform = rotatex(Float32(radians[2])) * rotatey(Float32(radians[1]))
+    println("Drag transform: $(dragtransform)")
+    ViewportAlignmentState(state.distance, state.camerastate, dragtransform)
 end
 
 function Visualizer.render(camera::Camera, v::ViewportAlignment, state::ViewportAlignmentState)
     viewtransform1 = rotatez(0f0) * rotatey(0f0)
-    camerastateviewport1 = transform(state.camerastate, viewtransform1)
+    camerastateviewport1 = transform(camerastate(state), viewtransform1)
 
     zangle = 1f0 * pi / 8f0
     viewtransform2 = rotatez(zangle) * rotatey(- 5f0 * pi / 16f0)
@@ -244,7 +257,7 @@ function Visualizer.render(camera::Camera, v::ViewportAlignment, state::Viewport
     glBindTexture(GL_TEXTURE_1D, v.wireframetexture.textureid)
     renderarray(v.wireframe)
 
-    render(v.plane, camera, state.camerastate, Float32(state.distance))
+    render(v.plane, camera, camerastate(state), Float32(state.distance))
 
     #
     # Viewport 2 (right)
