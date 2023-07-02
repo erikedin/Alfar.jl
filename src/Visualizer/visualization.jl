@@ -42,9 +42,17 @@ render(camera::Camera, ::Nothing, ::Nothing) = nothing
 # Define default input operations, that do nothing.
 #
 
+abstract type MouseDragEvent end
+struct MouseDragStartEvent <: MouseDragEvent end
+struct MouseDragEndEvent <: MouseDragEvent end
+struct MouseDragPositionEvent <: MouseDragEvent
+    direction::NTuple{2, Float64}
+    strength::Float64
+end
+
 onkeyboardinput(::Visualization, state::VisualizationState, ::KeyboardInputEvent) = state
 onmousescroll(::Visualization, state::VisualizationState, ::Tuple{Float64, Float64}) = state
-onmousedrag(::Visualization, state::VisualizationState, direction::NTuple{2, Float64}, strength::Float64) = state
+onmousedrag(::Visualization, state::VisualizationState, ::MouseDragEvent) = state
 
 include("Visualizations/ViewportAlignmentAlgorithm.jl")
 include("Visualizations/ViewportAnimated09.jl")

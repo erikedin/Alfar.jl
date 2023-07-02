@@ -17,6 +17,7 @@ module ViewportAlignmentAlgorithm
 using ModernGL
 
 using Alfar.Visualizer
+using Alfar.Visualizer: MouseDragEndEvent, MouseDragPositionEvent
 using Alfar.Rendering.Cameras
 using Alfar.Rendering.Shaders
 using Alfar.Rendering.Meshs
@@ -187,6 +188,7 @@ end
 
 struct ViewportAlignmentState <: Visualizer.VisualizationState
     distance::Float64
+    camerastate::CameraState
 end
 
 function Visualizer.setflags(::ViewportAlignment)
@@ -195,27 +197,32 @@ function Visualizer.setflags(::ViewportAlignment)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 end
 
-Visualizer.setup(::ViewportAlignment) = ViewportAlignmentState(0f0)
+function Visualizer.setup(::ViewportAlignment)
+    originalcameraposition = CameraPosition((0f0, 0f0, -3f0), (0f0, 1f0, 0f0))
+    camerastate = CameraState(originalcameraposition, (0f0, 0f0, 0f0))
+
+    ViewportAlignmentState(0f0, camerastate)
+end
+
 Visualizer.update(::ViewportAlignment, state::ViewportAlignmentState) = state
 
 function Visualizer.onmousescroll(::ViewportAlignment, state::ViewportAlignmentState, (xoffset, yoffset)::Tuple{Float64, Float64})
     ViewportAlignmentState(state.distance + yoffset / 20f0)
 end
 
-function Visualizer.onmousedrag(::ViewportAlignment, state::ViewportAlignmentState, direction::NTuple{2, Float64}, strength::Float64)
-    println("Drag: $(direction) with strength $(strength)")
+function Visualizer.onmousedrag(::ViewportAlignment, state::ViewportAlignmentState, ::MouseDragEndEvent)
+    println("Drag: End")
+    state
+end
+
+function Visualizer.onmousedrag(::ViewportAlignment, state::ViewportAlignmentState, drag::MouseDragPositionEvent)
+    println("Drag: $(drag.direction) with strength $(drag.strength)")
     state
 end
 
 function Visualizer.render(camera::Camera, v::ViewportAlignment, state::ViewportAlignmentState)
-    # Camera position
-    # The first view sees the object from the front.
-    originalcameraposition = CameraPosition((0f0, 0f0, -3f0), (0f0, 1f0, 0f0))
-
-    camerastate = CameraState(originalcameraposition, (0f0, 0f0, 0f0))
-
     viewtransform1 = rotatez(0f0) * rotatey(0f0)
-    camerastateviewport1 = transform(camerastate, viewtransform1)
+    camerastateviewport1 = transform(state.camerastate, viewtransform1)
 
     zangle = 1f0 * pi / 8f0
     viewtransform2 = rotatez(zangle) * rotatey(- 5f0 * pi / 16f0)
@@ -237,7 +244,7 @@ function Visualizer.render(camera::Camera, v::ViewportAlignment, state::Viewport
     glBindTexture(GL_TEXTURE_1D, v.wireframetexture.textureid)
     renderarray(v.wireframe)
 
-    render(v.plane, camera, camerastate, Float32(state.distance))
+    render(v.plane, camera, state.camerastate, Float32(state.distance))
 
     #
     # Viewport 2 (right)

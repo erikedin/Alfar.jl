@@ -113,8 +113,10 @@ function runvisualizer(c::RemoteChannel, exitchannel::RemoteChannel)
         if button == GLFW.MOUSE_BUTTON_LEFT && action == GLFW.PRESS
             currentposition = GLFW.GetCursorPos(window)
             mousestate = MouseInputState((currentposition.x, currentposition.y))
+            onmousedrag(state.visualization, state.visualizationstate, MouseDragStartEvent())
         elseif button == GLFW.MOUSE_BUTTON_LEFT && action == GLFW.RELEASE
             mousestate = MouseInputState()
+            onmousedrag(state.visualization, state.visualizationstate, MouseDragEndEvent())
         end
     end
     GLFW.SetMouseButtonCallback(window, mousebuttoncallback)
@@ -126,7 +128,8 @@ function runvisualizer(c::RemoteChannel, exitchannel::RemoteChannel)
             direction = normalize(position - mousestate.dragorigin)
             strength = norm(position - mousestate.dragorigin)
             if !isnan(direction[1]) && !isnan(direction[2])
-                onmousedrag(state.visualization, state.visualizationstate, direction, strength)
+                positionevent = MouseDragPositionEvent(direction, strength)
+                onmousedrag(state.visualization, state.visualizationstate, positionevent)
             end
         end
     end
