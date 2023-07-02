@@ -19,7 +19,7 @@ using LinearAlgebra
 using ModernGL
 
 export Camera, CameraPosition, CameraState
-export rotatex, rotatey, rotatez
+export rotatex, rotatey, rotatez, translation
 export transform, identitytransform
 export lookat, perspective, objectmodel
 
@@ -81,6 +81,16 @@ function rotatez(angle::Float32) :: Matrix{GLfloat}
         sin(angle) cos(angle) 0f0 0f0;
         0f0 0f0 1f0 0f0;
         0f0 0f0 0f0 1f0;
+    ])
+end
+
+function translation(x::Float32, y::Float32, z::Float32)
+    Matrix{GLfloat}([
+        1f0 0f0 0f0 x;
+        0f0 1f0 0f0 y;
+        0f0 0f0 1f0 z;
+        0f0 0f0 0f0 1f0;
+
     ])
 end
 
