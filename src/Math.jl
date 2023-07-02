@@ -15,7 +15,7 @@
 module Math
 
 export Vector2, Vector3, Matrix4
-export cross, normalize
+export cross, normalize, norm
 
 #
 # Vector3
@@ -26,6 +26,10 @@ const Vector2{T} = NTuple{2, T}
 
 function Base.:-(a::Vector3{T}, b::Vector3{T}) :: Vector3{T} where {T}
     (a[1] - b[1], a[2] - b[2], a[3] - b[3])
+end
+
+function Base.:-(a::Vector2{T}, b::Vector2{T}) :: Vector2{T} where {T}
+    (a[1] - b[1], a[2] - b[2])
 end
 
 function Base.:+(a::Vector3{T}, b::Vector3{T}) :: Vector3{T} where {T}
@@ -54,6 +58,15 @@ end
 function normalize(a::Vector3{T}) :: Vector3{T} where {T}
     m = sqrt(a[1]*a[1] + a[2]*a[2] + a[3]*a[3])
     (a[1]/m, a[2]/m, a[3]/m)
+end
+
+function normalize(a::Vector2{T}) :: Vector2{T} where {T}
+    m = sqrt(a[1]*a[1] + a[2]*a[2])
+    (a[1]/m, a[2]/m)
+end
+
+function norm(a::Vector2{T}) :: T where {T}
+    sqrt(a[1]*a[1] + a[2]*a[2])
 end
 
 #

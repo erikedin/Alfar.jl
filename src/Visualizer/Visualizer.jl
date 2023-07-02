@@ -21,6 +21,7 @@ using Distributed
 
 using Alfar.Rendering.Shaders
 using Alfar.Rendering.Cameras
+using Alfar.Math
 
 export KeyboardInputEvent
 
@@ -32,6 +33,14 @@ const PredefinedVisualizers = Dict{String, Type{<:Visualization}}([
     ("ViewportAnimated09", ViewportAnimated09Visualization.ViewportAnimated09),
     ("ViewportAlignment", ViewportAlignmentAlgorithm.ViewportAlignment),
 ])
+
+struct MouseInputState
+    isdragging::Bool
+    dragorigin::NTuple{2, Float64}
+
+    MouseInputState() = new(false, (0.0, 0.0))
+    MouseInputState(dragorigin) = new(true, dragorigin)
+end
 
 mutable struct VisualizerState
     visualization::Union{Nothing, Visualization}
@@ -80,6 +89,9 @@ function runvisualizer(c::RemoteChannel, exitchannel::RemoteChannel)
     # Create the initial state of the visualizer
     state = VisualizerState()
 
+    # State for input
+    mousestate = MouseInputState()
+
     keyboardcallback = (window, key, scancode, action, mods) -> begin
         if action == GLFW.PRESS && key == GLFW.KEY_ESCAPE
             GLFW.SetWindowShouldClose(window, true)
@@ -95,6 +107,30 @@ function runvisualizer(c::RemoteChannel, exitchannel::RemoteChannel)
         state.visualizationstate = onmousescroll(state.visualization, state.visualizationstate, (xoffset, yoffset))
     end
     GLFW.SetScrollCallback(window, scrollcallback)
+
+    # Mouse button callback
+    mousebuttoncallback = (window, button, action, mods) -> begin
+        if button == GLFW.MOUSE_BUTTON_LEFT && action == GLFW.PRESS
+            currentposition = GLFW.GetCursorPos(window)
+            mousestate = MouseInputState((currentposition.x, currentposition.y))
+        elseif button == GLFW.MOUSE_BUTTON_LEFT && action == GLFW.RELEASE
+            mousestate = MouseInputState()
+        end
+    end
+    GLFW.SetMouseButtonCallback(window, mousebuttoncallback)
+
+    # Mouse position callback
+    mousepositioncallback = (window, xposition, yposition) -> begin
+        if mousestate.isdragging
+            position = (xposition, yposition)
+            direction = normalize(position - mousestate.dragorigin)
+            strength = norm(position - mousestate.dragorigin)
+            if !isnan(direction[1]) && !isnan(direction[2])
+                onmousedrag(state.visualization, state.visualizationstate, direction, strength)
+            end
+        end
+    end
+    GLFW.SetCursorPosCallback(window, mousepositioncallback)
 
     # Loop until the user closes the window
     while !GLFW.WindowShouldClose(window)

@@ -37,8 +37,14 @@ setflags(::Nothing) = nothing
 setup(::Nothing) = nothing
 update(::Nothing, ::Nothing) = nothing
 render(camera::Camera, ::Nothing, ::Nothing) = nothing
+
+#
+# Define default input operations, that do nothing.
+#
+
 onkeyboardinput(::Visualization, state::VisualizationState, ::KeyboardInputEvent) = state
 onmousescroll(::Visualization, state::VisualizationState, ::Tuple{Float64, Float64}) = state
+onmousedrag(::Visualization, state::VisualizationState, direction::NTuple{2, Float64}, strength::Float64) = state
 
 include("Visualizations/ViewportAlignmentAlgorithm.jl")
 include("Visualizations/ViewportAnimated09.jl")

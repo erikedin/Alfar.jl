@@ -202,6 +202,11 @@ function Visualizer.onmousescroll(::ViewportAlignment, state::ViewportAlignmentS
     ViewportAlignmentState(state.distance + yoffset / 20f0)
 end
 
+function Visualizer.onmousedrag(::ViewportAlignment, state::ViewportAlignmentState, direction::NTuple{2, Float64}, strength::Float64)
+    println("Drag: $(direction) with strength $(strength)")
+    state
+end
+
 function Visualizer.render(camera::Camera, v::ViewportAlignment, state::ViewportAlignmentState)
     # Camera position
     # The first view sees the object from the front.
