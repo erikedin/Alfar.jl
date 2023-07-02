@@ -92,7 +92,6 @@ function runvisualizer(c::RemoteChannel, exitchannel::RemoteChannel)
 
     # Scrolling callback
     scrollcallback = (window, xoffset, yoffset) -> begin
-        println("Scroll: $(xoffset):$(yoffset)")
         state.visualizationstate = onmousescroll(state.visualization, state.visualizationstate, (xoffset, yoffset))
     end
     GLFW.SetScrollCallback(window, scrollcallback)

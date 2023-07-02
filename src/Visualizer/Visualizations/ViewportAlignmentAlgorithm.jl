@@ -49,11 +49,15 @@ struct IntersectingPlane
     end
 end
 
-function render(plane::IntersectingPlane, camera::Camera, distance::Float32)
+function render(plane::IntersectingPlane, camera::Camera, camerastate::CameraState, distance::Float32)
     use(plane.program)
 
     projection = perspective(camera)
+    view = lookat(camerastate)
+    model = objectmodel()
     uniform(plane.program, "projection", projection)
+    uniform(plane.program, "view", view)
+    uniform(plane.program, "model", model)
 
     uniform(plane.program, "distance", -distance)
     uniform(plane.program, "color", plane.color)
@@ -195,7 +199,7 @@ Visualizer.setup(::ViewportAlignment) = ViewportAlignmentState(0f0)
 Visualizer.update(::ViewportAlignment, state::ViewportAlignmentState) = state
 
 function Visualizer.onmousescroll(::ViewportAlignment, state::ViewportAlignmentState, (xoffset, yoffset)::Tuple{Float64, Float64})
-    ViewportAlignmentState(state.distance + yoffset / 10f0)
+    ViewportAlignmentState(state.distance + yoffset / 20f0)
 end
 
 function Visualizer.render(camera::Camera, v::ViewportAlignment, state::ViewportAlignmentState)
@@ -205,17 +209,19 @@ function Visualizer.render(camera::Camera, v::ViewportAlignment, state::Viewport
 
     camerastate = CameraState(originalcameraposition, (0f0, 0f0, 0f0))
 
-    zangle = 1f0 * pi / 8f0
     viewtransform1 = rotatez(0f0) * rotatey(0f0)
-    viewtransform2 = rotatez(zangle) * rotatey(- 5f0 * pi / 16f0)
     camerastateviewport1 = transform(camerastate, viewtransform1)
-    camerastateviewport2 = transform(camerastate, viewtransform2)
+
+    zangle = 1f0 * pi / 8f0
+    viewtransform2 = rotatez(zangle) * rotatey(- 5f0 * pi / 16f0)
+    camerastateviewport2 = transform(camerastateviewport1, viewtransform2)
 
     #
     # Viewport 1 (left)
     #
     glViewport(0, 0, camera.windowwidth, camera.windowheight)
 
+    use(v.program)
     view = lookat(camerastateviewport1)
     projection = perspective(camera)
     model = objectmodel()
@@ -223,11 +229,10 @@ function Visualizer.render(camera::Camera, v::ViewportAlignment, state::Viewport
     uniform(v.program, "view", view)
     uniform(v.program, "projection", projection)
 
-    use(v.program)
     glBindTexture(GL_TEXTURE_1D, v.wireframetexture.textureid)
     renderarray(v.wireframe)
 
-    render(v.plane, camera, Float32(state.distance))
+    render(v.plane, camera, camerastate, Float32(state.distance))
 
     #
     # Viewport 2 (right)
@@ -244,6 +249,8 @@ function Visualizer.render(camera::Camera, v::ViewportAlignment, state::Viewport
 
     glBindTexture(GL_TEXTURE_1D, v.wireframetexture.textureid)
     renderarray(v.wireframe)
+
+    render(v.plane, camera, camerastateviewport2, Float32(state.distance))
 end
 
 end
