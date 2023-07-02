@@ -248,7 +248,7 @@ function Visualizer.setflags(::ViewportAlignment)
 end
 
 function Visualizer.setup(::ViewportAlignment)
-    originalcameraposition = CameraPosition((0f0, 0f0, -3f0), (0f0, 1f0, 0f0))
+    originalcameraposition = CameraPosition((0f0, 0f0, 3f0), (0f0, 1f0, 0f0))
     camerastate = CameraState(originalcameraposition, (0f0, 0f0, 0f0))
     cameratransform = identitytransform()
 
@@ -287,7 +287,7 @@ function Visualizer.render(camera::Camera, v::ViewportAlignment, state::Viewport
     zangle = 1f0 * pi / 8f0
     #viewtransform2 = rotatez(zangle) * rotatey(- 5f0 * pi / 16f0)
     #viewtransform2 = rotatey(- 5f0 * pi / 16f0)
-    perspectiveshift = rotatey(1f0 * pi / 2f0)
+    perspectiveshift = rotatez(zangle) #rotatey(1f0 * pi / 2f0)
     viewtransform2 = perspectiveshift
     camerastateviewport2 = transform(camerastate(state), viewtransform2)
 
@@ -309,10 +309,10 @@ function Visualizer.render(camera::Camera, v::ViewportAlignment, state::Viewport
 
     render(v.marker, camera, camerastateviewport1)
 
-    planecameraposition1 = CameraPosition((0f0, 0f0, -3f0), (0f0, 1f0, 0f0))
+    planecameraposition1 = CameraPosition((0f0, 0f0, 3f0), (0f0, 1f0, 0f0))
     planecamerastate1 = CameraState(planecameraposition1, (0f0, 0f0, 0f0))
     planeview1 = lookat(planecamerastate1)
-    #render(v.plane, camera, planeview1, Float32(state.distance))
+    render(v.plane, camera, planeview1, Float32(state.distance))
 
     #
     # Viewport 2 (right)
@@ -334,7 +334,7 @@ function Visualizer.render(camera::Camera, v::ViewportAlignment, state::Viewport
 
     planecamerastate2 = transform(planecamerastate1, perspectiveshift)
     planeview2 = lookat(planecamerastate2)
-    #render(v.plane, camera, planeview2, Float32(state.distance))
+    render(v.plane, camera, planeview2, Float32(state.distance))
 
 end
 
