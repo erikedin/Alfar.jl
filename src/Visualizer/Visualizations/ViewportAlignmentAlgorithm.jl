@@ -220,7 +220,6 @@ function Visualizer.onmousedrag(::ViewportAlignment, state::ViewportAlignmentSta
 end
 
 function Visualizer.onmousedrag(::ViewportAlignment, state::ViewportAlignmentState, drag::MouseDragPositionEvent)
-    println("Drag: $(drag)")
     # The `drag` position is in the range [-1, 1] for both the X and Y coordinate, as long as the mouse is in
     # the window. Note that it can be outside that range when the mouse pointer goes outside the window during
     # a drag.
@@ -229,7 +228,6 @@ function Visualizer.onmousedrag(::ViewportAlignment, state::ViewportAlignmentSta
     radians = drag.direction * Float64(pi) # This converts the coordinate to radians in the range [-pi, pi]
 
     dragtransform = rotatex(Float32(radians[2])) * rotatey(Float32(radians[1]))
-    println("Drag transform: $(dragtransform)")
     ViewportAlignmentState(state.distance, state.camerastate, dragtransform)
 end
 
