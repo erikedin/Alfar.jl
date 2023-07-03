@@ -159,43 +159,43 @@ struct ViewportAlignment <: Visualizer.Visualization
 
         wireframevertices = GLfloat[
             # Lines from front right bottom, around, counterclockwise
-             0.5f0, -0.5f0, -0.5f0, # Right bottom front
-             0.5f0,  0.5f0, -0.5f0, # Right top    front
+             0.5f0, -0.5f0,  0.5f0, # Right bottom front
+             0.5f0,  0.5f0,  0.5f0, # Right top    front
 
-             0.5f0,  0.5f0, -0.5f0, # Right top    front
-            -0.5f0,  0.5f0, -0.5f0, # Left  top    front
+             0.5f0,  0.5f0,  0.5f0, # Right top    front
+            -0.5f0,  0.5f0,  0.5f0, # Left  top    front
 
-            -0.5f0,  0.5f0, -0.5f0, # Left  top    front
-            -0.5f0, -0.5f0, -0.5f0, # Left  bottom front
+            -0.5f0,  0.5f0,  0.5f0, # Left  top    front
+            -0.5f0, -0.5f0,  0.5f0, # Left  bottom front
 
-            -0.5f0, -0.5f0, -0.5f0, # Left  bottom front
-             0.5f0, -0.5f0, -0.5f0, # Right bottom front
+            -0.5f0, -0.5f0,  0.5f0, # Left  bottom front
+             0.5f0, -0.5f0,  0.5f0, # Right bottom front
 
             # Lines from front to back
-             0.5f0, -0.5f0, -0.5f0, # Right bottom front
-             0.5f0, -0.5f0,  0.5f0, # Right bottom back
+             0.5f0, -0.5f0,  0.5f0, # Right bottom front
+             0.5f0, -0.5f0, -0.5f0, # Right bottom back
 
-             0.5f0,  0.5f0, -0.5f0, # Right top    front
-             0.5f0,  0.5f0,  0.5f0, # Right top    back
+             0.5f0,  0.5f0,  0.5f0, # Right top    front
+             0.5f0,  0.5f0, -0.5f0, # Right top    back
 
-            -0.5f0,  0.5f0, -0.5f0, # Left  top    front
-            -0.5f0,  0.5f0,  0.5f0, # Left  top    back
+            -0.5f0,  0.5f0,  0.5f0, # Left  top    front
+            -0.5f0,  0.5f0, -0.5f0, # Left  top    back
 
-            -0.5f0, -0.5f0, -0.5f0, # Left  bottom front
-            -0.5f0, -0.5f0,  0.5f0, # Left  bottom back
+            -0.5f0, -0.5f0,  0.5f0, # Left  bottom front
+            -0.5f0, -0.5f0, -0.5f0, # Left  bottom back
 
             # Lines from back right bottom, around, counterclockwise
-             0.5f0, -0.5f0,  0.5f0, # Right bottom back
-             0.5f0,  0.5f0,  0.5f0, # Right top    back
+             0.5f0, -0.5f0, -0.5f0, # Right bottom back
+             0.5f0,  0.5f0, -0.5f0, # Right top    back
 
-             0.5f0,  0.5f0,  0.5f0, # Right top    back
-            -0.5f0,  0.5f0,  0.5f0, # Left  top    back
+             0.5f0,  0.5f0, -0.5f0, # Right top    back
+            -0.5f0,  0.5f0, -0.5f0, # Left  top    back
 
-            -0.5f0,  0.5f0,  0.5f0, # Left  top    back
-            -0.5f0, -0.5f0,  0.5f0, # Left  bottom back
+            -0.5f0,  0.5f0, -0.5f0, # Left  top    back
+            -0.5f0, -0.5f0, -0.5f0, # Left  bottom back
 
-            -0.5f0, -0.5f0,  0.5f0, # Left  bottom back
-             0.5f0, -0.5f0,  0.5f0, # Right bottom back
+            -0.5f0, -0.5f0, -0.5f0, # Left  bottom back
+             0.5f0, -0.5f0, -0.5f0, # Right bottom back
         ]
         wireframecolors = GLint[
             # Lines from front right bottom, around, counterclockwise
@@ -240,7 +240,7 @@ struct ViewportAlignmentState <: Visualizer.VisualizationState
 end
 
 function camerastate(v::ViewportAlignmentState)
-    transform(v.camerastate, v.dragtransform * v.cameratransform)
+    transform(v.camerastate, v.cameratransform * v.dragtransform)
 end
 
 planecamerastate(v::ViewportAlignmentState) = v.planecamerastate
@@ -269,7 +269,7 @@ end
 
 function Visualizer.onmousedrag(::ViewportAlignment, state::ViewportAlignmentState, ::MouseDragEndEvent)
     println("Drag: End")
-    newcameratransform = state.dragtransform * state.cameratransform
+    newcameratransform = state.cameratransform * state.dragtransform
     ViewportAlignmentState(state.distance, state.camerastate, state.planecamerastate, newcameratransform, identitytransform())
 end
 
@@ -286,10 +286,11 @@ function Visualizer.onmousedrag(::ViewportAlignment, state::ViewportAlignmentSta
 end
 
 function Visualizer.render(camera::Camera, v::ViewportAlignment, state::ViewportAlignmentState)
-    zangle = 1f0 * pi / 2f0
+    zangle = 1f0 * pi / 16f0
+    yangle = 3f0 * pi / 16f0
     #viewtransform2 = rotatez(zangle) * rotatey(- 5f0 * pi / 16f0)
     #viewtransform2 = rotatey(- 5f0 * pi / 16f0)
-    perspectiveshift = rotatez(zangle) #rotatey(1f0 * pi / 2f0)
+    perspectiveshift = rotatez(zangle) * rotatey(yangle)
 
     #
     # Viewport 1 (left)
