@@ -236,13 +236,11 @@ struct ViewportAlignmentState <: Visualizer.VisualizationState
     camerastate::CameraState
     planecamerastate::CameraState
     cameratransform::Matrix{GLfloat}
-    boxtransform::Matrix{GLfloat}
     dragtransform::Matrix{GLfloat}
 end
 
 function camerastate(v::ViewportAlignmentState)
-    #transform(v.camerastate, v.cameratransform * v.dragtransform)
-    transform(v.camerastate, v.cameratransform)
+    transform(v.camerastate, v.dragtransform * v.cameratransform)
 end
 
 planecamerastate(v::ViewportAlignmentState) = v.planecamerastate
@@ -259,20 +257,20 @@ function Visualizer.setup(::ViewportAlignment)
     planecamerastate = CameraState(originalcameraposition, (0f0, 0f0, 0f0))
     cameratransform = identitytransform()
 
-    ViewportAlignmentState(0f0, camerastate, planecamerastate, cameratransform, identitytransform(), identitytransform())
+    ViewportAlignmentState(0f0, camerastate, planecamerastate, cameratransform, identitytransform())
 end
 
 Visualizer.update(::ViewportAlignment, state::ViewportAlignmentState) = state
 
 function Visualizer.onmousescroll(::ViewportAlignment, state::ViewportAlignmentState, (xoffset, yoffset)::Tuple{Float64, Float64})
     newdistance = state.distance + yoffset / 20.0
-    ViewportAlignmentState(newdistance, state.camerastate, state.planecamerastate, state.cameratransform, state.boxtransform, state.dragtransform)
+    ViewportAlignmentState(newdistance, state.camerastate, state.planecamerastate, state.cameratransform, state.dragtransform)
 end
 
 function Visualizer.onmousedrag(::ViewportAlignment, state::ViewportAlignmentState, ::MouseDragEndEvent)
     println("Drag: End")
-    newboxtransform = state.dragtransform * state.boxtransform
-    ViewportAlignmentState(state.distance, state.camerastate, state.planecamerastate, state.cameratransform, newboxtransform, identitytransform())
+    newcameratransform = state.dragtransform * state.cameratransform
+    ViewportAlignmentState(state.distance, state.camerastate, state.planecamerastate, newcameratransform, identitytransform())
 end
 
 function Visualizer.onmousedrag(::ViewportAlignment, state::ViewportAlignmentState, drag::MouseDragPositionEvent)
@@ -281,10 +279,12 @@ function Visualizer.onmousedrag(::ViewportAlignment, state::ViewportAlignmentSta
     # a drag.
     # The idea is that dragging from one end of the other will lead to one full rotation. So dragging from 0 to 1
     # is a half rotation, or \pi radians.
-    radians = drag.direction * Float64(pi) # This converts the coordinate to radians in the range [-pi, pi]
+    # The negative sign in `-drag.direction` is just to get the world to spin the right way.
+    # Without it, it looks like dragging the mouse spins the world in the opposite direction.
+    radians = -drag.direction * Float64(pi) # This converts the coordinate to radians in the range [-pi, pi]
 
     dragtransform = rotatex(Float32(radians[2])) * rotatey(Float32(radians[1]))
-    ViewportAlignmentState(state.distance, state.camerastate, state.planecamerastate, state.cameratransform, state.boxtransform, dragtransform)
+    ViewportAlignmentState(state.distance, state.camerastate, state.planecamerastate, state.cameratransform, dragtransform)
 end
 
 function Visualizer.render(camera::Camera, v::ViewportAlignment, state::ViewportAlignmentState)
@@ -302,8 +302,7 @@ function Visualizer.render(camera::Camera, v::ViewportAlignment, state::Viewport
     use(v.program)
     view = lookat(camerastate(state))
     projection = perspective(camera)
-    #model = objectmodel()
-    model = state.dragtransform * state.boxtransform
+    model = identitytransform()
     uniform(v.program, "model", model)
     uniform(v.program, "view", view)
     uniform(v.program, "projection", projection)
@@ -326,7 +325,7 @@ function Visualizer.render(camera::Camera, v::ViewportAlignment, state::Viewport
     use(v.program)
     view = lookat(camerastateviewport2)
     projection = perspective(camera)
-    model = state.dragtransform * state.boxtransform
+    model = identitytransform()
     uniform(v.program, "model", model)
     uniform(v.program, "view", view)
     uniform(v.program, "projection", projection)

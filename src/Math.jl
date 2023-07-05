@@ -40,6 +40,10 @@ function Base.:-(a::Vector3{T}) :: Vector3{T} where {T}
     (-a[1], -a[2], -a[3])
 end
 
+function Base.:-(a::Vector2{T}) :: Vector2{T} where {T}
+    (-a[1], -a[2])
+end
+
 function Base.:*(a::Vector3{T}, s::T) :: Vector3{T} where {T}
     (a[1]*s, a[2]*s, a[3]*s)
 end
