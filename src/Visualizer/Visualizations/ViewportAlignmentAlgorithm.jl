@@ -29,20 +29,20 @@ struct IntersectingPlane
     planevertices::VertexArray{GL_TRIANGLES}
 
     function IntersectingPlane()
-        program = ShaderProgram("shaders/visualization/vertex3dplane.glsl", "shaders/visualization/uniformcolorfragment.glsl")
+        program = ShaderProgram("shaders/visualization/mvp3dvertex.glsl", "shaders/visualization/uniformcolorfragment.glsl")
         color = (0f0, 0f0, 1f0, 0.2f0)
 
         vertices = GLfloat[
             # Lines from front right bottom, around, counterclockwise
-             1.0f0, -1.0f0, # Right bottom
-             1.0f0,  1.0f0, # Right top
-            -1.0f0,  1.0f0, # Left top
+             1.0f0, -1.0f0, 0.0f0, # Right bottom
+             1.0f0,  1.0f0, 0.0f0, # Right top
+            -1.0f0,  1.0f0, 0.0f0, # Left top
 
-             1.0f0, -1.0f0, # Right bottom
-            -1.0f0,  1.0f0, # Left top
-            -1.0f0, -1.0f0, # Left bottom
+             1.0f0, -1.0f0, 0.0f0, # Right bottom
+            -1.0f0,  1.0f0, 0.0f0, # Left top
+            -1.0f0, -1.0f0, 0.0f0, # Left bottom
         ]
-        attribute = VertexAttribute(0, 2, GL_FLOAT, GL_FALSE, C_NULL)
+        attribute = VertexAttribute(0, 3, GL_FLOAT, GL_FALSE, C_NULL)
         vertexdata = VertexData{GLfloat}(vertices, VertexAttribute[attribute])
         planevertices = VertexArray{GL_TRIANGLES}(vertexdata)
 
@@ -54,7 +54,9 @@ function render(plane::IntersectingPlane, camera::Camera, camerastate::CameraSta
     use(plane.program)
 
     projection = perspective(camera)
-    model = objectmodel()
+    # TODO Right now this model only translates the plane, but it should also be rotated
+    # to face the camera.
+    model = translation(0f0, 0f0, -distance)
     view = lookat(camerastate)
     uniform(plane.program, "projection", projection)
     uniform(plane.program, "view", view)
