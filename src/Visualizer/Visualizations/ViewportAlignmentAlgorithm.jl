@@ -236,7 +236,6 @@ end
 struct ViewportAlignmentState <: Visualizer.VisualizationState
     distance::Float64
     camerastate::CameraState
-    planecamerastate::CameraState
     fixedcamerastate::CameraState
     cameratransform::Matrix{GLfloat}
     dragtransform::Matrix{GLfloat}
@@ -261,24 +260,23 @@ function Visualizer.setup(::ViewportAlignment)
     cameratransform = identitytransform()
 
     # The fixed camera is shown from an angle to the original camera position
-    #fixedperspectiveshift = rotatey(4f0 * pi / 16f0) * rotatex(5f0 * pi / 16f0)
     fixedperspectiveshift = rotatey(3f0 * pi / 16f0) * rotatex(- 3f0 * pi / 16f0)
     fixedcamerastate = transform(camerastate, fixedperspectiveshift)
 
-    ViewportAlignmentState(0f0, camerastate, planecamerastate, fixedcamerastate, cameratransform, identitytransform())
+    ViewportAlignmentState(0f0, camerastate, fixedcamerastate, cameratransform, identitytransform())
 end
 
 Visualizer.update(::ViewportAlignment, state::ViewportAlignmentState) = state
 
 function Visualizer.onmousescroll(::ViewportAlignment, state::ViewportAlignmentState, (xoffset, yoffset)::Tuple{Float64, Float64})
     newdistance = state.distance + yoffset / 20.0
-    ViewportAlignmentState(newdistance, state.camerastate, state.planecamerastate, state.fixedcamerastate, state.cameratransform, state.dragtransform)
+    ViewportAlignmentState(newdistance, state.camerastate, state.fixedcamerastate, state.cameratransform, state.dragtransform)
 end
 
 function Visualizer.onmousedrag(::ViewportAlignment, state::ViewportAlignmentState, ::MouseDragEndEvent)
     println("Drag: End")
     newcameratransform = state.dragtransform * state.cameratransform
-    ViewportAlignmentState(state.distance, state.camerastate, state.planecamerastate, state.fixedcamerastate, newcameratransform, identitytransform())
+    ViewportAlignmentState(state.distance, state.camerastate, state.fixedcamerastate, newcameratransform, identitytransform())
 end
 
 function Visualizer.onmousedrag(::ViewportAlignment, state::ViewportAlignmentState, drag::MouseDragPositionEvent)
@@ -292,16 +290,10 @@ function Visualizer.onmousedrag(::ViewportAlignment, state::ViewportAlignmentSta
     radians = -drag.direction * Float64(pi) # This converts the coordinate to radians in the range [-pi, pi]
 
     dragtransform = rotatex(Float32(radians[2])) * rotatey(Float32(radians[1]))
-    ViewportAlignmentState(state.distance, state.camerastate, state.planecamerastate, state.fixedcamerastate, state.cameratransform, dragtransform)
+    ViewportAlignmentState(state.distance, state.camerastate, state.fixedcamerastate, state.cameratransform, dragtransform)
 end
 
 function Visualizer.render(camera::Camera, v::ViewportAlignment, state::ViewportAlignmentState)
-    zangle = 1f0 * pi / 16f0
-    yangle = 3f0 * pi / 16f0
-    #viewtransform2 = rotatez(zangle) * rotatey(- 5f0 * pi / 16f0)
-    #viewtransform2 = rotatey(- 5f0 * pi / 16f0)
-    perspectiveshift = rotatez(zangle) * rotatey(yangle)
-
     #
     # Viewport 1 (left)
     #
@@ -320,8 +312,7 @@ function Visualizer.render(camera::Camera, v::ViewportAlignment, state::Viewport
 
     render(v.marker, camera, camerastate(state))
 
-    planecamerastate1 = planecamerastate(state)
-    render(v.plane, camera, planecamerastate1, Float32(state.distance))
+    render(v.plane, camera, camerastate(state), Float32(state.distance))
 
     #
     # Viewport 2 (right)
@@ -341,9 +332,7 @@ function Visualizer.render(camera::Camera, v::ViewportAlignment, state::Viewport
 
     render(v.marker, camera, state.fixedcamerastate)
 
-    #planecamerastate2 = transform(planecamerastate1, perspectiveshift)
-    #render(v.plane, camera, planecamerastate2, Float32(state.distance))
-
+    render(v.plane, camera, state.fixedcamerastate, Float32(state.distance))
 end
 
 end
