@@ -35,44 +35,51 @@ const R = OtherTestCoordinateSystem
     @test result ≈ Vector3{Float32, S}(3f0, 5f0, 7f0)
 end
 
-# You should not be able to add two vectors with different value types, like one
-# with Float32 and one with Float64.
-@testset "add two vectors with different value types; MethodError" begin
-    # Arrange
-    a = Vector3{Float32, S}(1f0, 2f0, 3f0)
-    b = Vector3{Float64, S}(2.0, 3.0, 4.0)
+#
+# Data driven tests for vector type safety
+#
 
-    # Act
-    @test_throws MethodError a + b
+# BinaryVectorTypeSafetyTestCase encapsulates test cases that checks that certain
+# operations are not allowed.
+struct BinaryVectorTypeSafetyTestCase
+    description::String
+    a::Vector3
+    b::Vector3
 end
 
-# Addition of two vectors is only defined if they are in the same coordinate system.
-@testset "add two vectors with different coordinate systems; MethodError" begin
-    # Arrange
-    a = Vector3{Float32, S}(1f0, 2f0, 3f0)
-    b = Vector3{Float32, R}(2f0, 3f0, 4f0)
+# Short for Test Case Type Safety
+TCTS = BinaryVectorTypeSafetyTestCase
 
-    # Act
-    @test_throws MethodError a + b
+vector_addition_tests = [
+    TCTS("add two vectors with different value types; MethodError",
+         Vector3{Float32, S}(1f0, 2f0, 3f0),
+         Vector3{Float64, S}(2.0, 3.0, 4.0)),
+
+    TCTS("add two vectors with different coordinate systems; MethodError",
+         Vector3{Float32, S}(1f0, 2f0, 3f0),
+         Vector3{Float32, R}(2f0, 3f0, 4f0)),
+]
+
+vector_comparison_tests = [
+    TCTS("compare two vectors with different value types; MethodError",
+         Vector3{Float32, S}(1f0, 2f0, 3f0),
+         Vector3{Float64, S}(2.0, 3.0, 4.0)),
+
+    TCTS("compare two vectors with different coordinate systems; MethodError",
+         Vector3{Float32, S}(1f0, 2f0, 3f0),
+         Vector3{Float32, R}(2f0, 3f0, 4f0)),
+]
+
+for testcase in vector_addition_tests
+    @testset "$(testcase.description)" begin
+        @test_throws MethodError testcase.a + testcase.b
+    end
 end
 
-# Comparison of two vectors is only defined if they have the same value type and the same coordinate system.
-@testset "compare two vectors with different value types; MethodError" begin
-    # Arrange
-    a = Vector3{Float32, S}(1f0, 2f0, 3f0)
-    b = Vector3{Float64, S}(2.0, 3.0, 4.0)
-
-    # Act
-    @test_throws MethodError a ≈ b
-end
-
-@testset "compare two vectors with different coordinate systems; MethodError" begin
-    # Arrange
-    a = Vector3{Float32, S}(1f0, 2f0, 3f0)
-    b = Vector3{Float32, R}(2f0, 3f0, 4f0)
-
-    # Act
-    @test_throws MethodError a ≈ b
+for testcase in vector_comparison_tests
+    @testset "$(testcase.description)" begin
+        @test_throws MethodError testcase.a ≈ testcase.b
+    end
 end
 
 end
