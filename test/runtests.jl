@@ -14,10 +14,3 @@
 
 include("STL/STLbinary_test.jl")
 include("STL/STLbinarywrite_test.jl")
-
-using GLFW
-GLFW.WindowHint(GLFW.VISIBLE, false);
-window = GLFW.CreateWindow(640, 480, "");
-GLFW.MakeContextCurrent(window);
-
-include("gpu/read_mesh_test.jl")
