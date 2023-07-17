@@ -12,6 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+using Test
+
+@testset "Alfar.WIP.Math  " begin
+
 include("math/vector_test.jl")
+include("math/matrix_test.jl")
+
+end
+
 include("STL/STLbinary_test.jl")
 include("STL/STLbinarywrite_test.jl")

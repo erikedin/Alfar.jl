@@ -12,20 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-using Test
 using Alfar.WIP.Math
+
+@testset "Vector +" begin
 
 # Define two coordinate systems for the test cases.
 struct TestCoordinateSystem end
 struct OtherTestCoordinateSystem end
 # Rename is S because it's too tedious to have `TestCoordinateSystem` everywhere.
-const S = TestCoordinateSystem
+S = TestCoordinateSystem
 # Rename the other one R for the same reason.
-const R = OtherTestCoordinateSystem
+R = OtherTestCoordinateSystem
 
-@testset "Alfar.WIP.Math  " begin
-
-@testset "Vector +" begin
 
 # BinaryVectorTypeSafetyTestCase encapsulates test cases that checks that certain
 # operations are not allowed.
@@ -68,6 +66,29 @@ for testcase in vector_addition_tests
     @testset "add $(testcase.a) and $(testcase.b); result is $(testcase.result)" begin
         # Act
         result = testcase.a + testcase.b
+
+        # Assert
+        @test result ≈ testcase.result
+    end
+end
+
+vector_scalar_left_multiplication_tests = [
+    TC(
+        1f0,
+        Vector4{Float32, S}(1f0, 2f0, 3f0, 4f0),
+        Vector4{Float32, S}(1f0, 2f0, 3f0, 4f0)
+    )
+    TC(
+        2f0,
+        Vector4{Float32, S}(1f0, 2f0, 3f0, 4f0),
+        Vector4{Float32, S}(2f0, 4f0, 6f0, 8f0)
+    )
+]
+
+for testcase in vector_scalar_left_multiplication_tests
+    @testset "add $(testcase.a) and $(testcase.b); result is $(testcase.result)" begin
+        # Act
+        result = testcase.a * testcase.b
 
         # Assert
         @test result ≈ testcase.result
@@ -141,8 +162,6 @@ end
 @testset "Approximate comparison of (1,2,3,4) and (1,2,3,5); vectors are not approximately equal" begin
     # Assert
     @test !(Vector4{Float32, S}(1f0, 2f0, 3f0, 4f0) ≈ Vector4{Float32, S}(1f0, 2f0, 3f0, 5f0))
-end
-
 end
 
 end
