@@ -27,18 +27,6 @@ const R = OtherTestCoordinateSystem
 
 @testset "Vector +" begin
 
-@testset "add (1,2,3) and (2,3,4); result is (3,5,7)" begin
-    # Act
-    result = Vector3{Float32, S}(1f0, 2f0, 3f0) + Vector3{Float32, S}(2f0, 3f0, 4f0)
-
-    # Assert
-    @test result ≈ Vector3{Float32, S}(3f0, 5f0, 7f0)
-end
-
-#
-# Data driven tests for vector type safety
-#
-
 # BinaryVectorTypeSafetyTestCase encapsulates test cases that checks that certain
 # operations are not allowed.
 struct BinaryVectorTypeSafetyTestCase
@@ -50,7 +38,41 @@ end
 # Short for Test Case Type Safety
 TCTS = BinaryVectorTypeSafetyTestCase
 
+struct BinaryVectorTestCase
+    a::Vector3
+    b::Vector3
+    result::Vector3
+end
+
+TC = BinaryVectorTestCase
+
+#
+# Test cases for vector addition
+#
+
 vector_addition_tests = [
+    TC(
+        Vector3{Float32, S}(1f0, 2f0, 3f0),
+        Vector3{Float32, S}(2f0, 3f0, 4f0),
+        Vector3{Float32, S}(3f0, 5f0, 7f0)
+    )
+]
+
+for testcase in vector_addition_tests
+    @testset "add $(testcase.a) and $(testcase.b); result is $(testcase.result)" begin
+        # Act
+        result = testcase.a + testcase.b
+
+        # Assert
+        @test result ≈ testcase.result
+    end
+end
+
+#
+# Test cases for type safety when adding vectors
+#
+
+vector_addition_type_safety_tests = [
     TCTS("add two vectors with different value types; MethodError",
          Vector3{Float32, S}(1f0, 2f0, 3f0),
          Vector3{Float64, S}(2.0, 3.0, 4.0)),
@@ -60,7 +82,11 @@ vector_addition_tests = [
          Vector3{Float32, R}(2f0, 3f0, 4f0)),
 ]
 
-vector_comparison_tests = [
+#
+# Test cases for type safety when comparing vectors
+#
+
+vector_comparison_type_safety_tests = [
     TCTS("compare two vectors with different value types; MethodError",
          Vector3{Float32, S}(1f0, 2f0, 3f0),
          Vector3{Float64, S}(2.0, 3.0, 4.0)),
@@ -70,13 +96,17 @@ vector_comparison_tests = [
          Vector3{Float32, R}(2f0, 3f0, 4f0)),
 ]
 
-for testcase in vector_addition_tests
+#
+# Generate test sets for the above test cases
+#
+
+for testcase in vector_addition_type_safety_tests
     @testset "$(testcase.description)" begin
         @test_throws MethodError testcase.a + testcase.b
     end
 end
 
-for testcase in vector_comparison_tests
+for testcase in vector_comparison_type_safety_tests
     @testset "$(testcase.description)" begin
         @test_throws MethodError testcase.a ≈ testcase.b
     end
