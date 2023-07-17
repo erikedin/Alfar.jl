@@ -15,6 +15,7 @@
 module Alfar
 
 include("Math.jl")
+include("WIP/WIP.jl")
 include("Fractal.jl")
 include("Meshs.jl")
 include("VolumeTextures.jl")
@@ -23,7 +24,6 @@ include("Rendering/Rendering.jl")
 include("Render.jl")
 include("Tools.jl")
 include("Main.jl")
-include("WIP/WIP.jl")
 include("Visualizer/Visualizer.jl")
 
 using GLFW

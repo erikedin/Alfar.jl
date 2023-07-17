@@ -1,4 +1,4 @@
-# Copyright 2022 Erik Edin
+# Copyright 2023 Erik Edin
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,20 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-using Test
+module CameraViews
 
-@testset "Alfar.WIP.Math  " begin
+using Alfar.WIP.Math
+using Alfar.Rendering: World
 
-include("math/vector_test.jl")
-include("math/matrix_test.jl")
+export CameraView, direction
 
-end
+struct CameraView end
 
-@testset "Alfar.Rendering" begin
-
-include("rendering/cameraview_test.jl")
+direction(::CameraView) = Vector4{Float32, World}(0f0, 0f0, -1f0, 0f0)
 
 end
-
-include("STL/STLbinary_test.jl")
-include("STL/STLbinarywrite_test.jl")

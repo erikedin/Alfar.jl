@@ -14,8 +14,15 @@
 
 
 module Rendering
+
+#
+# Common coordinate systems
+#
+struct World end
+
 include("Shaders.jl")
 include("Textures.jl")
 include("Meshs.jl")
 include("Cameras.jl")
+include("CameraViews.jl")
 end
