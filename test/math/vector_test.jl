@@ -30,18 +30,18 @@ const R = OtherTestCoordinateSystem
 # BinaryVectorTypeSafetyTestCase encapsulates test cases that checks that certain
 # operations are not allowed.
 struct BinaryVectorTypeSafetyTestCase
-    description::String
-    a::Vector3
-    b::Vector3
+    description
+    a
+    b
 end
 
 # Short for Test Case Type Safety
 TCTS = BinaryVectorTypeSafetyTestCase
 
 struct BinaryVectorTestCase
-    a::Vector3
-    b::Vector3
-    result::Vector3
+    a
+    b
+    result
 end
 
 TC = BinaryVectorTestCase
@@ -55,6 +55,12 @@ vector_addition_tests = [
         Vector3{Float32, S}(1f0, 2f0, 3f0),
         Vector3{Float32, S}(2f0, 3f0, 4f0),
         Vector3{Float32, S}(3f0, 5f0, 7f0)
+    ),
+
+    TC(
+        Vector4{Float32, S}(1f0, 2f0, 3f0, 4f0),
+        Vector4{Float32, S}(5f0, 6f0, 7f0, 8f0),
+        Vector4{Float32, S}(6f0, 8f0, 10f0, 12f0)
     )
 ]
 
@@ -80,6 +86,14 @@ vector_addition_type_safety_tests = [
     TCTS("add two vectors with different coordinate systems; MethodError",
          Vector3{Float32, S}(1f0, 2f0, 3f0),
          Vector3{Float32, R}(2f0, 3f0, 4f0)),
+
+    TCTS("add two vectors with different value types; MethodError",
+         Vector4{Float32, S}(1f0, 2f0, 3f0, 0f0),
+         Vector4{Float64, S}(2.0, 3.0, 4.0, 0.0)),
+
+    TCTS("add two vectors with different coordinate systems; MethodError",
+         Vector4{Float32, S}(1f0, 2f0, 3f0, 0f0),
+         Vector4{Float32, R}(2f0, 3f0, 4f0, 0f0)),
 ]
 
 #
@@ -94,6 +108,14 @@ vector_comparison_type_safety_tests = [
     TCTS("compare two vectors with different coordinate systems; MethodError",
          Vector3{Float32, S}(1f0, 2f0, 3f0),
          Vector3{Float32, R}(2f0, 3f0, 4f0)),
+
+    TCTS("compare two vectors with different value types; MethodError",
+         Vector4{Float32, S}(1f0, 2f0, 3f0, 0f0),
+         Vector4{Float64, S}(2.0, 3.0, 4.0, 5.0)),
+
+    TCTS("compare two vectors with different coordinate systems; MethodError",
+         Vector4{Float32, S}(1f0, 2f0, 3f0, 0f0),
+         Vector4{Float32, R}(2f0, 3f0, 4f0, 0f0)),
 ]
 
 #
@@ -110,6 +132,15 @@ for testcase in vector_comparison_type_safety_tests
     @testset "$(testcase.description)" begin
         @test_throws MethodError testcase.a ≈ testcase.b
     end
+end
+
+#
+# Miscellaneous test during development.
+#
+
+@testset "Approximate comparison of (1,2,3,4) and (1,2,3,5); vectors are not approximately equal" begin
+    # Assert
+    @test !(Vector4{Float32, S}(1f0, 2f0, 3f0, 4f0) ≈ Vector4{Float32, S}(1f0, 2f0, 3f0, 5f0))
 end
 
 end
