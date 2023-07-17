@@ -140,6 +140,18 @@ vector_comparison_type_safety_tests = [
 ]
 
 #
+# Test cases for type safety during left scalar multiplication of vectors
+#
+
+vector_scalar_left_multiplication_type_safety_tests = [
+    TCTS(
+        "multiply a Float64 with a Float32 vector",
+        1.0,
+        Vector4{Float32, S}(1f0, 2f0, 3f0, 4f0),
+    )
+]
+
+#
 # Generate test sets for the above test cases
 #
 
@@ -152,6 +164,12 @@ end
 for testcase in vector_comparison_type_safety_tests
     @testset "$(testcase.description)" begin
         @test_throws MethodError testcase.a ≈ testcase.b
+    end
+end
+
+for testcase in vector_scalar_left_multiplication_type_safety_tests
+    @testset "$(testcase.description)" begin
+        @test_throws MethodError testcase.a * testcase.b
     end
 end
 

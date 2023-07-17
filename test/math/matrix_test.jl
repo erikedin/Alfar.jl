@@ -51,4 +51,48 @@ end
     @test result ≈ Vector4{Float32, S1}(2f0, 4f0, 6f0, 8f0)
 end
 
+@testset "Multiply a (1,2,3,4) by a matrix that permutates all elements one the right; result is (4,1,2,3)" begin
+    # Arrange
+    A = Matrix4{Float32, S1, S2}(
+        0f0, 0f0, 0f0, 1f0,
+        1f0, 0f0, 0f0, 0f0,
+        0f0, 1f0, 0f0, 0f0,
+        0f0, 0f0, 1f0, 0f0,
+    )
+    v = Vector4{Float32, S2}(1f0, 2f0, 3f0, 4f0)
+
+    # Act
+    result = A*v
+
+    # Assert
+    @test result ≈ Vector4{Float32, S1}(4f0, 1f0, 2f0, 3f0)
+end
+
+@testset "The Matrix4 FromSystem type and the Vector4 System type do not match during multiplication; MethodError" begin
+    # Arrange
+    A = Matrix4{Float32, S1, S2}(
+        0f0, 0f0, 0f0, 1f0,
+        1f0, 0f0, 0f0, 0f0,
+        0f0, 1f0, 0f0, 0f0,
+        0f0, 0f0, 1f0, 0f0,
+    )
+    v = Vector4{Float32, S1}(1f0, 2f0, 3f0, 4f0)
+
+    # Act and assert
+    @test_throws MethodError A*v
+end
+
+@testset "The Matrix4 value type and the Vector4 value type do not match during multiplication; MethodError" begin
+    # Arrange
+    A = Matrix4{Float32, S1, S2}(
+        0f0, 0f0, 0f0, 1f0,
+        1f0, 0f0, 0f0, 0f0,
+        0f0, 1f0, 0f0, 0f0,
+        0f0, 0f0, 1f0, 0f0,
+    )
+    v = Vector4{Float64, S2}(1.0, 2.0, 3.0, 4.0)
+
+    # Act and assert
+    @test_throws MethodError A*v
+end
 end

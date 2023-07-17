@@ -42,7 +42,7 @@ function Base.:+(a::Vector4{T, System}, b::Vector4{T, System}) where {T, System}
     Vector4{T, System}(a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w)
 end
 
-function Base.:*(a::S, b::Vector4{T, System}) where {S, T, System}
+function Base.:*(a::T, b::Vector4{T, System}) where {T, System}
     Vector4{T, System}(a * b.x, a * b.y, a * b.z, a * b.w)
 end
 
@@ -89,8 +89,13 @@ function Base.one(::Type{Matrix4{T, ToSystem, FromSystem}}) where {T, ToSystem, 
     )
 end
 
-function Base.:*(m::Matrix4{T, ToSystem, FromSystem}, v::Vector4{S, OtherSystem}) where {T, ToSystem, FromSystem, OtherSystem, S}
-    m.a11 * Vector4{S, ToSystem}(v.x, v.y, v.z, v.w)
+function Base.:*(m::Matrix4{T, ToSystem, FromSystem}, v::Vector4{T, FromSystem}) where {T, ToSystem, FromSystem}
+    Vector4{T, ToSystem}(
+        v.x * m.a11 + v.y * m.a12 + v.z * m.a13 + v.w * m.a14,
+        v.x * m.a21 + v.y * m.a22 + v.z * m.a23 + v.w * m.a24,
+        v.x * m.a31 + v.y * m.a32 + v.z * m.a33 + v.w * m.a34,
+        v.x * m.a41 + v.y * m.a42 + v.z * m.a43 + v.w * m.a44,
+    )
 end
 
 end
