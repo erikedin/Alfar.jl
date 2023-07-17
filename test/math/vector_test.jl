@@ -72,7 +72,7 @@ for testcase in vector_addition_tests
     end
 end
 
-vector_scalar_left_multiplication_tests = [
+vector_scalar_multiplication_tests = [
     TC(
         1f0,
         Vector4{Float32, S}(1f0, 2f0, 3f0, 4f0),
@@ -85,10 +85,20 @@ vector_scalar_left_multiplication_tests = [
     )
 ]
 
-for testcase in vector_scalar_left_multiplication_tests
-    @testset "add $(testcase.a) and $(testcase.b); result is $(testcase.result)" begin
+for testcase in vector_scalar_multiplication_tests
+    @testset "multiply $(testcase.a) and $(testcase.b); result is $(testcase.result)" begin
         # Act
         result = testcase.a * testcase.b
+
+        # Assert
+        @test result ≈ testcase.result
+    end
+end
+
+for testcase in vector_scalar_multiplication_tests
+    @testset "multiply $(testcase.b) and $(testcase.a); result is $(testcase.result)" begin
+        # Act
+        result = testcase.b * testcase.a
 
         # Assert
         @test result ≈ testcase.result

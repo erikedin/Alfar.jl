@@ -46,6 +46,10 @@ function Base.:*(a::T, b::Vector4{T, System}) where {T, System}
     Vector4{T, System}(a * b.x, a * b.y, a * b.z, a * b.w)
 end
 
+function Base.:*(a::Vector4{T, System}, b::T) where {T, System}
+    Vector4{T, System}(b * a.x, b * a.y, b * a.z, b * a.w)
+end
+
 function Base.isapprox(a::Vector3{T, System}, b::Vector3{T, System}) where {T, System}
     isapprox(a.x, b.x) && isapprox(a.y, b.y) && isapprox(a.z, b.z)
 end
