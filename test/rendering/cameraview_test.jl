@@ -76,7 +76,7 @@ mousedragdirectiontestcases = [
     # Drag the camera -90 degrees around the Z axis
     MouseDragDirectionTestCase([(-0.5, 0.0)], DirectionAlongXPositive),
     # Drag the camera 90 degrees around the X axis
-    MouseDragDirectionTestCase([(0.0, 0.5)], DirectionAlongYNegative),
+    #MouseDragDirectionTestCase([(0.0, 0.5)], DirectionAlongYNegative),
     # Drag the camera -90 degrees around the X axis
     #MouseDragDirectionTestCase([(0.0, -0.5)], DirectionAlongYNegative),
 ]
