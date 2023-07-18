@@ -14,6 +14,7 @@
 
 using Alfar.Rendering.CameraViews
 using Alfar.Rendering: World
+using Alfar.Rendering.Inputs
 
 @testset "Alfar.Rendering.CameraViews" begin
 
@@ -23,6 +24,21 @@ using Alfar.Rendering: World
 
     # Assert
     @test direction(cameraview) ≈ Vector4{Float32, World}(0f0, 0f0, -1f0, 0f0)
+end
+
+@testset "CameraView mouse drag; Mouse dragged from center to top middle; Viewing direction is (0, 0, 1)" begin
+    # Arrange
+    cameraview0 = CameraView()
+    # Mouse is dragged from the center of the window (0, 0) to the top middle of the window (0, 1).
+    dragposition = MouseDragPositionEvent((0, 1))
+
+    # Act
+    cameraview1 = onmousedrag(cameraview0, MouseDragStartEvent())
+    cameraview2 = onmousedrag(cameraview1, dragposition)
+    cameraview3 = onmousedrag(cameraview2, MouseDragEndEvent())
+
+    # Assert
+    @test direction(cameraview3) ≈ Vector4{Float32, World}(0f0, 0f0, 1f0, 0f0)
 end
 
 end

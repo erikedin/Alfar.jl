@@ -13,20 +13,12 @@
 # limitations under the License.
 
 using Alfar.Rendering.Cameras
+using Alfar.Rendering.Inputs
 
 export Visualization, VisualizationState, KeyboardInputEvent
 
 abstract type Visualization end
 abstract type VisualizationState end
-
-struct KeyboardInputEvent
-    window
-    key
-    scancode
-    action
-    mods
-end
-
 
 #
 # Define the Visualization methods for `Nothing`, so that we don't have to
@@ -41,13 +33,6 @@ render(camera::Camera, ::Nothing, ::Nothing) = nothing
 #
 # Define default input operations, that do nothing.
 #
-
-abstract type MouseDragEvent end
-struct MouseDragStartEvent <: MouseDragEvent end
-struct MouseDragEndEvent <: MouseDragEvent end
-struct MouseDragPositionEvent <: MouseDragEvent
-    direction::NTuple{2, Float64}
-end
 
 onkeyboardinput(::Visualization, state::VisualizationState, ::KeyboardInputEvent) = state
 onmousescroll(::Visualization, state::VisualizationState, ::Tuple{Float64, Float64}) = state

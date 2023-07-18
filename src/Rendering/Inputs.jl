@@ -12,18 +12,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Inputs defines some common types around inputs, such as keyboard and mouse.
+module Inputs
 
-module Rendering
+export KeyboardInputEvent
+export MouseDragEvent, MouseDragStartEvent, MouseDragEndEvent, MouseDragPositionEvent
 
-#
-# Common coordinate systems
-#
-struct World end
+struct KeyboardInputEvent
+    window
+    key
+    scancode
+    action
+    mods
+end
 
-include("Inputs.jl")
-include("Shaders.jl")
-include("Textures.jl")
-include("Meshs.jl")
-include("Cameras.jl")
-include("CameraViews.jl")
+abstract type MouseDragEvent end
+struct MouseDragStartEvent <: MouseDragEvent end
+struct MouseDragEndEvent <: MouseDragEvent end
+struct MouseDragPositionEvent <: MouseDragEvent
+    direction::NTuple{2, Float64}
+end
+
 end
