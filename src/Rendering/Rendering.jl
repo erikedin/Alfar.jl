@@ -15,10 +15,14 @@
 
 module Rendering
 
+using Alfar.WIP.Math
+
 #
 # Common coordinate systems
 #
 struct World end
+
+World(x::T, y::T, z::T, w::T) where {T} = Vector4{T, World}(x, y, z, w)
 
 include("Inputs.jl")
 include("Shaders.jl")

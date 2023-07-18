@@ -26,19 +26,76 @@ using Alfar.Rendering.Inputs
     @test direction(cameraview) ≈ Vector4{Float32, World}(0f0, 0f0, -1f0, 0f0)
 end
 
-@testset "CameraView mouse drag; Mouse dragged from center to top middle; Viewing direction is (0, 0, 1)" begin
-    # Arrange
-    cameraview0 = CameraView()
-    # Mouse is dragged from the center of the window (0, 0) to the top middle of the window (0, 1).
-    dragposition = MouseDragPositionEvent((0, 1))
+#@testset "CameraView mouse drag; Mouse dragged from center to top middle; Viewing direction is (0, 0, 1)" begin
+#    # Arrange
+#    cameraview0 = CameraView()
+#    # Mouse is dragged from the center of the window (0, 0) to the top middle of the window (0, 1).
+#    dragposition = MouseDragPositionEvent((0, 1))
 
-    # Act
-    cameraview1 = onmousedrag(cameraview0, MouseDragStartEvent())
-    cameraview2 = onmousedrag(cameraview1, dragposition)
-    cameraview3 = onmousedrag(cameraview2, MouseDragEndEvent())
+#    # Act
+#    cameraview1 = onmousedrag(cameraview0, MouseDragStartEvent())
+#    cameraview2 = onmousedrag(cameraview1, dragposition)
+#    cameraview3 = onmousedrag(cameraview2, MouseDragEndEvent())
 
-    # Assert
-    @test direction(cameraview3) ≈ Vector4{Float32, World}(0f0, 0f0, 1f0, 0f0)
+#    # Assert
+#    @test direction(cameraview3) ≈ Vector4{Float32, World}(0f0, 0f0, 1f0, 0f0)
+#end
+
+#@testset "CameraView mouse drag; Center to half way to right; Viewing direction is (-1, 0, 0)" begin
+#    # Arrange
+#    cameraview0 = CameraView()
+#    # Mouse is dragged from the center of the window (0, 0) to the right of the window (1, 0).
+#    dragposition = MouseDragPositionEvent((0.5, 0.0))
+
+#    # Act
+#    cameraview1 = onmousedrag(cameraview0, MouseDragStartEvent())
+#    cameraview2 = onmousedrag(cameraview1, dragposition)
+#    cameraview3 = onmousedrag(cameraview2, MouseDragEndEvent())
+
+#    # Assert
+#    @test direction(cameraview3) ≈ Vector4{Float32, World}(-1f0, 0f0, 0f0, 0f0)
+#end
+
+struct MouseDragDirectionTestCase
+    positions::Vector{NTuple{2, Float64}}
+    resultdirection::Vector4{Float32, World}
+end
+
+DirectionAlongXPositive = World( 1f0,  0f0,  0f0, 0f0)
+DirectionAlongXNegative = World(-1f0,  0f0,  0f0, 0f0)
+DirectionAlongYPositive = World( 0f0,  1f0,  0f0, 0f0)
+DirectionAlongYNegative = World( 0f0, -1f0,  0f0, 0f0)
+DirectionAlongZPositive = World( 0f0,  0f0,  1f0, 0f0)
+DirectionAlongZNegative = World( 0f0,  0f0, -1f0, 0f0)
+
+mousedragdirectiontestcases = [
+    # Drag the camera 180 degrees around the X axis
+    MouseDragDirectionTestCase([(0.0, 1.0)], DirectionAlongZPositive),
+    # Drag the camera 90 degrees around the Z axis
+    MouseDragDirectionTestCase([(0.5, 0.0)], DirectionAlongXNegative),
+    # Drag the camera -90 degrees around the Z axis
+    MouseDragDirectionTestCase([(-0.5, 0.0)], DirectionAlongXPositive),
+    # Drag the camera 90 degrees around the X axis
+    MouseDragDirectionTestCase([(0.0, 0.5)], DirectionAlongYNegative),
+    # Drag the camera -90 degrees around the X axis
+    #MouseDragDirectionTestCase([(0.0, -0.5)], DirectionAlongYNegative),
+]
+
+for testcase in mousedragdirectiontestcases
+    @testset "Dragging: $(testcase.positions); Result direction is $(testcase.resultdirection)" begin
+        # Arrange
+        cameraview = CameraView()
+
+        # Act
+        for dragposition in testcase.positions
+            cameraview = onmousedrag(cameraview, MouseDragStartEvent())
+            cameraview = onmousedrag(cameraview, MouseDragPositionEvent(dragposition))
+            cameraview = onmousedrag(cameraview, MouseDragEndEvent())
+        end
+
+        # Assert
+        @test direction(cameraview) ≈ testcase.resultdirection
+    end
 end
 
 end

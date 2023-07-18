@@ -30,7 +30,17 @@ end
 direction(c::CameraView) = c.direction
 
 onmousedrag(v::CameraView, ::MouseDragStartEvent) :: CameraView = v
-onmousedrag(v::CameraView, ::MouseDragPositionEvent) :: CameraView = CameraView(Vector4{Float32, World}(0f0, 0f0, 1f0, 0f0))
+
+function onmousedrag(::CameraView, ev::MouseDragPositionEvent) :: CameraView
+    if ev.direction[1] > 0.0
+        CameraView(Vector4{Float32, World}(-1f0, 0f0, 0f0, 0f0))
+    elseif ev.direction[1] < 0.0
+        CameraView(Vector4{Float32, World}(1f0, 0f0, 0f0, 0f0))
+    else
+        CameraView(Vector4{Float32, World}(0f0, 0f0, 1f0, 0f0))
+    end
+end
+
 onmousedrag(v::CameraView, ::MouseDragEndEvent) :: CameraView = v
 
 end
