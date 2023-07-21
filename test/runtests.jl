@@ -18,6 +18,7 @@ using Test
 
 include("math/vector_test.jl")
 include("math/matrix_test.jl")
+include("math/rotation_test.jl")
 
 end
 

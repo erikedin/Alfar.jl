@@ -12,7 +12,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-module WIP
-include("Math.jl")
-include("Transformations.jl")
+module Transformations
+
+using Alfar.WIP.Math
+
+export PointRotation, transform
+
+# PointRotation is a rotation that rotates a vector `v` in the same
+# coordinate system that it originates in.
+struct PointRotation{T, System}
+    Θ::T
+    axis::Vector3{T, System}
+end
+
+function transform(::PointRotation{T, System}, v::Vector3{T, System}) where {T, System}
+    v
+end
+
+# FrameRotation rotates a vector `v` from one coordinate system to another.
+
 end
