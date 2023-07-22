@@ -46,6 +46,22 @@ end
     @test result ≈ Vector3{Float32, S}(0f0, 0f0, 1f0)
 end
 
+# @testset "A point rotation of (0, 1, 0) pi/2 radians around the (17, 0, 0) axis; the vector length is unchanged" begin
+#     # Arrange
+#     v = Vector3{Float32, S}(0f0, 1f0, 0f0)
+#     rotation = PointRotation{Float32, S}(0.5f0 * pi, Vector3{Float32, S}(17f0, 0f0, 0f0))
+
+#     # Act
+#     result = transform(rotation, v)
+
+#     # Assert
+#     @test norm(result) ≈ 1f0
+# end
+
+#
+# Tests to ensure type safety
+#
+
 @testset "A point rotation for system S is applied to system R; MethodError" begin
     # Arrange
     v = Vector3{Float32, R}(1.0, 2.0, 3.0)

@@ -16,6 +16,7 @@ module Math
 
 export Vector3, Vector4
 export Matrix4
+export norm, normalize
 
 # Vector3 is a 3-dimensional vector in the coordinate system `System`.
 # The value type of the individual coordinates is `T`.
@@ -42,6 +43,14 @@ function Base.:+(a::Vector4{T, System}, b::Vector4{T, System}) where {T, System}
     Vector4{T, System}(a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w)
 end
 
+function Base.:*(a::T, b::Vector3{T, System}) where {T, System}
+    Vector3{T, System}(a * b.x, a * b.y, a * b.z)
+end
+
+function Base.:*(b::Vector3{T, System}, a::T) where {T, System}
+    Vector3{T, System}(a * b.x, a * b.y, a * b.z)
+end
+
 function Base.:*(a::T, b::Vector4{T, System}) where {T, System}
     Vector4{T, System}(a * b.x, a * b.y, a * b.z, a * b.w)
 end
@@ -57,6 +66,14 @@ end
 function Base.isapprox(a::Vector4{T, System}, b::Vector4{T, System}) where {T, System}
     isapprox(a.x, b.x) && isapprox(a.y, b.y) && isapprox(a.z, b.z) && isapprox(a.w, b.w)
 end
+
+#
+# Other vector methods
+#
+
+norm(v::Vector3{T, System}) where {T, System} = sqrt(v.x * v.x + v.y * v.y + v.z * v.z)
+
+normalize(v::Vector3{T, System}) where {T, System} = one(T) / norm(v) * v
 
 #
 # Matrices

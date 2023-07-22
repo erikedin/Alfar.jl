@@ -83,6 +83,39 @@ vector_scalar_multiplication_tests = [
         Vector4{Float32, S}(1f0, 2f0, 3f0, 4f0),
         Vector4{Float32, S}(2f0, 4f0, 6f0, 8f0)
     )
+
+    TC(
+        Vector4{Float32, S}(1f0, 2f0, 3f0, 4f0),
+        1f0,
+        Vector4{Float32, S}(1f0, 2f0, 3f0, 4f0)
+    )
+    TC(
+        Vector4{Float32, S}(1f0, 2f0, 3f0, 4f0),
+        2f0,
+        Vector4{Float32, S}(2f0, 4f0, 6f0, 8f0)
+    )
+
+    TC(
+        1f0,
+        Vector3{Float32, S}(1f0, 2f0, 3f0),
+        Vector3{Float32, S}(1f0, 2f0, 3f0)
+    )
+    TC(
+        2f0,
+        Vector3{Float32, S}(1f0, 2f0, 3f0),
+        Vector3{Float32, S}(2f0, 4f0, 6f0)
+    )
+
+    TC(
+        Vector3{Float32, S}(1f0, 2f0, 3f0),
+        1f0,
+        Vector3{Float32, S}(1f0, 2f0, 3f0)
+    )
+    TC(
+        Vector3{Float32, S}(1f0, 2f0, 3f0),
+        2f0,
+        Vector3{Float32, S}(2f0, 4f0, 6f0)
+    )
 ]
 
 for testcase in vector_scalar_multiplication_tests
@@ -181,6 +214,76 @@ for testcase in vector_scalar_left_multiplication_type_safety_tests
     @testset "$(testcase.description)" begin
         @test_throws MethodError testcase.a * testcase.b
     end
+end
+
+#
+# Other vector operations
+#
+
+@testset "Norm; (1, 0, 0); Norm is 1" begin
+    # Arrange
+    v = Vector3{Float32, S}(1f0, 0f0, 0f0)
+
+    # Act
+    length = norm(v)
+
+    # Assert
+    @test length ≈ 1f0
+end
+
+@testset "Norm; (1, 1, 1); Norm is sqrt(3)" begin
+    # Arrange
+    v = Vector3{Float32, S}(1f0, 1f0, 1f0)
+
+    # Act
+    length = norm(v)
+
+    # Assert
+    @test length ≈ sqrt(3f0)
+end
+
+@testset "Norm; (3, 4, 0); Norm is 5" begin
+    # Arrange
+    v = Vector3{Float32, S}(3f0, 4f0, 0f0)
+
+    # Act
+    length = norm(v)
+
+    # Assert
+    @test length ≈ 5f0
+end
+
+@testset "Normalize; (1, 0, 0); result is (1, 0, 0)" begin
+    # Arrange
+    v = Vector3{Float32, S}(1f0, 0f0, 0f0)
+
+    # Act
+    p = normalize(v)
+
+    # Assert
+    @test p ≈ Vector3{Float32, S}(1f0, 0f0, 0f0)
+end
+
+@testset "Normalize; (17, 0, 0); result is (1, 0, 0)" begin
+    # Arrange
+    v = Vector3{Float32, S}(17f0, 0f0, 0f0)
+
+    # Act
+    p = normalize(v)
+
+    # Assert
+    @test p ≈ Vector3{Float32, S}(1f0, 0f0, 0f0)
+end
+
+@testset "Normalize; (3, 4, 0); result is 1/5*(3, 4, 0)" begin
+    # Arrange
+    v = Vector3{Float32, S}(3f0, 4f0, 0f0)
+
+    # Act
+    p = normalize(v)
+
+    # Assert
+    @test p ≈ 0.2f0 * Vector3{Float32, S}(3f0, 4f0, 0f0)
 end
 
 #
