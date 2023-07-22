@@ -46,11 +46,12 @@ end
 
 function transform(r::PointRotation{T, System}, v::Vector3{T, System}) :: Vector3{T, System} where {T, System}
     # This defines the quaternion that will rotate the vector `v`.
+    axis = normalize(r.axis)
     q = Quaternion{Float32}(
         cos(r.θ / 2),
-        sin(r.θ / 2) * r.axis.x, 
-        sin(r.θ / 2) * r.axis.y, 
-        sin(r.θ / 2) * r.axis.z, 
+        sin(r.θ / 2) * axis.x, 
+        sin(r.θ / 2) * axis.y, 
+        sin(r.θ / 2) * axis.z, 
     )
     # ... along with its complement.
     qstar = complement(q)
