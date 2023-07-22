@@ -295,4 +295,33 @@ end
     @test !(Vector4{Float32, S}(1f0, 2f0, 3f0, 4f0) ≈ Vector4{Float32, S}(1f0, 2f0, 3f0, 5f0))
 end
 
+approximate_equality_testcases = [
+    (Vector3{Float32, S}(0f0, 1f0, 0f0), Vector3{Float32, S}(1e-4, 1f0, 0f0)),
+    (Vector3{Float32, S}(1f0, 0f0, 0f0), Vector3{Float32, S}(1f0, 1e-4, 0f0)),
+    (Vector3{Float32, S}(1f0, 0f0, 0f0), Vector3{Float32, S}(1f0, 0f0, 1e-4)),
+    (Vector3{Float64, S}(0.0, 1.0, 0.0), Vector3{Float64, S}(1e-8, 1.0, 0.0)),
+    (Vector3{Float64, S}(1.0, 0.0, 0.0), Vector3{Float64, S}(1.0, 1e-8, 0.0)),
+    (Vector3{Float64, S}(1.0, 0.0, 0.0), Vector3{Float64, S}(1.0, 0.0, 1e-8)),
+
+    (Vector4{Float32, S}(0f0, 1f0, 0f0, 0f0), Vector4{Float32, S}(1e-4, 1f0, 0f0, 0f0)),
+    (Vector4{Float32, S}(1f0, 0f0, 0f0, 0f0), Vector4{Float32, S}(1f0, 1e-4, 0f0, 0f0)),
+    (Vector4{Float32, S}(1f0, 0f0, 0f0, 0f0), Vector4{Float32, S}(1f0, 0f0, 1e-4, 0f0)),
+    (Vector4{Float32, S}(1f0, 0f0, 0f0, 0f0), Vector4{Float32, S}(1f0, 0f0, 0f0, 1e-4)),
+    (Vector4{Float64, S}(0.0, 1.0, 0.0, 0.0), Vector4{Float64, S}(1e-8, 1.0, 0.0, 0.0)),
+    (Vector4{Float64, S}(1.0, 0.0, 0.0, 0.0), Vector4{Float64, S}(1.0, 1e-8, 0.0, 0.0)),
+    (Vector4{Float64, S}(1.0, 0.0, 0.0, 0.0), Vector4{Float64, S}(1.0, 0.0, 1e-8, 0.0)),
+    (Vector4{Float64, S}(1.0, 0.0, 0.0, 0.0), Vector4{Float64, S}(1.0, 0.0, 0.0, 1e-8)),
+]
+
+for testcase in approximate_equality_testcases
+    @testset "Inexact comparison; $(testcase[1]) and $(testcase[2]); Are nearly equal" begin
+        # Arrange
+        a = testcase[1]
+        b = testcase[2]
+
+        # Assert
+        @test a ≈ b
+    end
+end
+
 end

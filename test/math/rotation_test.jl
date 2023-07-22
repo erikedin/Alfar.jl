@@ -106,6 +106,13 @@ point_rotation_test_cases = [
      Vector3{Float32, S}(-1f0, 0f0, 0f0)),
 ]
 
+point_rotation_test_cases_64 = [
+    ("Rotate pi/2 Y around Z -> -X, type Float64",
+     Vector3{Float64, S}(0.0, 1.0, 0.0),
+     0.5 * pi, Vector3{Float64, S}(0.0, 0.0, 1.0),
+     Vector3{Float64, S}(-1.0, 0.0, 0.0)),
+]
+
 for testcase in point_rotation_test_cases
     @testset "$(testcase[1])" begin
         # Arrange
@@ -114,6 +121,23 @@ for testcase in point_rotation_test_cases
         axis = testcase[4]
         expected = testcase[5]
         rotation = PointRotation{Float32, S}(angle, axis)
+
+        # Act
+        result = transform(rotation, v)
+
+        # Assert
+        @test result ≈ expected
+    end
+end
+
+for testcase in point_rotation_test_cases_64
+    @testset "$(testcase[1])" begin
+        # Arrange
+        v = testcase[2]
+        angle = testcase[3]
+        axis = testcase[4]
+        expected = testcase[5]
+        rotation = PointRotation{Float64, S}(angle, axis)
 
         # Act
         result = transform(rotation, v)

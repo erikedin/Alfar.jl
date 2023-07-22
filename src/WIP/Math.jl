@@ -60,11 +60,16 @@ function Base.:*(a::Vector4{T, System}, b::T) where {T, System}
 end
 
 function Base.isapprox(a::Vector3{T, System}, b::Vector3{T, System}) where {T, System}
-    isapprox(a.x, b.x) && isapprox(a.y, b.y) && isapprox(a.z, b.z)
+    atol = sqrt(eps(T))
+    isapprox(a.x, b.x; atol=atol) && isapprox(a.y, b.y; atol=atol) && isapprox(a.z, b.z; atol=atol)
 end
 
 function Base.isapprox(a::Vector4{T, System}, b::Vector4{T, System}) where {T, System}
-    isapprox(a.x, b.x) && isapprox(a.y, b.y) && isapprox(a.z, b.z) && isapprox(a.w, b.w)
+    atol = sqrt(eps(T))
+    isapprox(a.x, b.x; atol=atol) &&
+        isapprox(a.y, b.y; atol=atol) &&
+        isapprox(a.z, b.z; atol=atol) &&
+        isapprox(a.w, b.w; atol=atol)
 end
 
 #
