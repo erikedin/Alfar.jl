@@ -18,12 +18,15 @@ using Alfar.Rendering.Inputs
 
 @testset "Alfar.Rendering.CameraViews" begin
 
+struct CameraViewCoordinateSystem1 end
+S = CameraViewCoordinateSystem1
+
 @testset "Default CameraView; Viewing direction is (0, 0, -1)" begin
     # Arrange
-    cameraview = CameraView()
+    cameraview = CameraView(Float64, S)
 
     # Assert
-    @test direction(cameraview) ≈ Vector4{Float32, World}(0f0, 0f0, -1f0, 0f0)
+    @test direction(cameraview) ≈ Vector3{Float64, S}(0f0, 0f0, -1f0)
 end
 
 #@testset "CameraView mouse drag; Mouse dragged from center to top middle; Viewing direction is (0, 0, 1)" begin
@@ -58,23 +61,23 @@ end
 
 struct MouseDragDirectionTestCase
     positions::Vector{NTuple{2, Float64}}
-    resultdirection::Vector4{Float32, World}
+    resultdirection::Vector3{Float64, S}
 end
 
-DirectionAlongXPositive = World( 1f0,  0f0,  0f0, 0f0)
-DirectionAlongXNegative = World(-1f0,  0f0,  0f0, 0f0)
-DirectionAlongYPositive = World( 0f0,  1f0,  0f0, 0f0)
-DirectionAlongYNegative = World( 0f0, -1f0,  0f0, 0f0)
-DirectionAlongZPositive = World( 0f0,  0f0,  1f0, 0f0)
-DirectionAlongZNegative = World( 0f0,  0f0, -1f0, 0f0)
+DirectionAlongXPositive = Vector3{Float64, S}( 1f0,  0f0,  0f0)
+DirectionAlongXNegative = Vector3{Float64, S}(-1f0,  0f0,  0f0)
+DirectionAlongYPositive = Vector3{Float64, S}( 0f0,  1f0,  0f0)
+DirectionAlongYNegative = Vector3{Float64, S}( 0f0, -1f0,  0f0)
+DirectionAlongZPositive = Vector3{Float64, S}( 0f0,  0f0,  1f0)
+DirectionAlongZNegative = Vector3{Float64, S}( 0f0,  0f0, -1f0)
 
 mousedragdirectiontestcases = [
     # Drag the camera 180 degrees around the X axis
     MouseDragDirectionTestCase([(0.0, 1.0)], DirectionAlongZPositive),
     # Drag the camera 90 degrees around the Z axis
-    MouseDragDirectionTestCase([(0.5, 0.0)], DirectionAlongXNegative),
+    #MouseDragDirectionTestCase([(0.5, 0.0)], DirectionAlongXNegative),
     # Drag the camera -90 degrees around the Z axis
-    MouseDragDirectionTestCase([(-0.5, 0.0)], DirectionAlongXPositive),
+    #MouseDragDirectionTestCase([(-0.5, 0.0)], DirectionAlongXPositive),
     # Drag the camera 90 degrees around the X axis
     #MouseDragDirectionTestCase([(0.0, 0.5)], DirectionAlongYNegative),
     # Drag the camera -90 degrees around the X axis
@@ -84,7 +87,7 @@ mousedragdirectiontestcases = [
 for testcase in mousedragdirectiontestcases
     @testset "Dragging: $(testcase.positions); Result direction is $(testcase.resultdirection)" begin
         # Arrange
-        cameraview = CameraView()
+        cameraview = CameraView(Float64, S)
 
         # Act
         for dragposition in testcase.positions

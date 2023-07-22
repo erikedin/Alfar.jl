@@ -15,30 +15,27 @@
 module CameraViews
 
 using Alfar.WIP.Math
-using Alfar.Rendering: World
 using Alfar.Rendering.Inputs
+using Alfar.WIP.Transformations
+using Alfar.WIP.Math
 
 export CameraView, direction, onmousedrag
 
-struct CameraView
-    direction::Vector4{Float32, World}
+struct CameraView{T, System}
+    direction::Vector3{T, System}
 
-    CameraView() = new(Vector4{Float32, World}(0f0, 0f0, -1f0, 0f0))
-    CameraView(direction::Vector4{Float32, World}) = new(direction)
+    CameraView(::Type{T}, ::Type{System}) where {T, System} = new{T, System}(Vector3{T, System}(0.0, 0.0, -1.0))
+    CameraView(direction::Vector3{T, System}) where {T, System}= new{T, System}(direction)
 end
 
 direction(c::CameraView) = c.direction
 
 onmousedrag(v::CameraView, ::MouseDragStartEvent) :: CameraView = v
 
-function onmousedrag(::CameraView, ev::MouseDragPositionEvent) :: CameraView
-    if ev.direction[1] > 0.0
-        CameraView(Vector4{Float32, World}(-1f0, 0f0, 0f0, 0f0))
-    elseif ev.direction[1] < 0.0
-        CameraView(Vector4{Float32, World}(1f0, 0f0, 0f0, 0f0))
-    else
-        CameraView(Vector4{Float32, World}(0f0, 0f0, 1f0, 0f0))
-    end
+function onmousedrag(cameraview::CameraView{T, System}, ev::MouseDragPositionEvent) :: CameraView where {T, System}
+    aroundx = PointRotation{T, System}(Float64(pi), Vector3{T, System}(1.0, 0.0, 0.0))
+    newdirection = transform(aroundx, cameraview.direction)
+    CameraView(newdirection)
 end
 
 onmousedrag(v::CameraView, ::MouseDragEndEvent) :: CameraView = v

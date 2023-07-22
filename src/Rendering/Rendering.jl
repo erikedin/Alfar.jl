@@ -23,6 +23,7 @@ using Alfar.WIP.Math
 struct World end
 
 World(x::T, y::T, z::T, w::T) where {T} = Vector4{T, World}(x, y, z, w)
+World(x::T, y::T, z::T) where {T} = Vector3{T, World}(x, y, z)
 
 include("Inputs.jl")
 include("Shaders.jl")
