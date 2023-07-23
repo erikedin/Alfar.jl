@@ -33,9 +33,13 @@ direction(c::CameraView) = c.direction
 onmousedrag(v::CameraView, ::MouseDragStartEvent) :: CameraView = v
 
 function onmousedrag(cameraview::CameraView{T, System}, ev::MouseDragPositionEvent) :: CameraView where {T, System}
-    aroundx = PointRotation{T, System}(Float64(pi), Vector3{T, System}(1.0, 0.0, 0.0))
-    newdirection = transform(aroundx, cameraview.direction)
-    CameraView(newdirection)
+    yangle = ev.direction[1] * pi
+    xangle = ev.direction[2] * pi
+    aroundx = PointRotation{T, System}(xangle, Vector3{T, System}(1.0, 0.0, 0.0))
+    aroundy = PointRotation{T, System}(yangle, Vector3{T, System}(0.0, 1.0, 0.0))
+    newdirection1 = transform(aroundx, cameraview.direction)
+    newdirection2 = transform(aroundy, newdirection1)
+    CameraView(newdirection2)
 end
 
 onmousedrag(v::CameraView, ::MouseDragEndEvent) :: CameraView = v
