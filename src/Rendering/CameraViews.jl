@@ -19,7 +19,7 @@ using Alfar.Rendering.Inputs
 using Alfar.WIP.Transformations
 using Alfar.WIP.Math
 
-export CameraView, direction, onmousedrag
+export CameraView, direction, up, onmousedrag
 
 struct CameraView{T, System}
     direction::Vector3{T, System}
@@ -39,12 +39,14 @@ function right(camera::CameraView{T, System}) :: Vector3{T, System} where {T, Sy
 end
 
 direction(c::CameraView) = c.direction
+up(c::CameraView) = c.up
 
 onmousedrag(v::CameraView, ::MouseDragStartEvent) :: CameraView = v
 
 function onmousedrag(cameraview::CameraView{T, System}, ev::MouseDragPositionEvent) :: CameraView where {T, System}
     # ev.direction[1] is a horizontal mouse drag. This corresponds to a rotation around the `up` vector.
-    upangle = ev.direction[1] * pi
+    # TODO Comment on why there is a minus sign here.
+    upangle = -ev.direction[1] * pi
     # ev.direction[2] is a vertical mouse drag. This corresponds to a rotation around the `right` vector.
     rightangle = ev.direction[2] * pi
     # TODO Compose these rotations rather than do them consecutively.
