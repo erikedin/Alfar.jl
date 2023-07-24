@@ -23,9 +23,19 @@ export CameraView, direction, onmousedrag
 
 struct CameraView{T, System}
     direction::Vector3{T, System}
+    up::Vector3{T, System}
 
-    CameraView(::Type{T}, ::Type{System}) where {T, System} = new{T, System}(Vector3{T, System}(0.0, 0.0, -1.0))
-    CameraView(direction::Vector3{T, System}) where {T, System}= new{T, System}(direction)
+    function CameraView(::Type{T}, ::Type{System}) where {T, System}
+        direction = Vector3{T, System}(0.0, 0.0, -1.0)
+        up = Vector3{T, System}(0.0, 1.0, 0.0)
+        new{T, System}(direction, up)
+    end
+    CameraView(direction::Vector3{T, System}, up::Vector3{T, System}) where {T, System} = new{T, System}(direction, up)
+end
+
+function right(camera::CameraView{T, System}) :: Vector3{T, System} where {T, System}
+    # TODO Ensure normalization
+    cross(camera.direction, camera.up)
 end
 
 direction(c::CameraView) = c.direction
@@ -33,13 +43,20 @@ direction(c::CameraView) = c.direction
 onmousedrag(v::CameraView, ::MouseDragStartEvent) :: CameraView = v
 
 function onmousedrag(cameraview::CameraView{T, System}, ev::MouseDragPositionEvent) :: CameraView where {T, System}
-    yangle = ev.direction[1] * pi
-    xangle = ev.direction[2] * pi
-    aroundx = PointRotation{T, System}(xangle, Vector3{T, System}(1.0, 0.0, 0.0))
-    aroundy = PointRotation{T, System}(yangle, Vector3{T, System}(0.0, 1.0, 0.0))
-    newdirection1 = transform(aroundx, cameraview.direction)
-    newdirection2 = transform(aroundy, newdirection1)
-    CameraView(newdirection2)
+    # ev.direction[1] is a horizontal mouse drag. This corresponds to a rotation around the `up` vector.
+    upangle = ev.direction[1] * pi
+    # ev.direction[2] is a vertical mouse drag. This corresponds to a rotation around the `right` vector.
+    rightangle = ev.direction[2] * pi
+    # TODO Compose these rotations rather than do them consecutively.
+    rightaxis = right(cameraview)
+    aroundright = PointRotation{T, System}(rightangle, rightaxis)
+    aroundup = PointRotation{T, System}(upangle, cameraview.up)
+    newdirectionright = transform(aroundright, cameraview.direction)
+    newdirection = transform(aroundup, newdirectionright)
+
+    newupright = transform(aroundright, cameraview.up)
+    newup = transform(aroundup, newupright)
+    CameraView(newdirection, newup)
 end
 
 onmousedrag(v::CameraView, ::MouseDragEndEvent) :: CameraView = v

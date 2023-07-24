@@ -97,6 +97,13 @@ mousedragdirectiontestcases = [
     # Drag the camera 180 degrees around the Y axis
     MouseDragDirectionTestCase([(1.0, 0.0)], DirectionAlongZPositive),
     MouseDragDirectionTestCase([(-1.0, 0.0)], DirectionAlongZPositive),
+
+    # These test cases rotate both horizontally and vertically.
+    # 1. Horizontal rotation 90 degrees (around the Y axis
+    #    The `right` vector is now -Z.
+    # 2. Vertical rotation 90 degrees, which is around the Z axis.
+    # Result: Direction is in the -Y direction.
+    MouseDragDirectionTestCase([(0.5, 0.0), (0.0, 0.5)], DirectionAlongYNegative),
 ]
 
 for testcase in mousedragdirectiontestcases
@@ -116,4 +123,27 @@ for testcase in mousedragdirectiontestcases
     end
 end
 
+@testset "Dragging; 90 degrees right, then up; Looking down Y" begin
+        # Arrange
+        cameraview = CameraView(Float64, S)
+
+        # Act
+        # Right
+        println("Before:", cameraview)
+        cameraview = onmousedrag(cameraview, MouseDragStartEvent())
+        cameraview = onmousedrag(cameraview, MouseDragPositionEvent((0.5, 0.0)))
+        cameraview = onmousedrag(cameraview, MouseDragEndEvent())
+        println("Rotation 1:", cameraview)
+
+        # Up
+        cameraview = onmousedrag(cameraview, MouseDragStartEvent())
+        cameraview = onmousedrag(cameraview, MouseDragPositionEvent((0.0, 0.5)))
+        cameraview = onmousedrag(cameraview, MouseDragEndEvent())
+
+        # Assert
+        println("Rotation 2:", cameraview)
+        @test direction(cameraview) ≈ DirectionAlongYNegative
+        @test cameraview.up ≈ DirectionAlongXNegative
+
+end
 end

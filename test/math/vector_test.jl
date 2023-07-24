@@ -286,6 +286,57 @@ end
     @test p ≈ 0.2f0 * Vector3{Float32, S}(3f0, 4f0, 0f0)
 end
 
+@testset "Cross product; X cross Y; Result is Z" begin
+    # Arrange
+    a = Vector3{Float32, S}(1f0, 0f0, 0f0)
+    b = Vector3{Float32, S}(0f0, 1f0, 0f0)
+
+    # Act
+    p = cross(a, b)
+
+    # Assert
+    @test p ≈ Vector3{Float32, S}(0f0, 0f0, 1f0)
+end
+
+@testset "Cross product; Y cross Z; Result is X" begin
+    # Arrange
+    a = Vector3{Float32, S}(0f0, 1f0, 0f0)
+    b = Vector3{Float32, S}(0f0, 0f0, 1f0)
+
+    # Act
+    p = cross(a, b)
+
+    # Assert
+    @test p ≈ Vector3{Float32, S}(1f0, 0f0, 0f0)
+end
+
+@testset "Cross product; Z cross X; Result is Y" begin
+    # Arrange
+    a = Vector3{Float32, S}(0f0, 0f0, 1f0)
+    b = Vector3{Float32, S}(1f0, 0f0, 0f0)
+
+    # Act
+    p = cross(a, b)
+
+    # Assert
+    @test p ≈ Vector3{Float32, S}(0f0, 1f0, 0f0)
+end
+
+@testset "Cross product; -Z cross Y; Result is X" begin
+    # This test is specifically important as -Z is the default direction of the camera,
+    # and Y is the default up vector. Crossing them should lead to the right vector,
+    # which in this case is X.
+    # Arrange
+    a = Vector3{Float32, S}(0f0, 0f0, -1f0)
+    b = Vector3{Float32, S}(0f0, 1f0, 0f0)
+
+    # Act
+    p = cross(a, b)
+
+    # Assert
+    @test p ≈ Vector3{Float32, S}(1f0, 0f0, 0f0)
+end
+
 #
 # Miscellaneous test during development.
 #
