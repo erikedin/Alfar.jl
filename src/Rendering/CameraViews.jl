@@ -58,6 +58,8 @@ function up(cameraview::CameraView{T, System}) :: Vector3{T, System} where {T, S
     transform(cameraview.dragrotation, cameraview.up)
 end
 
+position(c::CameraView{T, System}) where {T, System} = c.position
+
 onmousedrag(v::CameraView, ::MouseDragStartEvent) :: CameraView = v
 
 function onmousedrag(cameraview::CameraView{T, System}, ev::MouseDragPositionEvent) :: CameraView where {T, System}
@@ -92,8 +94,26 @@ function onmousedrag(c::CameraView{T, System}, ::MouseDragEndEvent) :: CameraVie
     CameraView{T, System}(c, direction(c), up(c))
 end
 
-function lookat(::CameraView{T, System}) :: Matrix4{T, CameraViewSpace, System} where {T, System}
-    one(Matrix4{T, CameraViewSpace, System})
+struct CameraTranslationSpace end
+
+function lookat(c::CameraView{T, System}) :: Matrix4{T, CameraViewSpace, System} where {T, System}
+    d = direction(c)
+    u = up(c)
+    r = right(c)
+    p = position(c)
+    translation = Matrix4{T, CameraTranslationSpace, System}(
+         one(T), zero(T), zero(T), -p.x,
+        zero(T),  one(T), zero(T), -p.y,
+        zero(T), zero(T),  one(T), -p.z,
+        zero(T), zero(T), zero(T), one(T),
+    )
+    directiontransform = Matrix4{T, CameraViewSpace, CameraTranslationSpace}(
+        r.x,     r.y,     r.z,     zero(T),
+        u.x,     u.y,     u.z,     zero(T),
+        d.x,     d.y,     d.z,     zero(T),
+        zero(T), zero(T), zero(T),  one(T),
+    )
+    directiontransform * translation
 end
 
 end

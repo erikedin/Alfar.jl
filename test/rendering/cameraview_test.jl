@@ -181,7 +181,7 @@ ViewUpAlongY = Vector4{Float64, CameraViewSpace}(0f0,  1f0,  0f0, 0f0)
 ViewUpAlongZ = Vector4{Float64, CameraViewSpace}(0f0,  0f0,  1f0, 0f0)
 
 lookat_tests = [
-#    LookAtTestCase([(0.0, 0.5)], -ViewDirectionAlongY, ViewUpAlongZ),
+    #LookAtTestCase([(0.0, 0.5)], -ViewDirectionAlongY, ViewUpAlongZ),
 ]
 
 for testcase in lookat_tests
