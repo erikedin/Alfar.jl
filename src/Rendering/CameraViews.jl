@@ -23,24 +23,26 @@ export CameraView, direction, up, onmousedrag, lookat, CameraViewSpace
 struct CameraViewSpace end
 
 struct CameraView{T, System}
+    position::Vector3{T, System}
     direction::Vector3{T, System}
     up::Vector3{T, System}
     dragrotation::PointRotation{T, System}
 
     function CameraView(::Type{T}, ::Type{System}) where {T, System}
+        defaultposition = Vector3{T, System}(0, 0, 1.0)
         direction = Vector3{T, System}(0.0, 0.0, -1.0)
         up = Vector3{T, System}(0.0, 1.0, 0.0)
         norotation = PointRotation{T, System}(zero(T), Vector3{T, System}(one(T), zero(T), zero(T)))
-        new{T, System}(direction, up, norotation)
+        new{T, System}(defaultposition, direction, up, norotation)
     end
 
     function CameraView(cameraview::CameraView{T, System}, rotation::PointRotation{T, System}) where {T, System}
-        new{T, System}(cameraview.direction, cameraview.up, rotation)
+        new{T, System}(cameraview.position, cameraview.direction, cameraview.up, rotation)
     end
 
-    function CameraView{T, System}(direction::Vector3{T, System}, up::Vector3{T, System}) where {T, System}
+    function CameraView{T, System}(cameraview::CameraView{T, System}, direction::Vector3{T, System}, up::Vector3{T, System}) where {T, System}
         norotation = PointRotation{T, System}(zero(T), Vector3{T, System}(one(T), zero(T), zero(T)))
-        new{T, System}(direction, up, norotation)
+        new{T, System}(cameraview.position, direction, up, norotation)
     end
 end
 
@@ -86,7 +88,8 @@ function onmousedrag(c::CameraView{T, System}, ::MouseDragEndEvent) :: CameraVie
     # The constructor method that takes only `direction` and `up` sets the
     # rotation to zero, so this effectively keeps the camera the same, but
     # the direction and up vectors are transformed by the drag rotation.
-    CameraView{T, System}(direction(c), up(c))
+    # The position remains the same.
+    CameraView{T, System}(c, direction(c), up(c))
 end
 
 function lookat(::CameraView{T, System}) :: Matrix4{T, CameraViewSpace, System} where {T, System}
