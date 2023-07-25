@@ -18,9 +18,11 @@ using Alfar.WIP.Math
 
 struct TestSystem1 end
 struct TestSystem2 end
+struct TestSystem3 end
 
 S1 = TestSystem1
 S2 = TestSystem2
+S3 = TestSystem3
 
 @testset "Multiply a vector by the identity; the result is the vector unchanged" begin
     # Arrange
@@ -95,4 +97,74 @@ end
     # Act and assert
     @test_throws MethodError A*v
 end
+
+@testset "Matrix4 I*I; Result is I" begin
+    # Arrange
+    a = one(Matrix4{Float32, S1, S2})
+    b = one(Matrix4{Float32, S2, S1})
+
+    # Act
+    c = a*b
+
+    # Assert
+    @test c ≈ one(Matrix4{Float32, S1, S1})
+end
+
+@testset "The Matrix4 value types do not match during multiplication; MethodError" begin
+    # Arrange
+    a = Matrix4{Float32, S1, S2}(
+        0f0, 0f0, 0f0, 1f0,
+        1f0, 0f0, 0f0, 0f0,
+        0f0, 1f0, 0f0, 0f0,
+        0f0, 0f0, 1f0, 0f0,
+    )
+    b = Matrix4{Float64, S2, S1}(
+        0f0, 0f0, 0f0, 1f0,
+        1f0, 0f0, 0f0, 0f0,
+        0f0, 1f0, 0f0, 0f0,
+        0f0, 0f0, 1f0, 0f0,
+    )
+
+    # Act and assert
+    @test_throws MethodError a*b
+end
+
+@testset "The Matrix4 FromSystem and ToSystem systems don't match; MethodError" begin
+    # Arrange
+    a = Matrix4{Float32, S1, S2}(
+        0f0, 0f0, 0f0, 1f0,
+        1f0, 0f0, 0f0, 0f0,
+        0f0, 1f0, 0f0, 0f0,
+        0f0, 0f0, 1f0, 0f0,
+    )
+    b = Matrix4{Float32, S3, S1}(
+        0f0, 0f0, 0f0, 1f0,
+        1f0, 0f0, 0f0, 0f0,
+        0f0, 1f0, 0f0, 0f0,
+        0f0, 0f0, 1f0, 0f0,
+    )
+
+    # Act and assert
+    @test_throws MethodError a*b
+end
+
+@testset "Approximate comparison; a and b are different matrices; Not approximately the same" begin
+    # Arrange
+    a = Matrix4{Float32, S1, S2}(
+        1f0, 0f0, 0f0, 1f0,
+        0f0, 1f0, 0f0, 0f0,
+        0f0, 0f0, 1f0, 0f0,
+        0f0, 0f0, 0f0, 1f0,
+    )
+    b = Matrix4{Float32, S1, S2}(
+        3f0, 0f0, 0f0, 1f0,
+        0f0, 3f0, 0f0, 0f0,
+        0f0, 0f0, 3f0, 0f0,
+        0f0, 0f0, 0f0, 3f0,
+    )
+
+    # Act and assert
+    @test a ≉ b
+end
+
 end

@@ -145,4 +145,36 @@ function Base.:*(m::Matrix4{T, ToSystem, FromSystem}, v::Vector4{T, FromSystem})
     )
 end
 
+function Base.:*(::Matrix4{T, ToSystem, Interim}, ::Matrix4{T, Interim, FromSystem}) :: Matrix4{T, ToSystem, FromSystem} where {T, ToSystem, FromSystem, Interim}
+    Matrix4{T, ToSystem, FromSystem}(
+        1f0, 0f0, 0f0, 0f0,
+        0f0, 1f0, 0f0, 0f0,
+        0f0, 0f0, 1f0, 0f0,
+        0f0, 0f0, 0f0, 1f0,
+    )
+end
+
+function Base.isapprox(a::Matrix4{T, ToSystem, FromSystem}, b::Matrix4{T, ToSystem, FromSystem}) :: Bool where {T, ToSystem, FromSystem}
+    atol = sqrt(eps(T))
+    isapprox(a.a11, b.a11; atol=atol) &&
+    isapprox(a.a12, b.a12; atol=atol) &&
+    isapprox(a.a13, b.a13; atol=atol) &&
+    isapprox(a.a14, b.a14; atol=atol) &&
+
+    isapprox(a.a21, b.a21; atol=atol) &&
+    isapprox(a.a22, b.a22; atol=atol) &&
+    isapprox(a.a23, b.a23; atol=atol) &&
+    isapprox(a.a24, b.a24; atol=atol) &&
+
+    isapprox(a.a31, b.a31; atol=atol) &&
+    isapprox(a.a32, b.a32; atol=atol) &&
+    isapprox(a.a33, b.a33; atol=atol) &&
+    isapprox(a.a34, b.a34; atol=atol) &&
+
+    isapprox(a.a31, b.a31; atol=atol) &&
+    isapprox(a.a32, b.a32; atol=atol) &&
+    isapprox(a.a33, b.a33; atol=atol) &&
+    isapprox(a.a34, b.a34; atol=atol)
+end
+
 end
