@@ -36,12 +36,24 @@ struct Vector4{T, System}
     w::T
 end
 
+function Vector4{T, System}(v::Vector3{T, System}) :: Vector4{T, System} where {T, System}
+    Vector4{T, System}(v.x, v.y, v.z, zero(T))
+end
+
 function Base.:+(a::Vector3{T, System}, b::Vector3{T, System}) where {T, System}
     Vector3{T, System}(a.x + b.x, a.y + b.y, a.z + b.z)
 end
 
 function Base.:+(a::Vector4{T, System}, b::Vector4{T, System}) where {T, System}
     Vector4{T, System}(a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w)
+end
+
+function Base.:-(a::Vector3{T, System}) :: Vector3{T, System} where {T, System}
+    Vector3{T, System}(-a.x, -a.y, -a.z)
+end
+
+function Base.:-(a::Vector4{T, System}) :: Vector4{T, System} where {T, System}
+    Vector4{T, System}(-a.x, -a.y, -a.z, -a.w)
 end
 
 function Base.:*(a::T, b::Vector3{T, System}) where {T, System}

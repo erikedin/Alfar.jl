@@ -375,4 +375,38 @@ for testcase in approximate_equality_testcases
     end
 end
 
+# Negation
+
+@testset "Negation; Negate (1,2,3); Result is (-1, -2, -3)" begin
+    # Act
+    result = -Vector3{Float32, S}(1f0, 2f0, 3f0)
+
+    # Assert
+    @test result ≈ Vector3{Float32, S}(-1f0, -2f0, -3f0)
+end
+
+@testset "Negation; Negate (1,2,3,4); Result is (-1, -2, -3, -4)" begin
+    # Act
+    result = -Vector4{Float32, S}(1f0, 2f0, 3f0, 4f0)
+
+    # Assert
+    @test result ≈ Vector4{Float32, S}(-1f0, -2f0, -3f0, -4f0)
+end
+
+#
+# Occasionally it's convenient to interpret a Vector3 as a Vector4 with homogeneous
+# coordinates. For instance, if you want to use a Matrix4 to transform a Vector3.
+#
+
+@testset "Reinterpret 3->4; Vector3 is (1,2,3); Vector4 is by default (1,2,3,0)" begin
+    # Arrange
+    v3 = Vector3{Float32, S}(1f0, 2f0, 3f0)
+
+    # Act
+    v4 = Vector4{Float32, S}(v3)
+
+    # Assert
+    @test v4 ≈ Vector4{Float32, S}(1f0, 2f0, 3f0, 0f0)
+end
+
 end

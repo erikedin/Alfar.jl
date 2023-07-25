@@ -17,9 +17,10 @@ module CameraViews
 using Alfar.WIP.Math
 using Alfar.Rendering.Inputs
 using Alfar.WIP.Transformations
-using Alfar.WIP.Math
 
-export CameraView, direction, up, onmousedrag
+export CameraView, direction, up, onmousedrag, lookat, CameraViewSpace
+
+struct CameraViewSpace end
 
 struct CameraView{T, System}
     direction::Vector3{T, System}
@@ -86,6 +87,10 @@ function onmousedrag(c::CameraView{T, System}, ::MouseDragEndEvent) :: CameraVie
     # rotation to zero, so this effectively keeps the camera the same, but
     # the direction and up vectors are transformed by the drag rotation.
     CameraView{T, System}(direction(c), up(c))
+end
+
+function lookat(::CameraView{T, System}) :: Matrix4{T, CameraViewSpace, System} where {T, System}
+    one(Matrix4{T, CameraViewSpace, System})
 end
 
 end

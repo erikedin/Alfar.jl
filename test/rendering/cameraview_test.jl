@@ -158,4 +158,54 @@ end
     @test direction(cameraview) ≈ Vector3{Float64, S}(1.0, 0.0, 0.0)
     @test up(cameraview) ≈ Vector3{Float64, S}(0.0, 1.0, 0.0)
 end
+
+#
+# These are test cases for the `lookat` matrix, calculated from the camera view.
+# Essentially, the look-at matrix is the inverse of the camera view. If the camera is rotated
+# 90 degrees around the Y axis, then the lookat matrix represents a rotation of -90 degrees around
+# the Y axis. The test cases are basically the same as the ones above.
+#
+
+struct LookAtTestCase
+    positions::Vector{NTuple{2, Float64}}
+    direction::Vector4{Float64, CameraViewSpace}
+    up::Vector4{Float64, CameraViewSpace}
+end
+
+ViewDirectionAlongX = Vector4{Float64, CameraViewSpace}(1f0,  0f0,  0f0, 0f0)
+ViewDirectionAlongY = Vector4{Float64, CameraViewSpace}(0f0,  1f0,  0f0, 0f0)
+ViewDirectionAlongZ = Vector4{Float64, CameraViewSpace}(0f0,  0f0,  1f0, 0f0)
+
+ViewUpAlongX = Vector4{Float64, CameraViewSpace}(1f0,  0f0,  0f0, 0f0)
+ViewUpAlongY = Vector4{Float64, CameraViewSpace}(0f0,  1f0,  0f0, 0f0)
+ViewUpAlongZ = Vector4{Float64, CameraViewSpace}(0f0,  0f0,  1f0, 0f0)
+
+lookat_tests = [
+    LookAtTestCase([(0.0, 0.5)], -ViewDirectionAlongY, ViewUpAlongZ),
+]
+
+for testcase in lookat_tests
+    @testset "Lookat: $(testcase.positions); Result direction is $(testcase.direction) and up is $(testcase.up)" begin
+        # Arrange
+        cameraview = CameraView(Float64, S)
+        initialdirection = Vector4{Float64, S}(direction(cameraview))
+        initialup = Vector4{Float64, S}(up(cameraview))
+
+        # Act
+        for dragposition in testcase.positions
+            cameraview = onmousedrag(cameraview, MouseDragStartEvent())
+            cameraview = onmousedrag(cameraview, MouseDragPositionEvent(dragposition))
+            cameraview = onmousedrag(cameraview, MouseDragEndEvent())
+        end
+
+        m = lookat(cameraview)
+        resultdirection = m * initialdirection
+        resultup = m * initialup
+
+        # Assert
+        @test resultdirection ≈ testcase.direction
+        @test resultup ≈ testcase.up
+    end
+end
+
 end
