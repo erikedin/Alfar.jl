@@ -24,13 +24,23 @@ export CameraView, direction, up, onmousedrag
 struct CameraView{T, System}
     direction::Vector3{T, System}
     up::Vector3{T, System}
+    dragrotation::PointRotation{T, System}
 
     function CameraView(::Type{T}, ::Type{System}) where {T, System}
         direction = Vector3{T, System}(0.0, 0.0, -1.0)
         up = Vector3{T, System}(0.0, 1.0, 0.0)
-        new{T, System}(direction, up)
+        norotation = PointRotation{T, System}(zero(T), Vector3{T, System}(one(T), zero(T), zero(T)))
+        new{T, System}(direction, up, norotation)
     end
-    CameraView(direction::Vector3{T, System}, up::Vector3{T, System}) where {T, System} = new{T, System}(direction, up)
+
+    function CameraView(cameraview::CameraView{T, System}, rotation::PointRotation{T, System}) where {T, System}
+        new{T, System}(cameraview.direction, cameraview.up, rotation)
+    end
+
+    function CameraView{T, System}(direction::Vector3{T, System}, up::Vector3{T, System}) where {T, System}
+        norotation = PointRotation{T, System}(zero(T), Vector3{T, System}(one(T), zero(T), zero(T)))
+        new{T, System}(direction, up, norotation)
+    end
 end
 
 function right(camera::CameraView{T, System}) :: Vector3{T, System} where {T, System}
@@ -38,8 +48,12 @@ function right(camera::CameraView{T, System}) :: Vector3{T, System} where {T, Sy
     cross(camera.direction, camera.up)
 end
 
-direction(c::CameraView) = c.direction
-up(c::CameraView) = c.up
+function direction(cameraview::CameraView{T, System}) :: Vector3{T, System} where {T, System}
+    transform(cameraview.dragrotation, cameraview.direction)
+end
+function up(cameraview::CameraView{T, System}) :: Vector3{T, System} where {T, System}
+    transform(cameraview.dragrotation, cameraview.up)
+end
 
 onmousedrag(v::CameraView, ::MouseDragStartEvent) :: CameraView = v
 
@@ -59,18 +73,19 @@ function onmousedrag(cameraview::CameraView{T, System}, ev::MouseDragPositionEve
     # in the opposite way, it moves in a counter-clockwise direction around the `right` axis, looking down at the
     # positive right axis. So it already has the right sign, unlike the above angle.
     rightangle = ev.direction[2] * pi
-    # TODO Compose these rotations rather than do them consecutively.
     rightaxis = right(cameraview)
     aroundright = PointRotation{T, System}(rightangle, rightaxis)
     aroundup = PointRotation{T, System}(upangle, cameraview.up)
-    newdirectionright = transform(aroundright, cameraview.direction)
-    newdirection = transform(aroundup, newdirectionright)
+    rotation = aroundup ∘ aroundright
 
-    newupright = transform(aroundright, cameraview.up)
-    newup = transform(aroundup, newupright)
-    CameraView(newdirection, newup)
+    CameraView(cameraview, rotation)
 end
 
-onmousedrag(v::CameraView, ::MouseDragEndEvent) :: CameraView = v
+function onmousedrag(c::CameraView{T, System}, ::MouseDragEndEvent) :: CameraView{T, System} where {T, System}
+    # The constructor method that takes only `direction` and `up` sets the
+    # rotation to zero, so this effectively keeps the camera the same, but
+    # the direction and up vectors are transformed by the drag rotation.
+    CameraView{T, System}(direction(c), up(c))
+end
 
 end

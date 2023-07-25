@@ -131,4 +131,31 @@ for testcase in mousedragdirectiontestcases
         @test up(cameraview) ≈ testcase.resultup
     end
 end
+
+@testset "Dragging; 90 degrees around Y; No mouse drag event; Result direction is X" begin
+    # Arrange
+    cameraview = CameraView(Float64, S)
+
+    # Act
+    cameraview = onmousedrag(cameraview, MouseDragStartEvent())
+    cameraview = onmousedrag(cameraview, MouseDragPositionEvent((0.5, 0.0)))
+
+    # Assert
+    @test direction(cameraview) ≈ Vector3{Float64, S}(1.0, 0.0, 0.0)
+    @test up(cameraview) ≈ Vector3{Float64, S}(0.0, 1.0, 0.0)
+end
+
+@testset "Dragging; 45 and then 90 degrees around Y; No mouse drag event; Result direction is X" begin
+    # Arrange
+    cameraview = CameraView(Float64, S)
+
+    # Act
+    cameraview = onmousedrag(cameraview, MouseDragStartEvent())
+    cameraview = onmousedrag(cameraview, MouseDragPositionEvent((0.25, 0.0)))
+    cameraview = onmousedrag(cameraview, MouseDragPositionEvent((0.5, 0.0)))
+
+    # Assert
+    @test direction(cameraview) ≈ Vector3{Float64, S}(1.0, 0.0, 0.0)
+    @test up(cameraview) ≈ Vector3{Float64, S}(0.0, 1.0, 0.0)
+end
 end

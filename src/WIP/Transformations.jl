@@ -40,29 +40,41 @@ end
 # PointRotation is a rotation that rotates a vector `v` in the same
 # coordinate system that it originates in.
 struct PointRotation{T, System}
-    θ::T
-    axis::Vector3{T, System}
+    q::Quaternion{T}
+
+    function PointRotation{T, System}(θ::T, axis::Vector3{T, System}) where {T, System}
+        # This defines the quaternion that will rotate the vector `v`.
+        normalizedaxis = normalize(axis)
+        q = Quaternion{T}(
+            cos(θ / 2),
+            sin(θ / 2) * normalizedaxis.x,
+            sin(θ / 2) * normalizedaxis.y,
+            sin(θ / 2) * normalizedaxis.z,
+        )
+        new{T, System}(q)
+    end
+
+    function PointRotation{T, System}(q::Quaternion{T}) where {T, System}
+        new{T, System}(q)
+    end
 end
 
 function transform(r::PointRotation{T, System}, v::Vector3{T, System}) :: Vector3{T, System} where {T, System}
-    # This defines the quaternion that will rotate the vector `v`.
-    axis = normalize(r.axis)
-    q = Quaternion{T}(
-        cos(r.θ / 2),
-        sin(r.θ / 2) * axis.x, 
-        sin(r.θ / 2) * axis.y, 
-        sin(r.θ / 2) * axis.z, 
-    )
-    # ... along with its complement.
-    qstar = complement(q)
+    # The operator is q*v*qstar
+    qstar = complement(r.q)
     # Reinterpret `v` as a pure quaternion (with zero for its scalar value)
     vq = Quaternion{T}(zero(T), v.x, v.y, v.z)
     # This is the actual rotation.
-    result = q * vq * qstar
+    result = r.q * vq * qstar
     # This reinterprets the resulting quaternion as a vector.
     # This is assumed to be a pure quaternion, but we can make a debug assert here
     # if we want.
     Vector3{T, System}(result.ei, result.ej, result.ek)
+end
+
+# Composition of two rotations
+function Base.:∘(a::PointRotation{T, System}, b::PointRotation{T, System}) :: PointRotation{T, System} where {T, System}
+    PointRotation{T, System}(a.q * b.q)
 end
 
 # FrameRotation rotates a vector `v` from one coordinate system to another.
