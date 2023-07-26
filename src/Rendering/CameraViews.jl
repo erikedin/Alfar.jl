@@ -109,7 +109,8 @@ end
 struct CameraTranslationSpace end
 
 function lookat(c::CameraView{T, System}) :: Matrix4{T, CameraViewSpace, System} where {T, System}
-    d = direction(c)
+    # TODO Direction really ought to be calculated from a target position and the camera position.
+    d = -direction(c)
     u = up(c)
     r = right(c)
     p = position(c)
