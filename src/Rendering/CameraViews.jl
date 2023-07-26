@@ -60,7 +60,7 @@ struct CameraView{T, System}
 end
 
 function right(camera::CameraView{T, System}) :: Vector3{T, System} where {T, System}
-    normalize(cross(camera.direction, camera.up))
+    cross(camera.direction, camera.up)
 end
 
 function direction(cameraview::CameraView{T, System}) :: Vector3{T, System} where {T, System}

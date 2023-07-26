@@ -29,36 +29,6 @@ S = CameraViewCoordinateSystem1
     @test direction(cameraview) ≈ Vector3{Float64, S}(0f0, 0f0, -1f0)
 end
 
-#@testset "CameraView mouse drag; Mouse dragged from center to top middle; Viewing direction is (0, 0, 1)" begin
-#    # Arrange
-#    cameraview0 = CameraView()
-#    # Mouse is dragged from the center of the window (0, 0) to the top middle of the window (0, 1).
-#    dragposition = MouseDragPositionEvent((0, 1))
-
-#    # Act
-#    cameraview1 = onmousedrag(cameraview0, MouseDragStartEvent())
-#    cameraview2 = onmousedrag(cameraview1, dragposition)
-#    cameraview3 = onmousedrag(cameraview2, MouseDragEndEvent())
-
-#    # Assert
-#    @test direction(cameraview3) ≈ Vector4{Float32, World}(0f0, 0f0, 1f0, 0f0)
-#end
-
-#@testset "CameraView mouse drag; Center to half way to right; Viewing direction is (-1, 0, 0)" begin
-#    # Arrange
-#    cameraview0 = CameraView()
-#    # Mouse is dragged from the center of the window (0, 0) to the right of the window (1, 0).
-#    dragposition = MouseDragPositionEvent((0.5, 0.0))
-
-#    # Act
-#    cameraview1 = onmousedrag(cameraview0, MouseDragStartEvent())
-#    cameraview2 = onmousedrag(cameraview1, dragposition)
-#    cameraview3 = onmousedrag(cameraview2, MouseDragEndEvent())
-
-#    # Assert
-#    @test direction(cameraview3) ≈ Vector4{Float32, World}(-1f0, 0f0, 0f0, 0f0)
-#end
-
 struct MouseDragDirectionTestCase
     positions::Vector{NTuple{2, Float64}}
     resultdirection::Vector3{Float64, S}
