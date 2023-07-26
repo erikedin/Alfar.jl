@@ -270,4 +270,22 @@ for testcase in lookat_tests
     end
 end
 
+#
+# Regression tests
+#
+
+    #MouseDragDirectionTestCase([(0.0, 0.5)], DirectionAlongYPositive, UpAlongZPositive),
+@testset "Drag; CameraView{Float32, S} drag with Float64 Input; Expected values" begin
+    # Arrange
+    cameraview = CameraView{Float32, S}()
+
+    # Act
+    cameraview = onmousedrag(cameraview, MouseDragStartEvent())
+    cameraview = onmousedrag(cameraview, MouseDragPositionEvent((0.0, 0.5)))
+    cameraview = onmousedrag(cameraview, MouseDragEndEvent())
+
+    # Assert
+    @test direction(cameraview) ≈ Vector3{Float32, S}(0f0, 1f0, 0f0)
+end
+
 end

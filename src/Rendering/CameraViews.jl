@@ -83,13 +83,13 @@ function onmousedrag(cameraview::CameraView{T, System}, ev::MouseDragPositionEve
     # This is a counter-clockwise rotation, looking down the positive `up` axis.
     # In a right-handed coordinate system, which we use, quaternion rotations are positive angles in the _clockwise_
     # direction. So, the minus sign ensures that the angle is for clockwise rotations.
-    upangle = -ev.direction[1] * pi
+    upangle = convert(T, -ev.direction[1] * pi)
     # ev.direction[2] is a vertical mouse drag. This corresponds to a rotation around the `right` vector.
     # Why is there no minus sign here?
     # Dragging the mouse up is a positive value in the mouse position event. Since we want the camera to move
     # in the opposite way, it moves in a counter-clockwise direction around the `right` axis, looking down at the
     # positive right axis. So it already has the right sign, unlike the above angle.
-    rightangle = ev.direction[2] * pi
+    rightangle = convert(T, ev.direction[2] * pi)
     rightaxis = right(cameraview)
     aroundright = PointRotation{T, System}(rightangle, rightaxis)
     aroundup = PointRotation{T, System}(upangle, cameraview.up)
