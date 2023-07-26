@@ -18,6 +18,7 @@ using ModernGL
 
 using Alfar.Visualizer
 using Alfar.Visualizer: MouseDragEndEvent, MouseDragPositionEvent
+using Alfar.Visualizer.Objects.XYZMarkerObject
 using Alfar.Rendering.Cameras
 using Alfar.Rendering.Shaders
 using Alfar.Rendering.Meshs
@@ -66,50 +67,6 @@ function render(plane::IntersectingPlane, camera::Camera, camerastate::CameraSta
     uniform(plane.program, "color", plane.color)
 
     renderarray(plane.planevertices)
-end
-
-struct XYZMarker
-    program::ShaderProgram
-    lines::VertexArray{GL_LINES}
-
-    function XYZMarker()
-        program = ShaderProgram("shaders/visualization/vertex3dcolorlines.glsl", "shaders/visualization/fragmentcolorfromvertex.glsl")
-
-        vertices = GLfloat[
-            # X            # RED
-            0f0, 0f0, 0f0, 1f0, 0f0, 0f0, 1f0,
-            1f0, 0f0, 0f0, 1f0, 0f0, 0f0, 1f0,
-
-            # Y            # GREEN
-            0f0, 0f0, 0f0, 0f0, 1f0, 0f0, 1f0,
-            0f0, 1f0, 0f0, 0f0, 1f0, 0f0, 1f0,
-
-            # Z            # BLUE
-            0f0, 0f0, 0f0, 0f0, 0f0, 1f0, 1f0,
-            0f0, 0f0, 1f0, 0f0, 0f0, 1f0, 1f0,
-        ]
-        attribute = VertexAttribute(0, 3, GL_FLOAT, GL_FALSE, C_NULL)
-        coloroffset = Ptr{Cvoid}(3 * sizeof(GLfloat))
-        colorattribute = VertexAttribute(1, 4, GL_FLOAT, GL_FALSE, coloroffset)
-        vertexdata = VertexData{GLfloat}(vertices, VertexAttribute[attribute, colorattribute])
-        lines = VertexArray{GL_LINES}(vertexdata)
-
-        new(program, lines)
-    end
-end
-
-function render(marker::XYZMarker, camera::Camera, camerastate::CameraState)
-    use(marker.program)
-
-    projection = perspective(camera)
-    model = objectmodel()
-    view = lookat(camerastate)
-
-    uniform(marker.program, "projection", projection)
-    uniform(marker.program, "view", view)
-    uniform(marker.program, "model", model)
-
-    renderarray(marker.lines)
 end
 
 function fill1d!(data, i, color)
@@ -310,7 +267,7 @@ function Visualizer.render(camera::Camera, v::ViewportAlignment, state::Viewport
     glBindTexture(GL_TEXTURE_1D, v.wireframetexture.textureid)
     renderarray(v.wireframe)
 
-    render(v.marker, camera, camerastate(state))
+    XYZMarkerObject.render(v.marker, camera, camerastate(state))
 
     render(v.plane, camera, camerastate(state), Float32(state.distance))
 
@@ -330,7 +287,7 @@ function Visualizer.render(camera::Camera, v::ViewportAlignment, state::Viewport
     glBindTexture(GL_TEXTURE_1D, v.wireframetexture.textureid)
     renderarray(v.wireframe)
 
-    render(v.marker, camera, state.fixedcamerastate)
+    XYZMarkerObject.render(v.marker, camera, state.fixedcamerastate)
 
     render(v.plane, camera, state.fixedcamerastate, Float32(state.distance))
 end
