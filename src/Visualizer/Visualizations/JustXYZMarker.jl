@@ -19,11 +19,16 @@ using ModernGL
 using Alfar.Visualizer
 using Alfar.Visualizer: MouseDragEndEvent, MouseDragPositionEvent
 using Alfar.Rendering.Cameras
+using Alfar.Visualizer.Objects.XYZMarkerObject
 
-struct JustXYZMarkerState <: Visualizer.VisualizationState end
+struct JustXYZMarkerState <: Visualizer.VisualizationState
+    camerastate::CameraState
+end
 
 struct JustXYZMarker <: Visualizer.Visualization
+    marker::XYZMarker
 
+    JustXYZMarker() = new(XYZMarker())
 end
 
 function Visualizer.setflags(::JustXYZMarker)
@@ -32,10 +37,26 @@ function Visualizer.setflags(::JustXYZMarker)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 end
 
-Visualizer.setup(::JustXYZMarker) = JustXYZMarkerState()
+function Visualizer.setup(::JustXYZMarker)
+    originalcameraposition = CameraPosition((0f0, 0f0, 3f0), (0f0, 1f0, 0f0))
+    camerastate = CameraState(originalcameraposition, (0f0, 0f0, 0f0))
+    JustXYZMarkerState(camerastate)
+end
 Visualizer.update(::JustXYZMarker, state::JustXYZMarkerState) = state
 
-function Visualizer.render(::Camera, ::JustXYZMarker, ::JustXYZMarkerState)
+function Visualizer.render(camera::Camera, j::JustXYZMarker, state::JustXYZMarkerState)
+    #
+    # Viewport 1 (left)
+    #
+    glViewport(0, 0, camera.windowwidth, camera.windowheight)
+
+    XYZMarkerObject.render(j.marker, camera, state.camerastate)
+
+    #
+    # Viewport 2 (right)
+    #
+
+    # Leaving viewport 2 empty.
 end
 
 #onkeyboardinput(::Visualization, state::VisualizationState, ::KeyboardInputEvent) = state
