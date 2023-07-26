@@ -145,12 +145,32 @@ function Base.:*(m::Matrix4{T, ToSystem, FromSystem}, v::Vector4{T, FromSystem})
     )
 end
 
-function Base.:*(::Matrix4{T, ToSystem, Interim}, ::Matrix4{T, Interim, FromSystem}) :: Matrix4{T, ToSystem, FromSystem} where {T, ToSystem, FromSystem, Interim}
+function Base.:*(a::Matrix4{T, ToSystem, Interim}, b::Matrix4{T, Interim, FromSystem}) :: Matrix4{T, ToSystem, FromSystem} where {T, ToSystem, FromSystem, Interim}
+    a11 = a.a11 * b.a11 + a.a12 * b.a21 + a.a13 * b.a31 + a.a14 * b.a41
+    a12 = a.a11 * b.a12 + a.a12 * b.a22 + a.a13 * b.a32 + a.a14 * b.a42
+    a13 = a.a11 * b.a13 + a.a12 * b.a23 + a.a13 * b.a33 + a.a14 * b.a43
+    a14 = a.a11 * b.a14 + a.a12 * b.a24 + a.a13 * b.a34 + a.a14 * b.a44
+
+    a21 = a.a21 * b.a11 + a.a22 * b.a21 + a.a23 * b.a31 + a.a24 * b.a41
+    a22 = a.a21 * b.a12 + a.a22 * b.a22 + a.a23 * b.a32 + a.a24 * b.a42
+    a23 = a.a21 * b.a13 + a.a22 * b.a23 + a.a23 * b.a33 + a.a24 * b.a43
+    a24 = a.a21 * b.a14 + a.a22 * b.a24 + a.a23 * b.a34 + a.a24 * b.a44
+
+    a31 = a.a31 * b.a11 + a.a32 * b.a21 + a.a33 * b.a31 + a.a34 * b.a41
+    a32 = a.a31 * b.a12 + a.a32 * b.a22 + a.a33 * b.a32 + a.a34 * b.a42
+    a33 = a.a31 * b.a13 + a.a32 * b.a23 + a.a33 * b.a33 + a.a34 * b.a43
+    a34 = a.a31 * b.a14 + a.a32 * b.a24 + a.a33 * b.a34 + a.a34 * b.a44
+
+    a41 = a.a41 * b.a11 + a.a42 * b.a21 + a.a43 * b.a31 + a.a44 * b.a41
+    a42 = a.a41 * b.a12 + a.a42 * b.a22 + a.a43 * b.a32 + a.a44 * b.a42
+    a43 = a.a41 * b.a13 + a.a42 * b.a23 + a.a43 * b.a33 + a.a44 * b.a43
+    a44 = a.a41 * b.a14 + a.a42 * b.a24 + a.a43 * b.a34 + a.a44 * b.a44
+
     Matrix4{T, ToSystem, FromSystem}(
-        1f0, 0f0, 0f0, 0f0,
-        0f0, 1f0, 0f0, 0f0,
-        0f0, 0f0, 1f0, 0f0,
-        0f0, 0f0, 0f0, 1f0,
+        a11, a12, a13, a14,
+        a21, a22, a23, a24,
+        a31, a32, a33, a34,
+        a41, a42, a43, a44,
     )
 end
 

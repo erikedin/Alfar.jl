@@ -110,6 +110,57 @@ end
     @test c ≈ one(Matrix4{Float32, S1, S1})
 end
 
+@testset "Matrix4 I*B; Matrix has the same values as B" begin
+    # Arrange
+    a = one(Matrix4{Float32, S1, S2})
+    b = Matrix4{Float32, S2, S1}(
+        11f0, 12f0, 13f0, 14f0,
+        21f0, 22f0, 23f0, 24f0,
+        31f0, 32f0, 33f0, 34f0,
+        41f0, 42f0, 43f0, 44f0,
+    )
+    expected = Matrix4{Float32, S1, S1}(
+        11f0, 12f0, 13f0, 14f0,
+        21f0, 22f0, 23f0, 24f0,
+        31f0, 32f0, 33f0, 34f0,
+        41f0, 42f0, 43f0, 44f0,
+    )
+
+    # Act
+    c = a*b
+
+    # Assert
+    @test c ≈ expected
+end
+
+@testset "Matrix4 A*B; A and B have convenient values" begin
+    # Arrange
+    a = Matrix4{Float32, S3, S2}(
+        1f0, 10f0, 100f0, 1000f0,
+        2f0, 20f0, 200f0, 2000f0,
+        3f0, 30f0, 300f0, 3000f0,
+        4f0, 40f0, 400f0, 4000f0,
+    )
+    b = Matrix4{Float32, S2, S1}(
+        1f0, 2f0, 3f0, 4f0,
+        2f0, 3f0, 4f0, 5f0,
+        3f0, 4f0, 5f0, 6f0,
+        4f0, 5f0, 6f0, 7f0,
+    )
+    expected = Matrix4{Float32, S3, S1}(
+         4321f0,  5432f0,  6543f0,  7654f0,
+         8642f0, 10864f0, 13086f0, 15308f0,
+        12963f0, 16296f0, 19629f0, 22962f0,
+        17284f0, 21728f0, 26172f0, 30616f0,
+    )
+
+    # Act
+    c = a*b
+
+    # Assert
+    @test c ≈ expected
+end
+
 @testset "The Matrix4 value types do not match during multiplication; MethodError" begin
     # Arrange
     a = Matrix4{Float32, S1, S2}(
