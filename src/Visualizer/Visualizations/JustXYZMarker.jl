@@ -17,8 +17,10 @@ module JustXYZMarkers
 using ModernGL
 
 using Alfar.Visualizer
+import Alfar.Visualizer: onmousedrag
 using Alfar.Visualizer: MouseDragEndEvent, MouseDragPositionEvent
 using Alfar.Visualizer.Objects.XYZMarkerObject
+using Alfar.Visualizer.Inputs
 using Alfar.Rendering: World
 using Alfar.Rendering.Cameras
 using Alfar.Rendering.CameraViews
@@ -67,6 +69,23 @@ end
 
 #onkeyboardinput(::Visualization, state::VisualizationState, ::KeyboardInputEvent) = state
 #onmousescroll(::Visualization, state::VisualizationState, ::Tuple{Float64, Float64}) = state
-#onmousedrag(::Visualization, state::VisualizationState, ::MouseDragEvent) = state
+
+function onmousedrag(::JustXYZMarker, state::JustXYZMarkerState, ev::MouseDragStartEvent)
+    println("Drag: Start event")
+    newcameraview = CameraViews.onmousedrag(state.cameraview, ev)
+    JustXYZMarkerState(newcameraview)
+end
+
+function onmousedrag(::JustXYZMarker, state::JustXYZMarkerState, ev::MouseDragPositionEvent)
+    println("Drag: Position $(ev)")
+    newcameraview = CameraViews.onmousedrag(state.cameraview, ev)
+    JustXYZMarkerState(newcameraview)
+end
+
+function onmousedrag(::JustXYZMarker, state::JustXYZMarkerState, ev::MouseDragEndEvent)
+    println("Drag: End event")
+    newcameraview = CameraViews.onmousedrag(state.cameraview, ev)
+    JustXYZMarkerState(newcameraview)
+end
 
 end
