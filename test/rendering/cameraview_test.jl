@@ -159,6 +159,59 @@ end
     @test up(cameraview) ≈ Vector3{Float64, S}(0.0, 1.0, 0.0)
 end
 
+@testset "Right axis; Direction is (0, 0, -10) and up is (0, 2, 0); Right axis is normalized" begin
+    # Arrange
+    position = Vector3{Float32, S}(0f0, 0f0, -3f0)
+    direction = Vector3{Float32, S}(0f0, 0f0, -10f0)
+    up = Vector3{Float32, S}(0f0, 2f0, 0f0)
+    cameraview = CameraView{Float32, S}(position, direction, up)
+
+    # Act
+    r = right(cameraview)
+
+    # Assert
+    @test norm(r) ≈ 1
+end
+
+@testset "Direction; Direction is (0, 0, -10); Direction axis is normalized" begin
+    # Arrange
+    position = Vector3{Float32, S}(0f0, 0f0, -3f0)
+    initialdirection = Vector3{Float32, S}(0f0, 0f0, -10f0)
+    up = Vector3{Float32, S}(0f0, 2f0, 0f0)
+    cameraview = CameraView{Float32, S}(position, initialdirection, up)
+
+    # Act
+    d = direction(cameraview)
+
+    # Assert
+    @test norm(d) ≈ 1
+end
+
+@testset "Direction; Default CameraView; Direction axis is normalized" begin
+    # Arrange
+    cameraview = CameraView(Float32, S)
+
+    # Act
+    d = direction(cameraview)
+
+    # Assert
+    @test norm(d) ≈ 1
+end
+
+@testset "Direction; Update direction with (0, 0, -2); Direction axis is normalized" begin
+    # Arrange
+    cameraview0 = CameraView(Float32, S)
+    newdirection = Vector3{Float32, S}(0, 0, -2f0)
+    newup = Vector3{Float32, S}(0, 1f0, 0)
+    cameraview = CameraView{Float32, S}(cameraview0, newdirection, newup)
+
+    # Act
+    d = direction(cameraview)
+
+    # Assert
+    @test norm(d) ≈ 1
+end
+
 #
 # These are test cases for the `lookat` matrix, calculated from the camera view.
 # Essentially, the look-at matrix is the inverse of the camera view. If the camera is rotated
@@ -181,7 +234,7 @@ ViewUpAlongY = Vector4{Float64, CameraViewSpace}(0f0,  1f0,  0f0, 0f0)
 ViewUpAlongZ = Vector4{Float64, CameraViewSpace}(0f0,  0f0,  1f0, 0f0)
 
 lookat_tests = [
-    #LookAtTestCase([(0.0, 0.5)], -ViewDirectionAlongY, ViewUpAlongZ),
+    LookAtTestCase([(0.0, 0.5)], -ViewDirectionAlongY, ViewUpAlongZ),
 ]
 
 for testcase in lookat_tests

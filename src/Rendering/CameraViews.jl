@@ -18,7 +18,7 @@ using Alfar.WIP.Math
 using Alfar.Rendering.Inputs
 using Alfar.WIP.Transformations
 
-export CameraView, direction, up, onmousedrag, lookat, CameraViewSpace
+export CameraView, direction, up, right, onmousedrag, lookat, CameraViewSpace
 
 struct CameraViewSpace end
 
@@ -28,27 +28,40 @@ struct CameraView{T, System}
     up::Vector3{T, System}
     dragrotation::PointRotation{T, System}
 
+    function CameraView{T, System}(
+            position::Vector3{T, System},
+            direction::Vector3{T, System},
+            up::Vector3{T, System},
+            dragrotation::PointRotation{T, System}) where {T, System}
+        new{T, System}(position, normalize(direction), up, dragrotation)
+    end
+
     function CameraView(::Type{T}, ::Type{System}) where {T, System}
+    #function CameraView{T, System}() where {T, System}
         defaultposition = Vector3{T, System}(0, 0, 1.0)
         direction = Vector3{T, System}(0.0, 0.0, -1.0)
         up = Vector3{T, System}(0.0, 1.0, 0.0)
         norotation = PointRotation{T, System}(zero(T), Vector3{T, System}(one(T), zero(T), zero(T)))
-        new{T, System}(defaultposition, direction, up, norotation)
+        CameraView{T, System}(defaultposition, direction, up, norotation)
     end
 
-    function CameraView(cameraview::CameraView{T, System}, rotation::PointRotation{T, System}) where {T, System}
-        new{T, System}(cameraview.position, cameraview.direction, cameraview.up, rotation)
+    function CameraView{T, System}(position::Vector3{T, System}, direction::Vector3{T, System}, up::Vector3{T, System}) where {T, System}
+        norotation = PointRotation{T, System}(zero(T), Vector3{T, System}(one(T), zero(T), zero(T)))
+        CameraView{T, System}(position, normalize(direction), up, norotation)
+    end
+
+    function CameraView{T, System}(cameraview::CameraView{T, System}, rotation::PointRotation{T, System}) where {T, System}
+        CameraView{T, System}(cameraview.position, cameraview.direction, cameraview.up, rotation)
     end
 
     function CameraView{T, System}(cameraview::CameraView{T, System}, direction::Vector3{T, System}, up::Vector3{T, System}) where {T, System}
         norotation = PointRotation{T, System}(zero(T), Vector3{T, System}(one(T), zero(T), zero(T)))
-        new{T, System}(cameraview.position, direction, up, norotation)
+        CameraView{T, System}(cameraview.position, normalize(direction), up, norotation)
     end
 end
 
 function right(camera::CameraView{T, System}) :: Vector3{T, System} where {T, System}
-    # TODO Ensure normalization
-    cross(camera.direction, camera.up)
+    normalize(cross(camera.direction, camera.up))
 end
 
 function direction(cameraview::CameraView{T, System}) :: Vector3{T, System} where {T, System}
@@ -60,7 +73,7 @@ end
 
 position(c::CameraView{T, System}) where {T, System} = c.position
 
-onmousedrag(v::CameraView, ::MouseDragStartEvent) :: CameraView = v
+onmousedrag(v::CameraView{T, System}, ::MouseDragStartEvent) where {T, System} = v
 
 function onmousedrag(cameraview::CameraView{T, System}, ev::MouseDragPositionEvent) :: CameraView where {T, System}
     # ev.direction[1] is a horizontal mouse drag. This corresponds to a rotation around the `up` vector.
@@ -83,7 +96,7 @@ function onmousedrag(cameraview::CameraView{T, System}, ev::MouseDragPositionEve
     aroundup = PointRotation{T, System}(upangle, cameraview.up)
     rotation = aroundup ∘ aroundright
 
-    CameraView(cameraview, rotation)
+    CameraView{T, System}(cameraview, rotation)
 end
 
 function onmousedrag(c::CameraView{T, System}, ::MouseDragEndEvent) :: CameraView{T, System} where {T, System}
