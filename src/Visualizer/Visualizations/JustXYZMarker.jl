@@ -18,11 +18,14 @@ using ModernGL
 
 using Alfar.Visualizer
 using Alfar.Visualizer: MouseDragEndEvent, MouseDragPositionEvent
-using Alfar.Rendering.Cameras
 using Alfar.Visualizer.Objects.XYZMarkerObject
+using Alfar.Rendering: World
+using Alfar.Rendering.Cameras
+using Alfar.Rendering.CameraViews
+using Alfar.WIP.Math
 
 struct JustXYZMarkerState <: Visualizer.VisualizationState
-    camerastate::CameraState
+    cameraview::CameraView{Float32, World}
 end
 
 struct JustXYZMarker <: Visualizer.Visualization
@@ -38,10 +41,13 @@ function Visualizer.setflags(::JustXYZMarker)
 end
 
 function Visualizer.setup(::JustXYZMarker)
-    originalcameraposition = CameraPosition((0f0, 0f0, 3f0), (0f0, 1f0, 0f0))
-    camerastate = CameraState(originalcameraposition, (0f0, 0f0, 0f0))
-    JustXYZMarkerState(camerastate)
+    position = Vector3{Float32, World}(0f0, 0f0, 3f0)
+    direction = Vector3{Float32, World}(0f0, 0f0, -1f0)
+    up = Vector3{Float32, World}(0f0, 1f0, 0f0)
+    cameraview = CameraView{Float32, World}(position, direction, up)
+    JustXYZMarkerState(cameraview)
 end
+
 Visualizer.update(::JustXYZMarker, state::JustXYZMarkerState) = state
 
 function Visualizer.render(camera::Camera, j::JustXYZMarker, state::JustXYZMarkerState)
@@ -50,7 +56,7 @@ function Visualizer.render(camera::Camera, j::JustXYZMarker, state::JustXYZMarke
     #
     glViewport(0, 0, camera.windowwidth, camera.windowheight)
 
-    XYZMarkerObject.render(j.marker, camera, state.camerastate)
+    XYZMarkerObject.render(j.marker, camera, state.cameraview)
 
     #
     # Viewport 2 (right)

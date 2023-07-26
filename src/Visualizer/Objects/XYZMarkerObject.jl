@@ -20,6 +20,7 @@ using Alfar.Visualizer
 using Alfar.Rendering.Shaders
 using Alfar.Rendering.Meshs
 using Alfar.Rendering.Cameras
+using Alfar.Rendering.CameraViews
 
 export XYZMarker
 
@@ -58,7 +59,21 @@ function render(marker::XYZMarker, camera::Camera, camerastate::CameraState)
 
     projection = perspective(camera)
     model = objectmodel()
-    view = lookat(camerastate)
+    view = Cameras.lookat(camerastate)
+
+    uniform(marker.program, "projection", projection)
+    uniform(marker.program, "view", view)
+    uniform(marker.program, "model", model)
+
+    renderarray(marker.lines)
+end
+
+function render(marker::XYZMarker, camera::Camera, cameraview::CameraView)
+    use(marker.program)
+
+    projection = perspective(camera)
+    model = objectmodel()
+    view = CameraViews.lookat(cameraview)
 
     uniform(marker.program, "projection", projection)
     uniform(marker.program, "view", view)
