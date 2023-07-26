@@ -212,6 +212,45 @@ end
     @test norm(d) ≈ 1
 end
 
+@testset "Normalization; Default CameraView; Up vector is normalized" begin
+    # Arrange
+    cameraview = CameraView{Float32, S}()
+
+    # Act
+    u = up(cameraview)
+
+    # Assert
+    @test norm(u) ≈ 1
+end
+
+@testset "Normalization; Up is (0, 2, 0); Up vector is normalized" begin
+    # Arrange
+    initialposition = Vector3{Float32, S}(0f0, 0f0, -3f0)
+    initialdirection = Vector3{Float32, S}(0f0, 0f0, -1f0)
+    initialup = Vector3{Float32, S}(0f0, 2f0, 0f0)
+    cameraview = CameraView{Float32, S}(initialposition, initialdirection, initialup)
+
+    # Act
+    u = up(cameraview)
+
+    # Assert
+    @test norm(u) ≈ 1
+end
+
+@testset "Normalization; Update up to (0, 2, 0); Up vector is normalized" begin
+    # Arrange
+    cameraview0 = CameraView{Float32, S}()
+    newdirection = Vector3{Float32, S}(0f0, 0f0, -1f0)
+    newup = Vector3{Float32, S}(0f0, 2f0, 0f0)
+    cameraview = CameraView{Float32, S}(cameraview0, newdirection, newup)
+
+    # Act
+    u = up(cameraview)
+
+    # Assert
+    @test norm(u) ≈ 1
+end
+
 #
 # These are test cases for the `lookat` matrix, calculated from the camera view.
 # Essentially, the look-at matrix is the inverse of the camera view. If the camera is rotated

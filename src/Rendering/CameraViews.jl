@@ -33,7 +33,7 @@ struct CameraView{T, System}
             direction::Vector3{T, System},
             up::Vector3{T, System},
             dragrotation::PointRotation{T, System}) where {T, System}
-        new{T, System}(position, normalize(direction), up, dragrotation)
+        new{T, System}(position, normalize(direction), normalize(up), dragrotation)
     end
 
     function CameraView{T, System}() where {T, System}
@@ -46,7 +46,7 @@ struct CameraView{T, System}
 
     function CameraView{T, System}(position::Vector3{T, System}, direction::Vector3{T, System}, up::Vector3{T, System}) where {T, System}
         norotation = PointRotation{T, System}(zero(T), Vector3{T, System}(one(T), zero(T), zero(T)))
-        CameraView{T, System}(position, normalize(direction), up, norotation)
+        CameraView{T, System}(position, direction, up, norotation)
     end
 
     function CameraView{T, System}(cameraview::CameraView{T, System}, rotation::PointRotation{T, System}) where {T, System}
@@ -55,7 +55,7 @@ struct CameraView{T, System}
 
     function CameraView{T, System}(cameraview::CameraView{T, System}, direction::Vector3{T, System}, up::Vector3{T, System}) where {T, System}
         norotation = PointRotation{T, System}(zero(T), Vector3{T, System}(one(T), zero(T), zero(T)))
-        CameraView{T, System}(cameraview.position, normalize(direction), up, norotation)
+        CameraView{T, System}(cameraview.position, direction, up, norotation)
     end
 end
 
