@@ -16,7 +16,7 @@ using Alfar.Visualizer
 
 context = Visualizer.start()
 
-ev = Visualizer.SelectVisualizationEvent("ViewportAlignment")
+ev = Visualizer.SelectVisualizationEvent("JustXYZMarker")
 put!(context.channel, ev)
 
 Visualizer.waituntilstop(context)

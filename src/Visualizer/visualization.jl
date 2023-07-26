@@ -38,5 +38,6 @@ onkeyboardinput(::Visualization, state::VisualizationState, ::KeyboardInputEvent
 onmousescroll(::Visualization, state::VisualizationState, ::Tuple{Float64, Float64}) = state
 onmousedrag(::Visualization, state::VisualizationState, ::MouseDragEvent) = state
 
+include("Visualizations/JustXYZMarker.jl")
 include("Visualizations/ViewportAlignmentAlgorithm.jl")
 include("Visualizations/ViewportAnimated09.jl")
