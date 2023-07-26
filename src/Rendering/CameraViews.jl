@@ -36,8 +36,7 @@ struct CameraView{T, System}
         new{T, System}(position, normalize(direction), up, dragrotation)
     end
 
-    function CameraView(::Type{T}, ::Type{System}) where {T, System}
-    #function CameraView{T, System}() where {T, System}
+    function CameraView{T, System}() where {T, System}
         defaultposition = Vector3{T, System}(0, 0, 1.0)
         direction = Vector3{T, System}(0.0, 0.0, -1.0)
         up = Vector3{T, System}(0.0, 1.0, 0.0)

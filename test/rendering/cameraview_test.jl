@@ -23,7 +23,7 @@ S = CameraViewCoordinateSystem1
 
 @testset "Default CameraView; Viewing direction is (0, 0, -1)" begin
     # Arrange
-    cameraview = CameraView(Float64, S)
+    cameraview = CameraView{Float64, S}()
 
     # Assert
     @test direction(cameraview) ≈ Vector3{Float64, S}(0f0, 0f0, -1f0)
@@ -117,7 +117,7 @@ mousedragdirectiontestcases = [
 for testcase in mousedragdirectiontestcases
     @testset "Dragging: $(testcase.positions); Result direction is $(testcase.resultdirection)" begin
         # Arrange
-        cameraview = CameraView(Float64, S)
+        cameraview = CameraView{Float64, S}()
 
         # Act
         for dragposition in testcase.positions
@@ -134,7 +134,7 @@ end
 
 @testset "Dragging; 90 degrees around Y; No mouse drag event; Result direction is X" begin
     # Arrange
-    cameraview = CameraView(Float64, S)
+    cameraview = CameraView{Float64, S}()
 
     # Act
     cameraview = onmousedrag(cameraview, MouseDragStartEvent())
@@ -147,7 +147,7 @@ end
 
 @testset "Dragging; 45 and then 90 degrees around Y; No mouse drag event; Result direction is X" begin
     # Arrange
-    cameraview = CameraView(Float64, S)
+    cameraview = CameraView{Float64, S}()
 
     # Act
     cameraview = onmousedrag(cameraview, MouseDragStartEvent())
@@ -189,7 +189,7 @@ end
 
 @testset "Direction; Default CameraView; Direction axis is normalized" begin
     # Arrange
-    cameraview = CameraView(Float32, S)
+    cameraview = CameraView{Float32, S}()
 
     # Act
     d = direction(cameraview)
@@ -200,7 +200,7 @@ end
 
 @testset "Direction; Update direction with (0, 0, -2); Direction axis is normalized" begin
     # Arrange
-    cameraview0 = CameraView(Float32, S)
+    cameraview0 = CameraView{Float32, S}()
     newdirection = Vector3{Float32, S}(0, 0, -2f0)
     newup = Vector3{Float32, S}(0, 1f0, 0)
     cameraview = CameraView{Float32, S}(cameraview0, newdirection, newup)
@@ -240,7 +240,7 @@ lookat_tests = [
 for testcase in lookat_tests
     @testset "Lookat: $(testcase.positions); Result direction is $(testcase.direction) and up is $(testcase.up)" begin
         # Arrange
-        cameraview = CameraView(Float64, S)
+        cameraview = CameraView{Float64, S}()
         initialdirection = Vector4{Float64, S}(direction(cameraview))
         initialup = Vector4{Float64, S}(up(cameraview))
 
