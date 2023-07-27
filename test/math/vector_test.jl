@@ -72,6 +72,30 @@ for testcase in vector_addition_tests
     end
 end
 
+vector_subtraction_tests = [
+    TC(
+        Vector3{Float32, S}(2f0, 4f0, 6f0),
+        Vector3{Float32, S}(1f0, 2f0, 3f0),
+        Vector3{Float32, S}(1f0, 2f0, 3f0)
+    ),
+
+    TC(
+        Vector4{Float32, S}(0f0, 0f0, 0f0, 0f0),
+        Vector4{Float32, S}(5f0, 6f0, 7f0, 8f0),
+        Vector4{Float32, S}(-5f0, -6f0, -7f0, -8f0)
+    )
+]
+
+for testcase in vector_subtraction_tests
+    @testset "Subtraction; $(testcase.a) and $(testcase.b); result is $(testcase.result)" begin
+        # Act
+        result = testcase.a - testcase.b
+
+        # Assert
+        @test result ≈ testcase.result
+    end
+end
+
 vector_scalar_multiplication_tests = [
     TC(
         1f0,

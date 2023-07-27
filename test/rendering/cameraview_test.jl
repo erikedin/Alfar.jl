@@ -129,12 +129,12 @@ end
     @test up(cameraview) ≈ Vector3{Float64, S}(0.0, 1.0, 0.0)
 end
 
-@testset "Right axis; Direction is (0, 0, -10) and up is (0, 2, 0); Right axis is normalized" begin
+@testset "Right axis; Up is (0, 2, 0); Right axis is normalized" begin
     # Arrange
-    position = Vector3{Float32, S}(0f0, 0f0, -3f0)
-    direction = Vector3{Float32, S}(0f0, 0f0, -10f0)
+    position = Vector3{Float32, S}(0f0, 0f0, 3f0)
+    target = Vector3{Float32, S}(0f0, 0f0, 0f0)
     up = Vector3{Float32, S}(0f0, 2f0, 0f0)
-    cameraview = CameraView{Float32, S}(position, direction, up)
+    cameraview = CameraView{Float32, S}(position, target, up)
 
     # Act
     r = right(cameraview)
@@ -143,12 +143,12 @@ end
     @test norm(r) ≈ 1
 end
 
-@testset "Direction; Direction is (0, 0, -10); Direction axis is normalized" begin
+@testset "Direction; Position is (0, 0, 10) and target is (0, 0, 0); Direction axis is normalized" begin
     # Arrange
-    position = Vector3{Float32, S}(0f0, 0f0, -3f0)
-    initialdirection = Vector3{Float32, S}(0f0, 0f0, -10f0)
+    position = Vector3{Float32, S}(0f0, 0f0, 10f0)
+    target = Vector3{Float32, S}(0f0, 0f0, 0f0)
     up = Vector3{Float32, S}(0f0, 2f0, 0f0)
-    cameraview = CameraView{Float32, S}(position, initialdirection, up)
+    cameraview = CameraView{Float32, S}(position, target, up)
 
     # Act
     d = direction(cameraview)
@@ -160,20 +160,6 @@ end
 @testset "Direction; Default CameraView; Direction axis is normalized" begin
     # Arrange
     cameraview = CameraView{Float32, S}()
-
-    # Act
-    d = direction(cameraview)
-
-    # Assert
-    @test norm(d) ≈ 1
-end
-
-@testset "Direction; Update direction with (0, 0, -2); Direction axis is normalized" begin
-    # Arrange
-    cameraview0 = CameraView{Float32, S}()
-    newdirection = Vector3{Float32, S}(0, 0, -2f0)
-    newup = Vector3{Float32, S}(0, 1f0, 0)
-    cameraview = CameraView{Float32, S}(cameraview0, newdirection, newup)
 
     # Act
     d = direction(cameraview)
@@ -196,9 +182,9 @@ end
 @testset "Normalization; Up is (0, 2, 0); Up vector is normalized" begin
     # Arrange
     initialposition = Vector3{Float32, S}(0f0, 0f0, -3f0)
-    initialdirection = Vector3{Float32, S}(0f0, 0f0, -1f0)
+    target = Vector3{Float32, S}(0f0, 0f0, 0f0)
     initialup = Vector3{Float32, S}(0f0, 2f0, 0f0)
-    cameraview = CameraView{Float32, S}(initialposition, initialdirection, initialup)
+    cameraview = CameraView{Float32, S}(initialposition, target, initialup)
 
     # Act
     u = up(cameraview)
@@ -207,18 +193,18 @@ end
     @test norm(u) ≈ 1
 end
 
-@testset "Normalization; Update up to (0, 2, 0); Up vector is normalized" begin
+@testset "Target; Target is (0, 0, 0) and position (0, 0, 1); Direction is (0, 0, -1)" begin
     # Arrange
-    cameraview0 = CameraView{Float32, S}()
-    newdirection = Vector3{Float32, S}(0f0, 0f0, -1f0)
-    newup = Vector3{Float32, S}(0f0, 2f0, 0f0)
-    cameraview = CameraView{Float32, S}(cameraview0, newdirection, newup)
+    position = Vector3{Float32, S}(0f0, 0f0, 1f0)
+    target = Vector3{Float32, S}(0f0, 0f0, 0f0)
+    up = Vector3{Float32, S}(0f0, 1f0, 0f0)
+    cameraview = CameraView{Float32, S}(position, target, up)
 
     # Act
-    u = up(cameraview)
+    d = direction(cameraview)
 
     # Assert
-    @test norm(u) ≈ 1
+    @test d ≈ Vector3{Float32, S}(0f0, 0f0, -1f0)
 end
 
 #
@@ -274,7 +260,6 @@ end
 # Regression tests
 #
 
-    #MouseDragDirectionTestCase([(0.0, 0.5)], DirectionAlongYPositive, UpAlongZPositive),
 @testset "Drag; CameraView{Float32, S} drag with Float64 Input; Expected values" begin
     # Arrange
     cameraview = CameraView{Float32, S}()

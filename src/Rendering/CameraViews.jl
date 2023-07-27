@@ -24,53 +24,49 @@ struct CameraViewSpace end
 
 struct CameraView{T, System}
     position::Vector3{T, System}
-    direction::Vector3{T, System}
+    target::Vector3{T, System}
     up::Vector3{T, System}
     dragrotation::PointRotation{T, System}
 
     function CameraView{T, System}(
             position::Vector3{T, System},
-            direction::Vector3{T, System},
+            target::Vector3{T, System},
             up::Vector3{T, System},
             dragrotation::PointRotation{T, System}) where {T, System}
-        new{T, System}(position, normalize(direction), normalize(up), dragrotation)
+        new{T, System}(position, target, normalize(up), dragrotation)
     end
 
     function CameraView{T, System}() where {T, System}
         defaultposition = Vector3{T, System}(0, 0, 1.0)
-        direction = Vector3{T, System}(0.0, 0.0, -1.0)
+        defaulttarget = Vector3{T, System}(0.0, 0.0, 0.0)
         up = Vector3{T, System}(0.0, 1.0, 0.0)
         norotation = PointRotation{T, System}(zero(T), Vector3{T, System}(one(T), zero(T), zero(T)))
-        CameraView{T, System}(defaultposition, direction, up, norotation)
+        CameraView{T, System}(defaultposition, defaulttarget, up, norotation)
     end
 
-    function CameraView{T, System}(position::Vector3{T, System}, direction::Vector3{T, System}, up::Vector3{T, System}) where {T, System}
+    function CameraView{T, System}(position::Vector3{T, System}, target::Vector3{T, System}, up::Vector3{T, System}) where {T, System}
         norotation = PointRotation{T, System}(zero(T), Vector3{T, System}(one(T), zero(T), zero(T)))
-        CameraView{T, System}(position, direction, up, norotation)
+        CameraView{T, System}(position, target, up, norotation)
     end
 
     function CameraView{T, System}(cameraview::CameraView{T, System}, rotation::PointRotation{T, System}) where {T, System}
-        CameraView{T, System}(cameraview.position, cameraview.direction, cameraview.up, rotation)
-    end
-
-    function CameraView{T, System}(cameraview::CameraView{T, System}, direction::Vector3{T, System}, up::Vector3{T, System}) where {T, System}
-        norotation = PointRotation{T, System}(zero(T), Vector3{T, System}(one(T), zero(T), zero(T)))
-        CameraView{T, System}(cameraview.position, direction, up, norotation)
+        CameraView{T, System}(cameraview.position, cameraview.target, cameraview.up, rotation)
     end
 end
 
-function right(camera::CameraView{T, System}) :: Vector3{T, System} where {T, System}
-    cross(camera.direction, camera.up)
+function right(cameraview::CameraView{T, System}) :: Vector3{T, System} where {T, System}
+    cross(direction(cameraview), up(cameraview))
 end
 
 function direction(cameraview::CameraView{T, System}) :: Vector3{T, System} where {T, System}
-    transform(cameraview.dragrotation, cameraview.direction)
+    direction = normalize(cameraview.target - cameraview.position)
+    transform(cameraview.dragrotation, direction)
 end
 function up(cameraview::CameraView{T, System}) :: Vector3{T, System} where {T, System}
     transform(cameraview.dragrotation, cameraview.up)
 end
 
-position(c::CameraView{T, System}) where {T, System} = c.position
+position(c::CameraView{T, System}) where {T, System} = transform(c.dragrotation, c.position)
 
 onmousedrag(v::CameraView{T, System}, ::MouseDragStartEvent) where {T, System} = v
 
@@ -99,17 +95,15 @@ function onmousedrag(cameraview::CameraView{T, System}, ev::MouseDragPositionEve
 end
 
 function onmousedrag(c::CameraView{T, System}, ::MouseDragEndEvent) :: CameraView{T, System} where {T, System}
-    # The constructor method that takes only `direction` and `up` sets the
-    # rotation to zero, so this effectively keeps the camera the same, but
-    # the direction and up vectors are transformed by the drag rotation.
-    # The position remains the same.
-    CameraView{T, System}(c, direction(c), up(c))
+    # Create a new camera view with position and up vectors transformed by the rotation operator.
+    # This constructor sets the rotation operator to no rotation.
+    # Essentially, this saves the drag transformation that the user has done with the mouse.
+    CameraView{T, System}(position(c), c.target, up(c))
 end
 
 struct CameraTranslationSpace end
 
 function lookat(c::CameraView{T, System}) :: Matrix4{T, CameraViewSpace, System} where {T, System}
-    # TODO Direction really ought to be calculated from a target position and the camera position.
     d = -direction(c)
     u = up(c)
     r = right(c)
