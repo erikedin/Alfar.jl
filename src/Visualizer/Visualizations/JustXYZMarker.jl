@@ -44,9 +44,9 @@ end
 
 function Visualizer.setup(::JustXYZMarker)
     position = Vector3{Float32, World}(0f0, 0f0, 3f0)
-    direction = Vector3{Float32, World}(0f0, 0f0, -1f0)
+    target = Vector3{Float32, World}(0f0, 0f0, 0f0)
     up = Vector3{Float32, World}(0f0, 1f0, 0f0)
-    cameraview = CameraView{Float32, World}(position, direction, up)
+    cameraview = CameraView{Float32, World}(position, target, up)
     JustXYZMarkerState(cameraview)
 end
 
