@@ -35,19 +35,17 @@ struct MouseDragDirectionTestCase
     resultup::Vector3{Float64, S}
 end
 
-DirectionAlongXPositive = Vector3{Float64, S}( 1f0,  0f0,  0f0)
-DirectionAlongXNegative = Vector3{Float64, S}(-1f0,  0f0,  0f0)
-DirectionAlongYPositive = Vector3{Float64, S}( 0f0,  1f0,  0f0)
-DirectionAlongYNegative = Vector3{Float64, S}( 0f0, -1f0,  0f0)
-DirectionAlongZPositive = Vector3{Float64, S}( 0f0,  0f0,  1f0)
-DirectionAlongZNegative = Vector3{Float64, S}( 0f0,  0f0, -1f0)
+DirectionAlongX = Vector3{Float64, S}( 1f0,  0f0,  0f0)
+DirectionAlongY = Vector3{Float64, S}( 0f0,  1f0,  0f0)
+DirectionAlongZ = Vector3{Float64, S}( 0f0,  0f0,  1f0)
 
-UpAlongXPositive = Vector3{Float64, S}( 1f0,  0f0,  0f0)
-UpAlongXNegative = Vector3{Float64, S}(-1f0,  0f0,  0f0)
-UpAlongYPositive = Vector3{Float64, S}( 0f0,  1f0,  0f0)
-UpAlongYNegative = Vector3{Float64, S}( 0f0, -1f0,  0f0)
-UpAlongZPositive = Vector3{Float64, S}( 0f0,  0f0,  1f0)
-UpAlongZNegative = Vector3{Float64, S}( 0f0,  0f0, -1f0)
+UpAlongX = Vector3{Float64, S}( 1f0,  0f0,  0f0)
+UpAlongY = Vector3{Float64, S}( 0f0,  1f0,  0f0)
+UpAlongZ = Vector3{Float64, S}( 0f0,  0f0,  1f0)
+
+RightAlongX = Vector3{Float64, S}( 1f0,  0f0,  0f0)
+RightAlongY = Vector3{Float64, S}( 0f0,  1f0,  0f0)
+RightAlongZ = Vector3{Float64, S}( 0f0,  0f0,  1f0)
 
 mousedragdirectiontestcases = [
     # All these test cases start off with the default direction -Z.
@@ -56,32 +54,32 @@ mousedragdirectiontestcases = [
     # always along the same axis. This means that the axis around which we rotate
     # doesn't change, and that is the simplest case.
     # Around the X axis, 90 degree turns
-    MouseDragDirectionTestCase([(0.0, 0.5)], DirectionAlongYPositive, UpAlongZPositive),
-    MouseDragDirectionTestCase([(0.0, -0.5)], DirectionAlongYNegative, UpAlongZNegative),
-    MouseDragDirectionTestCase([(0.0, 0.5), (0.0, 0.5)], DirectionAlongZPositive, UpAlongYNegative),
-    MouseDragDirectionTestCase([(0.0, 0.5), (0.0, 0.5), (0.0, 0.5)], DirectionAlongYNegative, UpAlongZNegative),
-    MouseDragDirectionTestCase([(0.0, 0.5), (0.0, 0.5), (0.0, 0.5), (0.0, 0.5)], DirectionAlongZNegative, UpAlongYPositive),
+    MouseDragDirectionTestCase([(0.0, 0.5)], DirectionAlongY, UpAlongZ),
+    MouseDragDirectionTestCase([(0.0, -0.5)], -DirectionAlongY, -UpAlongZ),
+    MouseDragDirectionTestCase([(0.0, 0.5), (0.0, 0.5)], DirectionAlongZ, -UpAlongY),
+    MouseDragDirectionTestCase([(0.0, 0.5), (0.0, 0.5), (0.0, 0.5)], -DirectionAlongY, -UpAlongZ),
+    MouseDragDirectionTestCase([(0.0, 0.5), (0.0, 0.5), (0.0, 0.5), (0.0, 0.5)], -DirectionAlongZ, UpAlongY),
     # Around the Y axis, 90 degrees
-    MouseDragDirectionTestCase([(0.5, 0.0)], DirectionAlongXPositive, UpAlongYPositive),
-    MouseDragDirectionTestCase([(0.5, 0.0), (0.5, 0.0)], DirectionAlongZPositive, UpAlongYPositive),
-    MouseDragDirectionTestCase([(0.5, 0.0), (0.5, 0.0), (0.5, 0.0)], DirectionAlongXNegative, UpAlongYPositive),
-    MouseDragDirectionTestCase([(0.5, 0.0), (0.5, 0.0), (0.5, 0.0), (0.5, 0.0)], DirectionAlongZNegative, UpAlongYPositive),
+    MouseDragDirectionTestCase([(0.5, 0.0)], DirectionAlongX, UpAlongY),
+    MouseDragDirectionTestCase([(0.5, 0.0), (0.5, 0.0)], DirectionAlongZ, UpAlongY),
+    MouseDragDirectionTestCase([(0.5, 0.0), (0.5, 0.0), (0.5, 0.0)], -DirectionAlongX, UpAlongY),
+    MouseDragDirectionTestCase([(0.5, 0.0), (0.5, 0.0), (0.5, 0.0), (0.5, 0.0)], -DirectionAlongZ, UpAlongY),
 
     # Here are some test cases for 180 degree turns.
     # Since the starting direction is -Z, any 180 degree turn will end up at +Z.
     # Drag the camera 180 degrees around the X axis
-    MouseDragDirectionTestCase([(0.0, 1.0)], DirectionAlongZPositive, UpAlongYNegative),
-    MouseDragDirectionTestCase([(0.0, -1.0)], DirectionAlongZPositive, UpAlongYNegative),
+    MouseDragDirectionTestCase([(0.0, 1.0)], DirectionAlongZ, -UpAlongY),
+    MouseDragDirectionTestCase([(0.0, -1.0)], DirectionAlongZ, -UpAlongY),
     # Drag the camera 180 degrees around the Y axis
-    MouseDragDirectionTestCase([(1.0, 0.0)], DirectionAlongZPositive, UpAlongYPositive),
-    MouseDragDirectionTestCase([(-1.0, 0.0)], DirectionAlongZPositive, UpAlongYPositive),
+    MouseDragDirectionTestCase([(1.0, 0.0)], DirectionAlongZ, UpAlongY),
+    MouseDragDirectionTestCase([(-1.0, 0.0)], DirectionAlongZ, UpAlongY),
 
     # These test cases rotate both horizontally and vertically.
     # 1. Horizontal rotation 90 degrees (around the Y axis
     #    The `right` vector is now +Z.
     # 2. Vertical rotation 90 degrees, which is around the Z axis.
     # Result: Direction is in the +Y direction.
-    MouseDragDirectionTestCase([(0.5, 0.0), (0.0, 0.5)], DirectionAlongYPositive, UpAlongXNegative),
+    MouseDragDirectionTestCase([(0.5, 0.0), (0.0, 0.5)], DirectionAlongY, -UpAlongX),
 ]
 
 for testcase in mousedragdirectiontestcases
