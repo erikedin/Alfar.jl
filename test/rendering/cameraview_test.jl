@@ -176,7 +176,7 @@ cameraview_position_noendevent_testcases = [
     # Rotation around the X axis. Camera moves up, in a counterclockwise rotation.
     CameraViewPositionTestCase([(0.0, -0.5)], Position(0.0, 1.0, 0.0)),
     CameraViewPositionTestCase([(0.0, -0.25), (0.0, -0.5)], Position(0.0, 1.0, 0.0)),
-    #CameraViewPositionTestCase([(0.0, -0.25), (0.1, -0.25), (0.0, -0.5)], Position(0.0, 1.0, 0.0)),
+    CameraViewPositionTestCase([(0.0, -0.25), (0.1, -0.25), (0.0, -0.5)], Position(0.0, 1.0, 0.0)),
 ]
 
 for testcase in cameraview_position_noendevent_testcases
