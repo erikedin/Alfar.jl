@@ -77,6 +77,15 @@ function Base.:∘(a::PointRotation{T, System}, b::PointRotation{T, System}) :: 
     PointRotation{T, System}(a.q * b.q)
 end
 
+# Comparison
+function Base.isapprox(a::PointRotation{T, System}, b::PointRotation{T, System}) where {T, System}
+    atol = sqrt(eps(T))
+    isapprox(a.q.e0, b.q.e0; atol=atol) &&
+    isapprox(a.q.ei, b.q.ei; atol=atol) &&
+    isapprox(a.q.ej, b.q.ej; atol=atol) &&
+    isapprox(a.q.ek, b.q.ek; atol=atol)
+end
+
 # FrameRotation rotates a vector `v` from one coordinate system to another.
 
 end

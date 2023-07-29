@@ -147,4 +147,74 @@ for testcase in point_rotation_test_cases_64
     end
 end
 
+#
+# PointRotation comparisons
+#
+
+@testset "Comparison; A and B are 90 degrees around X; The same" begin
+    # Arrange
+    a = PointRotation{Float32, S}(0.5f0 * pi, Vector3{Float32, S}(1f0, 0f0, 0f0))
+    b = PointRotation{Float32, S}(0.5f0 * pi, Vector3{Float32, S}(1f0, 0f0, 0f0))
+
+    # Act and Assert
+    @test a ≈ b
+end
+
+@testset "Comparison; A and B are around X, but 90 and 45 resp; Not the same" begin
+    # Arrange
+    a = PointRotation{Float32, S}(0.5f0 * pi, Vector3{Float32, S}(1f0, 0f0, 0f0))
+    b = PointRotation{Float32, S}(0.25f0 * pi, Vector3{Float32, S}(1f0, 0f0, 0f0))
+
+    # Act and Assert
+    @test a ≉ b
+end
+
+@testset "Comparison; A and B not the same X component; Not the same" begin
+    # Arrange
+    a = PointRotation{Float32, S}(0.5f0 * pi, Vector3{Float32, S}( 1f0, 0f0, 0f0))
+    b = PointRotation{Float32, S}(0.5f0 * pi, Vector3{Float32, S}(-1f0, 0f0, 0f0))
+
+    # Act and Assert
+    @test a ≉ b
+end
+
+@testset "Comparison; A and B not the same Y component; Not the same" begin
+    # Arrange
+    a = PointRotation{Float32, S}(0.5f0 * pi, Vector3{Float32, S}(0f0, -1f0, 0f0))
+    b = PointRotation{Float32, S}(0.5f0 * pi, Vector3{Float32, S}(0f0,  1f0, 0f0))
+
+    # Act and Assert
+    @test a ≉ b
+end
+
+@testset "Comparison; A and B not the same Z component; Not the same" begin
+    # Arrange
+    a = PointRotation{Float32, S}(0.5f0 * pi, Vector3{Float32, S}(0f0, 0f0,  1f0))
+    b = PointRotation{Float32, S}(0.5f0 * pi, Vector3{Float32, S}(0f0, 0f0, -1f0))
+
+    # Act and Assert
+    @test a ≉ b
+end
+
+@testset "Comparison; A and B don't have the same value type; MethodError" begin
+    # Arrange
+    a = PointRotation{Float32, S}(0.5f0 * pi, Vector3{Float32, S}(0f0, 0f0, 1f0))
+    b = PointRotation{Float64, S}(0.5 * pi, Vector3{Float64, S}(0.0, 0.0, 1.0))
+
+    # Act and Assert
+    @test_throws MethodError a ≈ b
+end
+
+@testset "Comparison; A and B don't have the same coordinate system; MethodError" begin
+    # Arrange
+    a = PointRotation{Float32, S}(0.5f0 * pi, Vector3{Float32, S}(0f0, 0f0, 1f0))
+    b = PointRotation{Float32, R}(0.5f0 * pi, Vector3{Float32, R}(0f0, 0f0, 1f0))
+
+    # Act and Assert
+    @test_throws MethodError a ≈ b
+end
+
+# TODO MethodError on different value type
+# TODO MethodError on different coordinate system
+
 end
