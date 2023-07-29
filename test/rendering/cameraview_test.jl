@@ -102,6 +102,67 @@ for testcase in mousedragdirectiontestcases
     end
 end
 
+# Helper names fo the position test cases.
+Position = Vector3{Float64, S}
+
+# CameraViewPositionTestCase checks the position after a series of mouse drags.
+# The CameraView starts at position (0, 0, 1).
+# The initial direction is (0, 0, -1).
+# The initial up is (0, 1, 0).
+# The initial right is (1, 0, 0)
+struct CameraViewPositionTestCase
+    mousedrags::Vector{NTuple{2, Float64}}
+    expectedposition::Vector3{Float64, S}
+end
+
+cameraview_position_testcases = [
+    CameraViewPositionTestCase([], Position(0.0, 0.0, 1.0)),
+
+    # Rotation around the Y axis, camera moves to the left, in a counterclockwise rotation.
+    CameraViewPositionTestCase([(0.5, 0.0)], Position(-1.0, 0.0, 0.0)),
+    CameraViewPositionTestCase([(0.5, 0.0), (0.5, 0.0)], Position(0.0, 0.0, -1.0)),
+    CameraViewPositionTestCase([(0.5, 0.0), (0.5, 0.0), (0.5, 0.0)], Position(1.0, 0.0, 0.0)),
+    CameraViewPositionTestCase([(0.5, 0.0), (0.5, 0.0), (0.5, 0.0), (0.5, 0.0)], Position(0.0, 0.0, 1.0)),
+
+    # Rotation around the Y axis, camera moves to the right, in a clockwise rotation.
+    CameraViewPositionTestCase([(-0.5, 0.0)], Position(1.0, 0.0, 0.0)),
+    CameraViewPositionTestCase([(-0.5, 0.0), (-0.5, 0.0)], Position(0.0, 0.0, -1.0)),
+    CameraViewPositionTestCase([(-0.5, 0.0), (-0.5, 0.0), (-0.5, 0.0)], Position(-1.0, 0.0, 0.0)),
+    CameraViewPositionTestCase([(-0.5, 0.0), (-0.5, 0.0), (-0.5, 0.0), (-0.5, 0.0)], Position(0.0, 0.0, 1.0)),
+
+    # Rotation around the X axis. Camera moves down, in a clockwise rotation.
+    CameraViewPositionTestCase([(0.0, 0.5)], Position(0.0, -1.0, 0.0)),
+    CameraViewPositionTestCase([(0.0, 0.5), (0.0, 0.5)], Position(0.0, 0.0, -1.0)),
+    CameraViewPositionTestCase([(0.0, 0.5), (0.0, 0.5), (0.0, 0.5)], Position(0.0, 1.0, 0.0)),
+    CameraViewPositionTestCase([(0.0, 0.5), (0.0, 0.5), (0.0, 0.5), (0.0, 0.5)], Position(0.0, 0.0, 1.0)),
+
+    # Rotation around the X axis. Camera moves up, in a counterclockwise rotation.
+    CameraViewPositionTestCase([(0.0, -0.5)], Position(0.0, 1.0, 0.0)),
+    CameraViewPositionTestCase([(0.0, -0.5), (0.0, -0.5)], Position(0.0, 0.0, -1.0)),
+    CameraViewPositionTestCase([(0.0, -0.5), (0.0, -0.5), (0.0, -0.5)], Position(0.0, -1.0, 0.0)),
+    CameraViewPositionTestCase([(0.0, -0.5), (0.0, -0.5), (0.0, -0.5), (0.0, -0.5)], Position(0.0, 0.0, 1.0)),
+]
+
+for testcase in cameraview_position_testcases
+    @testset "CameraView position: $(testcase.mousedrags): $(testcase.expectedposition)" begin
+        # Arrange
+        initialposition = Vector3{Float64, S}(0.0, 0.0, 1.0)
+        initialdirection = Vector3{Float64, S}(0.0, 0.0, -1.0)
+        initialup = Vector3{Float64, S}(0.0, 1.0, 0.0)
+        cameraview = CameraView{Float64, S}()
+
+        # Act
+        for drag in testcase.mousedrags
+            cameraview = onmousedrag(cameraview, MouseDragStartEvent())
+            cameraview = onmousedrag(cameraview, MouseDragPositionEvent(drag))
+            cameraview = onmousedrag(cameraview, MouseDragEndEvent())
+        end
+
+        # Assert
+        @test cameraposition(cameraview) ≈ testcase.expectedposition
+    end
+end
+
 @testset "Dragging; 90 degrees around Y; No mouse drag event; Result direction is X" begin
     # Arrange
     cameraview = CameraView{Float64, S}()

@@ -19,6 +19,7 @@ using Alfar.Rendering.Inputs
 using Alfar.WIP.Transformations
 
 export CameraView, direction, up, right, onmousedrag, lookat, CameraViewSpace
+export cameraposition
 
 struct CameraViewSpace end
 
@@ -66,7 +67,7 @@ function up(cameraview::CameraView{T, System}) :: Vector3{T, System} where {T, S
     transform(cameraview.dragrotation, cameraview.up)
 end
 
-position(c::CameraView{T, System}) where {T, System} = transform(c.dragrotation, c.position)
+cameraposition(c::CameraView{T, System}) where {T, System} = transform(c.dragrotation, c.position)
 
 onmousedrag(v::CameraView{T, System}, ::MouseDragStartEvent) where {T, System} = v
 
@@ -98,7 +99,7 @@ function onmousedrag(c::CameraView{T, System}, ::MouseDragEndEvent) :: CameraVie
     # Create a new camera view with position and up vectors transformed by the rotation operator.
     # This constructor sets the rotation operator to no rotation.
     # Essentially, this saves the drag transformation that the user has done with the mouse.
-    CameraView{T, System}(position(c), c.target, up(c))
+    CameraView{T, System}(cameraposition(c), c.target, up(c))
 end
 
 struct CameraTranslationSpace end
@@ -107,7 +108,7 @@ function lookat(c::CameraView{T, System}) :: Matrix4{T, CameraViewSpace, System}
     d = -direction(c)
     u = up(c)
     r = right(c)
-    p = position(c)
+    p = cameraposition(c)
     translation = Matrix4{T, CameraTranslationSpace, System}(
          one(T), zero(T), zero(T), -p.x,
         zero(T),  one(T), zero(T), -p.y,
