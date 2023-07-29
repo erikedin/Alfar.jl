@@ -163,6 +163,41 @@ for testcase in cameraview_position_testcases
     end
 end
 
+# Tests for the CameraView position during mouse drags, but no mouse drag end event.
+# This means that the latest position event is the one that determines the camera view position.
+# This is actually the most realistic test case, as lots of position events are sent
+# for every mouse drag, as the cursor moves.
+cameraview_position_noendevent_testcases = [
+    # Rotation around the Y axis, camera moves to the left, in a counterclockwise rotation.
+    CameraViewPositionTestCase([(0.5, 0.0)], Position(-1.0, 0.0, 0.0)),
+    CameraViewPositionTestCase([(0.25, 0.0), (0.5, 0.0)], Position(-1.0, 0.0, 0.0)),
+    CameraViewPositionTestCase([(0.25, 0.0), (0.25, 0.1), (0.5, 0.0)], Position(-1.0, 0.0, 0.0)),
+
+    # Rotation around the X axis. Camera moves up, in a counterclockwise rotation.
+    CameraViewPositionTestCase([(0.0, -0.5)], Position(0.0, 1.0, 0.0)),
+    CameraViewPositionTestCase([(0.0, -0.25), (0.0, -0.5)], Position(0.0, 1.0, 0.0)),
+    #CameraViewPositionTestCase([(0.0, -0.25), (0.1, -0.25), (0.0, -0.5)], Position(0.0, 1.0, 0.0)),
+]
+
+for testcase in cameraview_position_noendevent_testcases
+    @testset "CameraView position with no end event: $(testcase.mousedrags): $(testcase.expectedposition)" begin
+        # Arrange
+        initialposition = Vector3{Float64, S}(0.0, 0.0, 1.0)
+        initialdirection = Vector3{Float64, S}(0.0, 0.0, -1.0)
+        initialup = Vector3{Float64, S}(0.0, 1.0, 0.0)
+        cameraview = CameraView{Float64, S}()
+
+        # Act
+        cameraview = onmousedrag(cameraview, MouseDragStartEvent())
+        for drag in testcase.mousedrags
+            cameraview = onmousedrag(cameraview, MouseDragPositionEvent(drag))
+        end
+
+        # Assert
+        @test cameraposition(cameraview) ≈ testcase.expectedposition
+    end
+end
+
 @testset "Dragging; 90 degrees around Y; No mouse drag event; Result direction is X" begin
     # Arrange
     cameraview = CameraView{Float64, S}()
