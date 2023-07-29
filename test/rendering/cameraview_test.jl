@@ -314,6 +314,7 @@ struct LookAtTestCase
     positions::Vector{NTuple{2, Float64}}
     direction::Vector4{Float64, CameraViewSpace}
     up::Vector4{Float64, CameraViewSpace}
+    right::Vector4{Float64, CameraViewSpace}
 end
 
 ViewDirectionAlongX = Vector4{Float64, CameraViewSpace}(1f0,  0f0,  0f0, 0f0)
@@ -324,8 +325,12 @@ ViewUpAlongX = Vector4{Float64, CameraViewSpace}(1f0,  0f0,  0f0, 0f0)
 ViewUpAlongY = Vector4{Float64, CameraViewSpace}(0f0,  1f0,  0f0, 0f0)
 ViewUpAlongZ = Vector4{Float64, CameraViewSpace}(0f0,  0f0,  1f0, 0f0)
 
+ViewRightAlongX = Vector4{Float64, CameraViewSpace}(1f0,  0f0,  0f0, 0f0)
+ViewRightAlongY = Vector4{Float64, CameraViewSpace}(0f0,  1f0,  0f0, 0f0)
+ViewRightAlongZ = Vector4{Float64, CameraViewSpace}(0f0,  0f0,  1f0, 0f0)
+
 lookat_tests = [
-    LookAtTestCase([(0.0, 0.5)], -ViewDirectionAlongY, -ViewUpAlongZ),
+    LookAtTestCase([(0.0, 0.5)], -ViewDirectionAlongY, -ViewUpAlongZ, ViewRightAlongX),
 ]
 
 for testcase in lookat_tests
@@ -334,6 +339,7 @@ for testcase in lookat_tests
         cameraview = CameraView{Float64, S}()
         initialdirection = Vector4{Float64, S}(direction(cameraview))
         initialup = Vector4{Float64, S}(up(cameraview))
+        initialright = Vector4{Float64, S}(right(cameraview))
 
         # Act
         for dragposition in testcase.positions
@@ -345,10 +351,12 @@ for testcase in lookat_tests
         m = lookat(cameraview)
         resultdirection = m * initialdirection
         resultup = m * initialup
+        resultright = m * initialright
 
         # Assert
         @test resultdirection ≈ testcase.direction
         @test resultup ≈ testcase.up
+        @test resultright ≈ testcase.right
     end
 end
 
