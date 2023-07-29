@@ -17,12 +17,16 @@ module ViewportAlignmentAlgorithm
 using ModernGL
 
 using Alfar.Visualizer
-using Alfar.Visualizer: MouseDragEndEvent, MouseDragPositionEvent
+using Alfar.Visualizer: MouseDragStartEvent, MouseDragEndEvent, MouseDragPositionEvent
 using Alfar.Visualizer.Objects.XYZMarkerObject
 using Alfar.Rendering.Cameras
+using Alfar.Rendering.CameraViews
 using Alfar.Rendering.Shaders
 using Alfar.Rendering.Meshs
 using Alfar.Rendering.Textures
+using Alfar.Rendering: World
+using Alfar.WIP.Math
+using Alfar.WIP.Transformations
 
 struct IntersectingPlane
     program::ShaderProgram
@@ -51,14 +55,14 @@ struct IntersectingPlane
     end
 end
 
-function render(plane::IntersectingPlane, camera::Camera, camerastate::CameraState, distance::Float32)
+function render(plane::IntersectingPlane, camera::Camera, cameraview::CameraView, distance::Float32)
     use(plane.program)
 
     projection = perspective(camera)
     # TODO Right now this model only translates the plane, but it should also be rotated
     # to face the camera.
     model = translation(0f0, 0f0, -distance)
-    view = lookat(camerastate)
+    view = CameraViews.lookat(cameraview)
     uniform(plane.program, "projection", projection)
     uniform(plane.program, "view", view)
     uniform(plane.program, "model", model)
@@ -192,17 +196,9 @@ end
 
 struct ViewportAlignmentState <: Visualizer.VisualizationState
     distance::Float64
-    camerastate::CameraState
-    fixedcamerastate::CameraState
-    cameratransform::Matrix{GLfloat}
-    dragtransform::Matrix{GLfloat}
+    cameraview::CameraView
+    fixedcameraview::CameraView
 end
-
-function camerastate(v::ViewportAlignmentState)
-    transform(v.camerastate, v.dragtransform * v.cameratransform)
-end
-
-planecamerastate(v::ViewportAlignmentState) = v.planecamerastate
 
 function Visualizer.setflags(::ViewportAlignment)
     glEnable(GL_BLEND)
@@ -211,43 +207,40 @@ function Visualizer.setflags(::ViewportAlignment)
 end
 
 function Visualizer.setup(::ViewportAlignment)
-    originalcameraposition = CameraPosition((0f0, 0f0, 3f0), (0f0, 1f0, 0f0))
-    camerastate = CameraState(originalcameraposition, (0f0, 0f0, 0f0))
-    planecamerastate = CameraState(originalcameraposition, (0f0, 0f0, 0f0))
-    cameratransform = identitytransform()
+    initialcameraposition = Vector3{Float32, World}(0f0, 0f0, 3f0)
+    initialtarget = Vector3{Float32, World}(0f0, 0f0, 0f0)
+    initialup = Vector3{Float32, World}(0f0, 1f0, 0f0)
+    cameraview = CameraView{Float32, World}(initialcameraposition, initialtarget, initialup)
 
     # The fixed camera is shown from an angle to the original camera position
-    fixedperspectiveshift = rotatey(3f0 * pi / 16f0) * rotatex(- 3f0 * pi / 16f0)
-    fixedcamerastate = transform(camerastate, fixedperspectiveshift)
+    xaxis = Vector3{Float32, World}(1f0, 0f0, 0f0)
+    yaxis = Vector3{Float32, World}(0f0, 1f0, 0f0)
+    fixedperspectiveshift = PointRotation{Float32, World}(3f0 * pi / 16f0, yaxis) ∘ PointRotation{Float32, World}(-3f0 * pi / 16f0, xaxis)
+    fixedcameraview = rotatecamera(cameraview, fixedperspectiveshift)
 
-    ViewportAlignmentState(0f0, camerastate, fixedcamerastate, cameratransform, identitytransform())
+    ViewportAlignmentState(0f0, cameraview, fixedcameraview)
 end
 
 Visualizer.update(::ViewportAlignment, state::ViewportAlignmentState) = state
 
 function Visualizer.onmousescroll(::ViewportAlignment, state::ViewportAlignmentState, (xoffset, yoffset)::Tuple{Float64, Float64})
     newdistance = state.distance + yoffset / 20.0
-    ViewportAlignmentState(newdistance, state.camerastate, state.fixedcamerastate, state.cameratransform, state.dragtransform)
+    ViewportAlignmentState(newdistance, state.cameraview, state.fixedcameraview)
 end
 
-function Visualizer.onmousedrag(::ViewportAlignment, state::ViewportAlignmentState, ::MouseDragEndEvent)
-    println("Drag: End")
-    newcameratransform = state.dragtransform * state.cameratransform
-    ViewportAlignmentState(state.distance, state.camerastate, state.fixedcamerastate, newcameratransform, identitytransform())
+function Visualizer.onmousedrag(::ViewportAlignment, state::ViewportAlignmentState, ev::MouseDragStartEvent)
+    newcameraview = onmousedrag(state.cameraview, ev)
+    ViewportAlignmentState(state.distance, newcameraview, state.fixedcameraview)
 end
 
-function Visualizer.onmousedrag(::ViewportAlignment, state::ViewportAlignmentState, drag::MouseDragPositionEvent)
-    # The `drag` position is in the range [-1, 1] for both the X and Y coordinate, as long as the mouse is in
-    # the window. Note that it can be outside that range when the mouse pointer goes outside the window during
-    # a drag.
-    # The idea is that dragging from one end of the other will lead to one full rotation. So dragging from 0 to 1
-    # is a half rotation, or \pi radians.
-    # The negative sign in `-drag.direction` is just to get the world to spin the right way.
-    # Without it, it looks like dragging the mouse spins the world in the opposite direction.
-    radians = -drag.direction * Float64(pi) # This converts the coordinate to radians in the range [-pi, pi]
+function Visualizer.onmousedrag(::ViewportAlignment, state::ViewportAlignmentState, ev::MouseDragEndEvent)
+    newcameraview = onmousedrag(state.cameraview, ev)
+    ViewportAlignmentState(state.distance, newcameraview, state.fixedcameraview)
+end
 
-    dragtransform = rotatex(Float32(radians[2])) * rotatey(Float32(radians[1]))
-    ViewportAlignmentState(state.distance, state.camerastate, state.fixedcamerastate, state.cameratransform, dragtransform)
+function Visualizer.onmousedrag(::ViewportAlignment, state::ViewportAlignmentState, ev::MouseDragPositionEvent)
+    newcameraview = onmousedrag(state.cameraview, ev)
+    ViewportAlignmentState(state.distance, newcameraview, state.fixedcameraview)
 end
 
 function Visualizer.render(camera::Camera, v::ViewportAlignment, state::ViewportAlignmentState)
@@ -257,7 +250,7 @@ function Visualizer.render(camera::Camera, v::ViewportAlignment, state::Viewport
     glViewport(0, 0, camera.windowwidth, camera.windowheight)
 
     use(v.program)
-    view = lookat(camerastate(state))
+    view = CameraViews.lookat(state.cameraview)
     projection = perspective(camera)
     model = identitytransform()
     uniform(v.program, "model", model)
@@ -267,9 +260,9 @@ function Visualizer.render(camera::Camera, v::ViewportAlignment, state::Viewport
     glBindTexture(GL_TEXTURE_1D, v.wireframetexture.textureid)
     renderarray(v.wireframe)
 
-    XYZMarkerObject.render(v.marker, camera, camerastate(state))
+    XYZMarkerObject.render(v.marker, camera, state.cameraview)
 
-    render(v.plane, camera, camerastate(state), Float32(state.distance))
+    render(v.plane, camera, state.cameraview, Float32(state.distance))
 
     #
     # Viewport 2 (right)
@@ -277,7 +270,7 @@ function Visualizer.render(camera::Camera, v::ViewportAlignment, state::Viewport
     glViewport(camera.windowwidth, 0, camera.windowwidth, camera.windowheight)
 
     use(v.program)
-    view = lookat(state.fixedcamerastate)
+    view = CameraViews.lookat(state.fixedcameraview)
     projection = perspective(camera)
     model = identitytransform()
     uniform(v.program, "model", model)
@@ -287,9 +280,9 @@ function Visualizer.render(camera::Camera, v::ViewportAlignment, state::Viewport
     glBindTexture(GL_TEXTURE_1D, v.wireframetexture.textureid)
     renderarray(v.wireframe)
 
-    XYZMarkerObject.render(v.marker, camera, state.fixedcamerastate)
+    XYZMarkerObject.render(v.marker, camera, state.fixedcameraview)
 
-    render(v.plane, camera, state.fixedcamerastate, Float32(state.distance))
+    render(v.plane, camera, state.fixedcameraview, Float32(state.distance))
 end
 
 end
