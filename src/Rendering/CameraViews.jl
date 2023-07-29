@@ -19,7 +19,7 @@ using Alfar.Rendering.Inputs
 using Alfar.WIP.Transformations
 
 export CameraView, direction, up, right, onmousedrag, lookat, CameraViewSpace
-export cameraposition
+export cameraposition, rotatecamera
 
 struct CameraViewSpace end
 
@@ -68,6 +68,12 @@ function up(cameraview::CameraView{T, System}) :: Vector3{T, System} where {T, S
 end
 
 cameraposition(c::CameraView{T, System}) where {T, System} = transform(c.dragrotation, c.position)
+
+function rotatecamera(cameraview::CameraView{T, System}, rotation::PointRotation{T, System}) :: CameraView{T, System} where {T, System}
+    newposition = transform(rotation, cameraview.position)
+    newup = transform(rotation, cameraview.up)
+    CameraView{T, System}(newposition, cameraview.target, newup, cameraview.dragrotation)
+end
 
 onmousedrag(v::CameraView{T, System}, ::MouseDragStartEvent) where {T, System} = v
 

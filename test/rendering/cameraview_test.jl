@@ -364,6 +364,74 @@ for testcase in lookat_tests
 end
 
 #
+# Transformation functionality
+# Essentially just tests that we have a functioning method to transform a
+# CameraView programmatically, instead of doing it via mouse drag.
+#
+
+@testset "Transform; Rotate default CameraView 90 degrees around Y; Direction is -X, right is -Z" begin
+    # Arrange
+    cameraview = CameraView{Float32, S}()
+    rotation = PointRotation{Float32, S}(0.5f0 * pi, Vector3{Float32, S}(0f0, 1f0, 0f0))
+
+    # Act
+    newcameraview = rotatecamera(cameraview, rotation)
+
+    # Assert
+    @test direction(newcameraview) ≈ Vector3{Float32, S}(-1f0, 0f0, 0f0)
+    @test right(newcameraview) ≈ Vector3{Float32, S}(0f0, 0f0, -1f0)
+end
+
+@testset "Transform; Rotate default CameraView -90 degrees around Y; Direction is X, right is Z" begin
+    # Arrange
+    cameraview = CameraView{Float32, S}()
+    rotation = PointRotation{Float32, S}(-0.5f0 * pi, Vector3{Float32, S}(0f0, 1f0, 0f0))
+
+    # Act
+    newcameraview = rotatecamera(cameraview, rotation)
+
+    # Assert
+    @test direction(newcameraview) ≈ Vector3{Float32, S}(1f0, 0f0, 0f0)
+    @test right(newcameraview) ≈ Vector3{Float32, S}(0f0, 0f0, 1f0)
+end
+
+@testset "Transform; Target is (1,1,1) and rotate default CameraView -90 degrees around Y; Target is still (1, 1, 1)" begin
+    # Arrange
+    initialposition = Vector3{Float32, S}(0f0, 0f0, 1f0)
+    initialtarget = Vector3{Float32, S}(1f0, 1f0, 1f0)
+    initialup = Vector3{Float32, S}(0f0, 1f0, 0f0)
+    cameraview = CameraView{Float32, S}(initialposition, initialtarget, initialup)
+    rotation = PointRotation{Float32, S}(-0.5f0 * pi, Vector3{Float32, S}(0f0, 1f0, 0f0))
+
+    # Act
+    newcameraview = rotatecamera(cameraview, rotation)
+
+    # Assert
+    @test newcameraview.target ≈ Vector3{Float32, S}(1f0, 1f0, 1f0)
+end
+
+# Rotating the camera by mouse drag and programmatically should probably not be done
+# at the same time. However, it's good to have the behavior defined should it happen.
+@testset "Transform; Transform during a mouse drag 45 degrees around X; Drag rotation is still 45 degrees around X" begin
+    # Arrange
+    initialposition = Vector3{Float32, S}(0f0, 0f0, 1f0)
+    initialtarget = Vector3{Float32, S}(0f0, 0f0, 0f0)
+    initialup = Vector3{Float32, S}(0f0, 1f0, 0f0)
+    cameraview = CameraView{Float32, S}(initialposition, initialtarget, initialup)
+    rotation = PointRotation{Float32, S}(-0.5f0 * pi, Vector3{Float32, S}(0f0, 1f0, 0f0))
+
+    # Act
+    newcameraview = onmousedrag(cameraview, MouseDragStartEvent())
+    newcameraview = onmousedrag(newcameraview, MouseDragPositionEvent((0f0, 0.25f0)))
+    # No MouseDragEndEvent because the mouse drag is ongoing
+    # Now the rotation ought to be 45 degrees around the X axis.
+    newcameraview = rotatecamera(newcameraview, rotation)
+
+    # Assert
+    expecteddragrotation = PointRotation{Float32, S}(0.25f0 * pi, Vector3{Float32, S}(1f0, 0f0, 0f0))
+    @test newcameraview.dragrotation ≈ expecteddragrotation
+end
+#
 # Regression tests
 #
 
