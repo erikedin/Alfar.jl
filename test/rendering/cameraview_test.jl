@@ -330,7 +330,10 @@ ViewRightAlongY = Vector4{Float64, CameraViewSpace}(0f0,  1f0,  0f0, 0f0)
 ViewRightAlongZ = Vector4{Float64, CameraViewSpace}(0f0,  0f0,  1f0, 0f0)
 
 lookat_tests = [
+    # Rotate the model 90 degrees by dragging up.
     LookAtTestCase([(0.0, 0.5)], -ViewDirectionAlongY, -ViewUpAlongZ, ViewRightAlongX),
+    # Rotate the model 90 degrees by dragging left.
+    LookAtTestCase([(-0.5, 0.0)], ViewDirectionAlongX, ViewUpAlongY, ViewRightAlongZ),
 ]
 
 for testcase in lookat_tests
