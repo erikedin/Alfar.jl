@@ -139,6 +139,9 @@ function runvisualizer(c::RemoteChannel, exitchannel::RemoteChannel)
         if mousestate.isdragging
             fromorigin = (xposition, yposition) - mousestate.dragorigin
             direction = relativepixels(fromorigin)
+            # The Y axis is positive in the down direction, which is opposite from the convention in the,
+            # rest of the code, so this makes the Y axis positive in the up direction.
+            direction = (direction[1], -direction[2])
 
             if !isnan(direction[1]) && !isnan(direction[2])
                 positionevent = MouseDragPositionEvent(direction)
