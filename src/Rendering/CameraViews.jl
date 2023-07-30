@@ -53,7 +53,7 @@ struct CameraView{T, System}
     end
 
     function CameraView{T, System}(cameraview::CameraView{T, System}, rotation::PointRotation{T, System}) where {T, System}
-        CameraView{T, System}(cameraview.position, cameraview.target, cameraview.up, norotation(T, System), rotation)
+        CameraView{T, System}(cameraview.position, cameraview.target, cameraview.up, cameraview.rotation, rotation)
     end
 end
 
@@ -74,9 +74,8 @@ cameraposition(c::CameraView{T, System}) where {T, System} = transform(camerarot
 camerarotation(c::CameraView{T, System}) where {T, System} = c.dragrotation ∘ c.rotation
 
 function rotatecamera(cameraview::CameraView{T, System}, rotation::PointRotation{T, System}) :: CameraView{T, System} where {T, System}
-    newposition = transform(rotation, cameraview.position)
-    newup = transform(rotation, cameraview.up)
-    CameraView{T, System}(newposition, cameraview.target, newup, norotation(T, System), cameraview.dragrotation)
+    newrotation = rotation ∘ cameraview.rotation
+    CameraView{T, System}(cameraview.position, cameraview.target, cameraview.up, newrotation, cameraview.dragrotation)
 end
 
 onmousedrag(v::CameraView{T, System}, ::MouseDragStartEvent) where {T, System} = v
@@ -110,7 +109,10 @@ function onmousedrag(c::CameraView{T, System}, ::MouseDragEndEvent) :: CameraVie
     # Create a new camera view with position and up vectors transformed by the rotation operator.
     # This constructor sets the rotation operator to no rotation.
     # Essentially, this saves the drag transformation that the user has done with the mouse.
-    CameraView{T, System}(cameraposition(c), c.target, up(c))
+    #newrotation = camerarotation(c)
+    #newdragrotation = norotation(T, System)
+    #CameraView{T, System}(c.position, c.target, c.up, newrotation, newdragrotation)
+    CameraView{T, System}(cameraposition(c), c.target, up(c), norotation(T, System), norotation(T, System))
 end
 
 struct CameraTranslationSpace end
