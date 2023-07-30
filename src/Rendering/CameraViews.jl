@@ -23,6 +23,8 @@ export cameraposition, rotatecamera
 
 struct CameraViewSpace end
 
+norotation(::Type{T}, ::Type{System}) where {T, System} = PointRotation{T, System}(zero(T), Vector3{T, System}(one(T), zero(T), zero(T)))
+
 struct CameraView{T, System}
     position::Vector3{T, System}
     target::Vector3{T, System}
@@ -43,18 +45,15 @@ struct CameraView{T, System}
         defaultposition = Vector3{T, System}(0, 0, 1.0)
         defaulttarget = Vector3{T, System}(0.0, 0.0, 0.0)
         up = Vector3{T, System}(0.0, 1.0, 0.0)
-        norotation = PointRotation{T, System}(zero(T), Vector3{T, System}(one(T), zero(T), zero(T)))
-        CameraView{T, System}(defaultposition, defaulttarget, up, norotation, norotation)
+        CameraView{T, System}(defaultposition, defaulttarget, up, norotation(T, System), norotation(T, System))
     end
 
     function CameraView{T, System}(position::Vector3{T, System}, target::Vector3{T, System}, up::Vector3{T, System}) where {T, System}
-        norotation = PointRotation{T, System}(zero(T), Vector3{T, System}(one(T), zero(T), zero(T)))
-        CameraView{T, System}(position, target, up, norotation, norotation)
+        CameraView{T, System}(position, target, up, norotation(T, System), norotation(T, System))
     end
 
     function CameraView{T, System}(cameraview::CameraView{T, System}, rotation::PointRotation{T, System}) where {T, System}
-        norotation = PointRotation{T, System}(zero(T), Vector3{T, System}(one(T), zero(T), zero(T)))
-        CameraView{T, System}(cameraview.position, cameraview.target, cameraview.up, norotation, rotation)
+        CameraView{T, System}(cameraview.position, cameraview.target, cameraview.up, norotation(T, System), rotation)
     end
 end
 
@@ -75,8 +74,7 @@ cameraposition(c::CameraView{T, System}) where {T, System} = transform(c.dragrot
 function rotatecamera(cameraview::CameraView{T, System}, rotation::PointRotation{T, System}) :: CameraView{T, System} where {T, System}
     newposition = transform(rotation, cameraview.position)
     newup = transform(rotation, cameraview.up)
-    norotation = PointRotation{T, System}(zero(T), Vector3{T, System}(one(T), zero(T), zero(T)))
-    CameraView{T, System}(newposition, cameraview.target, newup, norotation, cameraview.dragrotation)
+    CameraView{T, System}(newposition, cameraview.target, newup, norotation(T, System), cameraview.dragrotation)
 end
 
 onmousedrag(v::CameraView{T, System}, ::MouseDragStartEvent) where {T, System} = v
