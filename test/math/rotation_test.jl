@@ -214,7 +214,38 @@ end
     @test_throws MethodError a ≈ b
 end
 
-# TODO MethodError on different value type
-# TODO MethodError on different coordinate system
+#
+# PointRotation composition
+#
+
+@testset "Composition; Rotate -Z 90 degrees around Y, then 90 degrees around Z; Direction -Y" begin
+    # Arrange
+    v = Vector3{Float32, S}(0f0, 0f0, -1f0)
+    a = PointRotation{Float32, S}(0.5f0 * pi, Vector3{Float32, S}(0f0, 1f0, 0f0))
+    # After the rotation `a`, `v` will be -X.
+    b = PointRotation{Float32, S}(0.5f0 * pi, Vector3{Float32, S}(0f0, 0f0, 1f0))
+    # After the rotation `b` of `a(v)`, the vector will be -Y.
+
+    # Act
+    r = b ∘ a
+    actualv = transform(r, v)
+
+    # Assert
+    @test actualv ≈ Vector3{Float32, S}(0f0, -1f0, 0f0)
+end
+
+@testset "Composition; Rotate -Z 90 degrees around Z, then 90 degrees around Y; Direction -X" begin
+    # Arrange
+    v = Vector3{Float32, S}(0f0, 0f0, -1f0)
+    a = PointRotation{Float32, S}(0.5f0 * pi, Vector3{Float32, S}(0f0, 1f0, 0f0))
+    b = PointRotation{Float32, S}(0.5f0 * pi, Vector3{Float32, S}(0f0, 0f0, 1f0))
+
+    # Act
+    r = a ∘ b
+    actualv = transform(r, v)
+
+    # Assert
+    @test actualv ≈ Vector3{Float32, S}(-1f0, 0f0, 0f0)
+end
 
 end
