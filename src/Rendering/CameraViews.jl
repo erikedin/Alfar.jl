@@ -63,13 +63,15 @@ end
 
 function direction(cameraview::CameraView{T, System}) :: Vector3{T, System} where {T, System}
     direction = normalize(cameraview.target - cameraview.position)
-    transform(cameraview.dragrotation, direction)
+    transform(camerarotation(cameraview), direction)
 end
 function up(cameraview::CameraView{T, System}) :: Vector3{T, System} where {T, System}
-    transform(cameraview.dragrotation, cameraview.up)
+    transform(camerarotation(cameraview), cameraview.up)
 end
 
-cameraposition(c::CameraView{T, System}) where {T, System} = transform(c.dragrotation, c.position)
+cameraposition(c::CameraView{T, System}) where {T, System} = transform(camerarotation(c), c.position)
+
+camerarotation(c::CameraView{T, System}) where {T, System} = c.dragrotation ∘ c.rotation
 
 function rotatecamera(cameraview::CameraView{T, System}, rotation::PointRotation{T, System}) :: CameraView{T, System} where {T, System}
     newposition = transform(rotation, cameraview.position)
