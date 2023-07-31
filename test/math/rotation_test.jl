@@ -248,4 +248,20 @@ end
     @test actualv ≈ Vector3{Float32, S}(-1f0, 0f0, 0f0)
 end
 
+@testset "Composition; Rotate -Z 90 degrees around Y then 90 degrees around Z; Direction Y" begin
+    # Arrange
+    # Vector starts off at -Z.
+    v = Vector3{Float32, S}(0f0, 0f0, -1f0)
+    # After rotation by a, it is -X.
+    a = PointRotation{Float32, S}(0.5f0 * pi, Vector3{Float32, S}(0f0, 1f0, 0f0))
+    b = PointRotation{Float32, S}(0.5f0 * pi, Vector3{Float32, S}(0f0, 0f0, -1f0))
+
+    # Act
+    r = b ∘ a
+    actualv = transform(r, v)
+
+    # Assert
+    @test actualv ≈ Vector3{Float32, S}(0f0, 1f0, 0f0)
+end
+
 end

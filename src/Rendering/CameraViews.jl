@@ -96,10 +96,16 @@ function onmousedrag(cameraview::CameraView{T, System}, ev::MouseDragPositionEve
     # in the opposite way, it moves in a counter-clockwise direction around the `right` axis, looking down at the
     # positive right axis. So it already has the right sign, unlike the above angle.
     rightangle = convert(T, ev.direction[2] * pi)
-    direction = normalize(cameraview.target - cameraview.position)
-    rightaxis = cross(direction, cameraview.up)
+
+    # Rotations are done around the `up` and `right` axes, as they were at the beginning of the mouse drag.
+    # This corresponds to the `up` and  `right` vectors transformed by _only_ the `c.rotation` rotation operator.
+    # The `c.dragrotation` operator is what we're calculating here, and it should not be included in this
+    # particular rotation.
+    direction = normalize(transform(cameraview.rotation, cameraview.target - cameraview.position))
+    upaxis = normalize(transform(cameraview.rotation, cameraview.up))
+    rightaxis = cross(direction, upaxis)
     aroundright = PointRotation{T, System}(rightangle, rightaxis)
-    aroundup = PointRotation{T, System}(upangle, cameraview.up)
+    aroundup = PointRotation{T, System}(upangle, upaxis)
     rotation = aroundup ∘ aroundright
 
     CameraView{T, System}(cameraview, rotation)
@@ -109,10 +115,9 @@ function onmousedrag(c::CameraView{T, System}, ::MouseDragEndEvent) :: CameraVie
     # Create a new camera view with position and up vectors transformed by the rotation operator.
     # This constructor sets the rotation operator to no rotation.
     # Essentially, this saves the drag transformation that the user has done with the mouse.
-    #newrotation = camerarotation(c)
-    #newdragrotation = norotation(T, System)
-    #CameraView{T, System}(c.position, c.target, c.up, newrotation, newdragrotation)
-    CameraView{T, System}(cameraposition(c), c.target, up(c), norotation(T, System), norotation(T, System))
+    newrotation = camerarotation(c)
+    newdragrotation = norotation(T, System)
+    CameraView{T, System}(c.position, c.target, c.up, newrotation, newdragrotation)
 end
 
 struct CameraTranslationSpace end
