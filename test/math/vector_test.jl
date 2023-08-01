@@ -244,6 +244,33 @@ end
 # Other vector operations
 #
 
+struct NormTestCase
+    v
+    expected
+end
+
+norm_test_cases = [
+    NormTestCase(Vector4{Float32, S}(1f0, 0f0, 0f0, 0f0), 1f0),
+    NormTestCase(Vector4{Float32, S}(0f0, 1f0, 0f0, 0f0), 1f0),
+    NormTestCase(Vector4{Float32, S}(0f0, 0f0, 1f0, 0f0), 1f0),
+    NormTestCase(Vector4{Float32, S}(0f0, 0f0, 0f0, 1f0), 1f0),
+    NormTestCase(Vector4{Float32, S}(1f0, 1f0, 0f0, 0f0), sqrt(2f0)),
+    NormTestCase(Vector4{Float32, S}(0f0, 1f0, 1f0, 0f0), sqrt(2f0)),
+    NormTestCase(Vector4{Float32, S}(0f0, 0f0, 1f0, 1f0), sqrt(2f0)),
+    NormTestCase(Vector4{Float32, S}(1f0, 0f0, 0f0, 1f0), sqrt(2f0)),
+    NormTestCase(Vector4{Float32, S}(1f0, 2f0, 3f0, 4f0), sqrt(1 + 4 + 9 + 16)),
+]
+
+for testcase in norm_test_cases
+    @testset "Norm; $(testcase.v); Expected is $(testcase.expected)" begin
+        # Act
+        result = norm(testcase.v)
+
+        # Assert
+        @test result ≈ testcase.expected
+    end
+end
+
 @testset "Norm; (1, 0, 0); Norm is 1" begin
     # Arrange
     v = Vector3{Float32, S}(1f0, 0f0, 0f0)

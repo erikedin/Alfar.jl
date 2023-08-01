@@ -264,4 +264,58 @@ end
     @test actualv ≈ Vector3{Float32, S}(0f0, 1f0, 0f0)
 end
 
+@testset "Convert to Matrix4; A point rotation of 0 radians around the X axis; vector is unchanged and in the same coordinate system" begin
+    # Arrange
+    v = Vector4{Float32, S}(1.0, 2.0, 3.0, 0.0)
+    rotation = PointRotation{Float32, S}(0f0, Vector3{Float32, S}(1f0, 0f0, 0f0))
+    m = convert(Matrix4{Float32, R, S}, rotation)
+
+    # Act
+    result = m * v
+
+    # Assert
+    @test result ≈ Vector4{Float32, R}(1.0, 2.0, 3.0, 0.0)
+end
+
+@testset "Convert to Matrix4; A point rotation of (0, 1, 0) pi/2 radians around the X axis; vector is (0, 0, 1)" begin
+    # Arrange
+    v = Vector4{Float32, S}(0f0, 1f0, 0f0, 0f0)
+    rotation = PointRotation{Float32, S}(0.5f0 * pi, Vector3{Float32, S}(1f0, 0f0, 0f0))
+    m = convert(Matrix4{Float32, R, S}, rotation)
+
+    # Act
+    result = m * v
+
+    # Assert
+    @test result ≈ Vector4{Float32, R}(0f0, 0f0, 1f0, 0f0)
+end
+
+@testset "Convert to Matrix4; A point rotation of (0, 1, 0) pi/2 radians around the (17, 0, 0) axis; the vector length is unchanged" begin
+    # Arrange
+    v = Vector4{Float32, S}(0f0, 1f0, 0f0, 0f0)
+    rotation = PointRotation{Float32, S}(0.5f0 * pi, Vector3{Float32, S}(17f0, 0f0, 0f0))
+    m = convert(Matrix4{Float32, R, S}, rotation)
+
+    # Act
+    result = m * v
+
+    # Assert
+    @test norm(result) ≈ 1f0
+end
+
+@testset "Convert to Matrix4; Rotate -Z 90 degrees around Y then 90 degrees around Z; Direction Y" begin
+    # Arrange
+    # Vector starts off at -Z.
+    v = Vector4{Float32, S}(0f0, 0f0, -1f0, 0f0)
+    # After rotation by a, it is -X.
+    a = PointRotation{Float32, S}(0.5f0 * pi, Vector3{Float32, S}(0f0, 1f0, 0f0))
+    b = PointRotation{Float32, S}(0.5f0 * pi, Vector3{Float32, S}(0f0, 0f0, -1f0))
+    m = convert(Matrix4{Float32, R, S}, b ∘ a)
+
+    # Act
+    actualv = m * v
+
+    # Assert
+    @test actualv ≈ Vector4{Float32, R}(0f0, 1f0, 0f0, 0f0)
+end
 end

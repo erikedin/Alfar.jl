@@ -86,6 +86,40 @@ function Base.isapprox(a::PointRotation{T, System}, b::PointRotation{T, System})
     isapprox(a.q.ek, b.q.ek; atol=atol)
 end
 
+# Convert a point rotation to a Matrix4
+function Base.convert(::Type{Matrix4{T, ToSystem, FromSystem}}, r::PointRotation{S, Other}) :: Matrix4{T, ToSystem, FromSystem} where {T, ToSystem, FromSystem, S, Other}
+    q0 = r.q.e0
+    q1 = r.q.ei
+    q2 = r.q.ej
+    q3 = r.q.ek
+
+    a11 = 2*q0*q0 - 1 + 2*q1*q1
+    a12 = 2*q1*q2 - 2*q0*q3
+    a13 = 2*q1*q3 + 2*q0*q2
+    a14 = 0f0
+
+    a21 = 2*q1*q2 + 2*q0*q3
+    a22 = 2*q0*q0 - 1 + 2*q2*q2
+    a23 = 2*q2*q3 - 2*q0*q1
+    a24 = 0f0
+
+    a31 = 2*q1*q3 - 2*q0*q2
+    a32 = 2*q2*q3 + 2*q0*q1
+    a33 = 2*q0*q0 - 1 + 2*q3*q3
+    a34 = 0f0
+
+    a41 = 0f0
+    a42 = 0f0
+    a43 = 0f0
+    a44 = 1f0
+    Matrix4{T, ToSystem, FromSystem}(
+        a11, a12, a13, a14,
+        a21, a22, a23, a24,
+        a31, a32, a33, a34,
+        a41, a42, a43, a44,
+    )
+end
+
 # FrameRotation rotates a vector `v` from one coordinate system to another.
 
 end

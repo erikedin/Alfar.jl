@@ -98,6 +98,7 @@ end
 #
 
 norm(v::Vector3{T, System}) where {T, System} = sqrt(v.x * v.x + v.y * v.y + v.z * v.z)
+norm(v::Vector4{T, System}) where {T, System} = sqrt(v.x * v.x + v.y * v.y + v.z * v.z + v.w * v.w)
 
 normalize(v::Vector3{T, System}) where {T, System} = one(T) / norm(v) * v
 
