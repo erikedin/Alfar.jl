@@ -24,7 +24,7 @@ using Alfar.Rendering.CameraViews
 using Alfar.Rendering.Shaders
 using Alfar.Rendering.Meshs
 using Alfar.Rendering.Textures
-using Alfar.Rendering: World
+using Alfar.Rendering: World, Object
 using Alfar.WIP.Math
 using Alfar.WIP.Transformations
 
@@ -59,9 +59,16 @@ function render(plane::IntersectingPlane, camera::Camera, cameraview::CameraView
     use(plane.program)
 
     projection = perspective(camera)
-    # TODO Right now this model only translates the plane, but it should also be rotated
-    # to face the camera.
-    model = translation(0f0, 0f0, -distance)
+
+    model_rotation = convert(Matrix4{Float32, World, Object}, camerarotation(cameraview))
+    model_translation = Matrix4{Float32, Object, Object}(
+        1f0, 0f0, 0f0, 0f0,
+        0f0, 1f0, 0f0, 0f0,
+        0f0, 0f0, 1f0, -distance,
+        0f0, 0f0, 0f0, 1f0,
+    )
+    model = model_rotation * model_translation
+
     view = CameraViews.lookat(cameraview)
     uniform(plane.program, "projection", projection)
     uniform(plane.program, "view", view)

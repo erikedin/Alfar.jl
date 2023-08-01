@@ -19,7 +19,7 @@ using Alfar.Rendering.Inputs
 using Alfar.WIP.Transformations
 
 export CameraView, direction, up, right, onmousedrag, lookat, CameraViewSpace
-export cameraposition, rotatecamera
+export cameraposition, camerarotation, rotatecamera
 
 struct CameraViewSpace end
 
