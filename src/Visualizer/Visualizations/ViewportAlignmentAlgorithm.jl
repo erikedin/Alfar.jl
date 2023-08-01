@@ -15,11 +15,13 @@
 module ViewportAlignmentAlgorithm
 
 using ModernGL
+using GLFW
 
 using Alfar.Visualizer
 using Alfar.Visualizer: MouseDragStartEvent, MouseDragEndEvent, MouseDragPositionEvent
 using Alfar.Visualizer.Objects.XYZMarkerObject
 using Alfar.Rendering.Cameras
+using Alfar.Rendering.Inputs
 using Alfar.Rendering.CameraViews
 using Alfar.Rendering.Shaders
 using Alfar.Rendering.Meshs
@@ -229,6 +231,17 @@ function Visualizer.setup(::ViewportAlignment)
 end
 
 Visualizer.update(::ViewportAlignment, state::ViewportAlignmentState) = state
+
+function Visualizer.onkeyboardinput(::ViewportAlignment, state::ViewportAlignmentState, ev::KeyboardInputEvent)
+    distanceoffset = if ev.action == GLFW.PRESS && ev.key == GLFW.KEY_Q
+            -0.1f0
+    elseif ev.action == GLFW.PRESS && ev.key == GLFW.KEY_E
+            0.1f0
+    else
+        0f0
+    end
+    ViewportAlignmentState(state.distance + distanceoffset, state.cameraview, state.fixedcameraview)
+end
 
 function Visualizer.onmousescroll(::ViewportAlignment, state::ViewportAlignmentState, (xoffset, yoffset)::Tuple{Float64, Float64})
     newdistance = state.distance + yoffset / 20.0
