@@ -57,13 +57,13 @@ struct IntersectingPlane
     end
 end
 
-function render(plane::IntersectingPlane, camera::Camera, cameraview::CameraView, distance::Float32)
+function render(plane::IntersectingPlane, camera::Camera, cameraview::CameraView, rotation::PointRotation{Float32, World}, distance::Float32)
     use(plane.program)
 
     projection = perspective(camera)
 
-    model_rotation = convert(Matrix4{Float32, World, Object}, camerarotation(cameraview))
-    model_translation = Matrix4{Float32, Object, Object}(
+    model_rotation = convert(Matrix4{Float32, World, World}, rotation)
+    model_translation = Matrix4{Float32, World, Object}(
         1f0, 0f0, 0f0, 0f0,
         0f0, 1f0, 0f0, 0f0,
         0f0, 0f0, 1f0, -distance,
@@ -282,7 +282,7 @@ function Visualizer.render(camera::Camera, v::ViewportAlignment, state::Viewport
 
     XYZMarkerObject.render(v.marker, camera, state.cameraview)
 
-    render(v.plane, camera, state.cameraview, Float32(state.distance))
+    render(v.plane, camera, state.cameraview, camerarotation(state.cameraview), Float32(state.distance))
 
     #
     # Viewport 2 (right)
@@ -302,7 +302,10 @@ function Visualizer.render(camera::Camera, v::ViewportAlignment, state::Viewport
 
     XYZMarkerObject.render(v.marker, camera, state.fixedcameraview)
 
-    render(v.plane, camera, state.fixedcameraview, Float32(state.distance))
+    # The plane is still rotated according to the first camera, not the fixed camera.
+    # The idea is that the first viewport will define the orientation of the plane, and the second
+    # viewport has a fixed perspective, and will allow us to see the plane from a different perspective.
+    render(v.plane, camera, state.fixedcameraview, camerarotation(state.cameraview), Float32(state.distance))
 end
 
 end
