@@ -30,6 +30,42 @@ using Alfar.Rendering: World, Object
 using Alfar.WIP.Math
 using Alfar.WIP.Transformations
 
+struct IntersectingPlanePoints
+    program::ShaderProgram
+    pointvertices::VertexArray{GL_POINTS}
+
+    function IntersectingPlanePoints()
+        program = ShaderProgram("shaders/visualization/pointvertex.glsl", "shaders/visualization/uniformcolorfragment.glsl")
+
+        vertices = GLfloat[
+            # Position
+             0.5f0,  0.5f0, 0.5f0, # Right top
+        ]
+        attribute = VertexAttribute(0, 3, GL_FLOAT, GL_FALSE, C_NULL)
+        vertexdata = VertexData{GLfloat}(vertices, VertexAttribute[attribute])
+        pointvertices = VertexArray{GL_POINTS}(vertexdata)
+
+        new(program, pointvertices)
+    end
+end
+
+function render(p::IntersectingPlanePoints, camera::Camera, cameraview::CameraView)
+    use(p.program)
+
+    projection = perspective(camera)
+    model = identitytransform()
+    view = CameraViews.lookat(cameraview)
+
+    color = (0f0, 1f0, 1f0, 1.0f0)
+
+    uniform(p.program, "projection", projection)
+    uniform(p.program, "view", view)
+    uniform(p.program, "model", model)
+    uniform(p.program, "color", color)
+
+    renderarray(p.pointvertices)
+end
+
 struct IntersectingPlane
     program::ShaderProgram
     color::NTuple{4, Float32}
@@ -123,6 +159,7 @@ struct ViewportAlignment <: Visualizer.Visualization
     wireframe::VertexArray{GL_LINES}
     wireframetexture::Texture{1}
     plane::IntersectingPlane
+    planepoints::IntersectingPlanePoints
     marker::XYZMarker
 
     function ViewportAlignment()
@@ -199,7 +236,7 @@ struct ViewportAlignment <: Visualizer.Visualization
 
         wireframetexture = Texture{1}(makewireframetexture())
 
-        new(program, wireframe, wireframetexture, IntersectingPlane(), XYZMarker())
+        new(program, wireframe, wireframetexture, IntersectingPlane(), IntersectingPlanePoints(), XYZMarker())
     end
 end
 
@@ -213,6 +250,8 @@ function Visualizer.setflags(::ViewportAlignment)
     glEnable(GL_BLEND)
     glEnable(GL_DEPTH_TEST)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+    glPointSize(10f0)
+    glEnable(GL_POINT_SMOOTH)
 end
 
 function Visualizer.setup(::ViewportAlignment)
@@ -283,6 +322,7 @@ function Visualizer.render(camera::Camera, v::ViewportAlignment, state::Viewport
     XYZMarkerObject.render(v.marker, camera, state.cameraview)
 
     render(v.plane, camera, state.cameraview, camerarotation(state.cameraview), Float32(state.distance))
+    render(v.planepoints, camera, state.cameraview)
 
     #
     # Viewport 2 (right)
@@ -306,6 +346,7 @@ function Visualizer.render(camera::Camera, v::ViewportAlignment, state::Viewport
     # The idea is that the first viewport will define the orientation of the plane, and the second
     # viewport has a fixed perspective, and will allow us to see the plane from a different perspective.
     render(v.plane, camera, state.fixedcameraview, camerarotation(state.cameraview), Float32(state.distance))
+    render(v.planepoints, camera, state.fixedcameraview)
 end
 
 end
