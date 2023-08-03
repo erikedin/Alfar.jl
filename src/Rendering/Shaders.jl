@@ -169,4 +169,11 @@ function uniform(program::ShaderProgram, name::String, m::Alfar.WIP.Math.Matrix4
                 ], 1)
     glUniformMatrix4fv(location, 1, GL_FALSE, array)
 end
+
+function uniform(program::ShaderProgram, name::String, v::Alfar.WIP.Math.Vector3{GLfloat, System}) where {System}
+    location = uniformlocation(program, name)
+    array = Ref([v.x, v.y, v.z], 1)
+    glUniform3fv(location, 1, array)
+end
+
 end

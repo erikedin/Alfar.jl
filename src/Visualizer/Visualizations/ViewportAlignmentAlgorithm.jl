@@ -49,7 +49,7 @@ struct IntersectingPlanePoints
     end
 end
 
-function render(p::IntersectingPlanePoints, camera::Camera, cameraview::CameraView)
+function render(p::IntersectingPlanePoints, camera::Camera, cameraview::CameraView, distance::Float32)
     use(p.program)
 
     projection = perspective(camera)
@@ -62,6 +62,12 @@ function render(p::IntersectingPlanePoints, camera::Camera, cameraview::CameraVi
     uniform(p.program, "view", view)
     uniform(p.program, "model", model)
     uniform(p.program, "color", color)
+    uniform(p.program, "distance", distance)
+
+    # With the basis vectors `up`, `right`, `direction`, the normal here must be from the target
+    # to the camera, for the coordinates to be a right-handed system.
+    normal = -direction(cameraview)
+    uniform(p.program, "normal", normal)
 
     renderarray(p.pointvertices)
 end
@@ -322,7 +328,7 @@ function Visualizer.render(camera::Camera, v::ViewportAlignment, state::Viewport
     XYZMarkerObject.render(v.marker, camera, state.cameraview)
 
     render(v.plane, camera, state.cameraview, camerarotation(state.cameraview), Float32(state.distance))
-    render(v.planepoints, camera, state.cameraview)
+    render(v.planepoints, camera, state.cameraview, Float32(state.distance))
 
     #
     # Viewport 2 (right)
@@ -346,7 +352,7 @@ function Visualizer.render(camera::Camera, v::ViewportAlignment, state::Viewport
     # The idea is that the first viewport will define the orientation of the plane, and the second
     # viewport has a fixed perspective, and will allow us to see the plane from a different perspective.
     render(v.plane, camera, state.fixedcameraview, camerarotation(state.cameraview), Float32(state.distance))
-    render(v.planepoints, camera, state.fixedcameraview)
+    render(v.planepoints, camera, state.fixedcameraview, Float32(state.distance))
 end
 
 end
