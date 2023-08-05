@@ -25,6 +25,7 @@ end
 @testset "Alfar.Rendering" begin
 
 include("rendering/cameraview_test.jl")
+include("rendering/viewport_alignment_test.jl")
 
 end
 
