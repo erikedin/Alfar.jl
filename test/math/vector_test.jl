@@ -388,6 +388,21 @@ end
     @test p ≈ Vector3{Float32, S}(1f0, 0f0, 0f0)
 end
 
+@testset "Dot product; (1,2,3)⋅(4,5,6); Result is 4+10+18 = 32" begin
+    # This test is specifically important as -Z is the default direction of the camera,
+    # and Y is the default up vector. Crossing them should lead to the right vector,
+    # which in this case is X.
+    # Arrange
+    a = Vector3{Float32, S}(1f0, 2f0, 3f0)
+    b = Vector3{Float32, S}(4f0, 5f0, 6f0)
+
+    # Act
+    p = dot(a, b)
+
+    # Assert
+    @test p ≈ 32f0
+end
+
 #
 # Miscellaneous test during development.
 #

@@ -17,7 +17,7 @@ module Math
 export Vector3, Vector4
 export Matrix4
 export norm, normalize
-export cross
+export cross, dot
 
 # Vector3 is a 3-dimensional vector in the coordinate system `System`.
 # The value type of the individual coordinates is `T`.
@@ -108,6 +108,10 @@ function cross(a::Vector3{T, System}, b::Vector3{T, System}) :: Vector3{T, Syste
         a.z*b.x - a.x*b.z,
         a.x*b.y - a.y*b.x,
     )
+end
+
+function dot(a::Vector3{T, System}, b::Vector3{S, Other}) :: T where {T, System, S, Other}
+    a.x * b.x + a.y * b.y + a.z * b.z
 end
 
 #

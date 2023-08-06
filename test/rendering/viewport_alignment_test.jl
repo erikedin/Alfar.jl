@@ -13,6 +13,7 @@
 # limitations under the License.
 
 using Test
+using Alfar.WIP.Math
 
 # These tests are for a test implementation of the viewport alignment intersection code.
 # The real implementation runs in a vertex shader, written in GLSL, and is hard to test.
@@ -20,44 +21,65 @@ using Test
 
 @testset "Viewport Alignment Test" begin
 
-function sliceintersection(normal::Vector3{Float32, World}, distance::Float32)
-    Vector3{Float32, World}(0.5f0, 0.5f0, distance)
+function sliceintersection(distance::Float64, normal::Vector3{Float64, World}, vi::Vector3{Float64, World}, vj::Vector3{Float64, World})
+    ndotvi = dot(normal, vi)
+    eij = vj - vi
+    ndoteij = dot(normal, eij)
+    if abs(ndoteij) < 0.01
+        return nothing
+    end
+    λ = (distance - ndotvi) / ndoteij
+
+    vi + λ * eij
 end
 
-@testset "Intersection for edge 1->2; Plane is at Z=0, normal is +Z; Edge 1->2 has intersection at (0.5, 0.5, 0)" begin
-    # Arrange
-    distance = 0f0
-    normal = Vector3{Float32, World}(0f0, 0f0, 1f0)
-
-    # Act
-    intersection = sliceintersection(normal, distance)
-
-    # Assert
-    @test intersection == Vector3{Float32, World}(0.5f0, 0.5f0, 0f0)
+struct IntersectionTestCase
+    distance::Float64
+    normal::Vector3{Float64, World}
+    vi::Int
+    vj::Int
+    expected
 end
 
-@testset "Intersection for edge 1->2; Plane is at Z=0.25, normal is +Z; Edge 1->2 has intersection at (0.5, 0.5, 0.25)" begin
-    # Arrange
-    distance = 0.25f0
-    normal = Vector3{Float32, World}(0f0, 0f0, 1f0)
+NormalX = Vector3{Float64, World}(1.0, 0.0, 0.0)
+NormalY = Vector3{Float64, World}(0.0, 1.0, 0.0)
+NormalZ = Vector3{Float64, World}(0.0, 0.0, 1.0)
 
-    # Act
-    intersection = sliceintersection(normal, distance)
+intersection_test_cases = [
+    IntersectionTestCase( 0.0,   NormalZ, 1, 2, Vector3{Float64, World}(0.5, 0.5, 0.0)),
+    IntersectionTestCase( 0.25,  NormalZ, 1, 2, Vector3{Float64, World}(0.5, 0.5, 0.25)),
+    IntersectionTestCase(-0.25,  NormalZ, 1, 2, Vector3{Float64, World}(0.5, 0.5, -0.25)),
+    IntersectionTestCase( 0.0,   NormalX, 1, 5, Vector3{Float64, World}(0.0, 0.5, 0.5)),
+    IntersectionTestCase( 0.0,  -NormalX, 1, 5, Vector3{Float64, World}(0.0, 0.5, 0.5)),
+]
 
-    # Assert
-    @test intersection == Vector3{Float32, World}(0.5f0, 0.5f0, 0.25f0)
-end
+no_intersection_test_cases = [
+    # No valid intersections
+    IntersectionTestCase( 0.0,  NormalX, 1, 2, nothing),
+]
 
-@testset "Intersection for edge 1->2; Plane is at Z=-0.25, normal is +Z; Edge 1->2 has intersection at (0.5, 0.5, -0.25)" begin
-    # Arrange
-    distance = -0.25f0
-    normal = Vector3{Float32, World}(0f0, 0f0, 1f0)
+for testcase in no_intersection_test_cases
+    @testset "No intersection; $(testcase.vi) -> $(testcase.vj), d = $(testcase.distance), normal $(testcase.normal); Intersection at $(testcase.expected)" begin
+        # Arrange
+        vertices = [
+            Vector3{Float64, World}( 0.5,  0.5,  0.5),
+            Vector3{Float64, World}( 0.5,  0.5, -0.5),
+            Vector3{Float64, World}( 0.5, -0.5, -0.5),
+            Vector3{Float64, World}( 0.5, -0.5,  0.5),
+            Vector3{Float64, World}(-0.5,  0.5,  0.5),
+            Vector3{Float64, World}(-0.5,  0.5, -0.5),
+            Vector3{Float64, World}(-0.5, -0.5, -0.5),
+            Vector3{Float64, World}(-0.5, -0.5,  0.5),
+        ]
+        vi = vertices[testcase.vi]
+        vj = vertices[testcase.vj]
 
-    # Act
-    intersection = sliceintersection(normal, distance)
+        # Act
+        result = sliceintersection(testcase.distance, testcase.normal, vi, vj)
 
-    # Assert
-    @test intersection == Vector3{Float32, World}(0.5f0, 0.5f0, -0.25f0)
+        # Assert
+        @test isnothing(result)
+    end
 end
 
 end
