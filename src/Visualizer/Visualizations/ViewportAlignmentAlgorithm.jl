@@ -39,17 +39,19 @@ struct IntersectingPlanePoints
 
         vertices = GLfloat[
             # Position
-             0.5f0,  0.5f0, 0.5f0, # Right top
+            # v_i                              # v_j
+             0.5f0,  0.5f0, 0.5f0, 0.5f0, 0.5f0, -0.5f0,
         ]
-        attribute = VertexAttribute(0, 3, GL_FLOAT, GL_FALSE, C_NULL)
-        vertexdata = VertexData{GLfloat}(vertices, VertexAttribute[attribute])
+        attributevi = VertexAttribute(0, 3, GL_FLOAT, GL_FALSE, C_NULL)
+        attributevj = VertexAttribute(1, 3, GL_FLOAT, GL_FALSE, Ptr{Cvoid}(3 * sizeof(GLfloat)))
+        vertexdata = VertexData{GLfloat}(vertices, VertexAttribute[attributevi, attributevj])
         pointvertices = VertexArray{GL_POINTS}(vertexdata)
 
         new(program, pointvertices)
     end
 end
 
-function render(p::IntersectingPlanePoints, camera::Camera, cameraview::CameraView, distance::Float32)
+function render(p::IntersectingPlanePoints, camera::Camera, cameraview::CameraView, normalcameraview::CameraView, distance::Float32)
     use(p.program)
 
     projection = perspective(camera)
@@ -64,9 +66,10 @@ function render(p::IntersectingPlanePoints, camera::Camera, cameraview::CameraVi
     uniform(p.program, "color", color)
     uniform(p.program, "distance", distance)
 
-    # With the basis vectors `up`, `right`, `direction`, the normal here must be from the target
-    # to the camera, for the coordinates to be a right-handed system.
-    normal = -direction(cameraview)
+    # We define the slice to have a positive normal on its front facing side.
+    # Since the slices should always be oriented to show their front facing sides to the camera,
+    # it implies that the normal is the directio
+    normal = -direction(normalcameraview)
     uniform(p.program, "normal", normal)
 
     renderarray(p.pointvertices)
@@ -79,7 +82,7 @@ struct IntersectingPlane
 
     function IntersectingPlane()
         program = ShaderProgram("shaders/visualization/mvp3dvertex.glsl", "shaders/visualization/uniformcolorfragment.glsl")
-        color = (0f0, 0f0, 1f0, 0.2f0)
+        color = (0f0, 0f0, 1f0, 0.1f0)
 
         vertices = GLfloat[
             # Lines from front right bottom, around, counterclockwise
@@ -104,14 +107,14 @@ function render(plane::IntersectingPlane, camera::Camera, cameraview::CameraView
 
     projection = perspective(camera)
 
-    model_rotation = convert(Matrix4{Float32, World, World}, rotation)
-    model_translation = Matrix4{Float32, World, Object}(
+    model_rotation = convert(Matrix4{Float32, World, Object}, rotation)
+    model_translation = Matrix4{Float32, World, World}(
         1f0, 0f0, 0f0, 0f0,
         0f0, 1f0, 0f0, 0f0,
-        0f0, 0f0, 1f0, -distance,
+        0f0, 0f0, 1f0, distance,
         0f0, 0f0, 0f0, 1f0,
     )
-    model = model_rotation * model_translation
+    model = model_translation * model_rotation
 
     view = CameraViews.lookat(cameraview)
     uniform(plane.program, "projection", projection)
@@ -270,6 +273,7 @@ function Visualizer.setup(::ViewportAlignment)
     xaxis = Vector3{Float32, World}(1f0, 0f0, 0f0)
     yaxis = Vector3{Float32, World}(0f0, 1f0, 0f0)
     fixedperspectiveshift = PointRotation{Float32, World}(3f0 * pi / 16f0, yaxis) ∘ PointRotation{Float32, World}(-3f0 * pi / 16f0, xaxis)
+    #fixedperspectiveshift = PointRotation{Float32, World}(8f0 * pi / 16f0, yaxis)
     fixedcameraview = rotatecamera(cameraview, fixedperspectiveshift)
 
     ViewportAlignmentState(0f0, cameraview, fixedcameraview)
@@ -327,8 +331,8 @@ function Visualizer.render(camera::Camera, v::ViewportAlignment, state::Viewport
 
     XYZMarkerObject.render(v.marker, camera, state.cameraview)
 
+    render(v.planepoints, camera, state.cameraview, state.cameraview, Float32(state.distance))
     render(v.plane, camera, state.cameraview, camerarotation(state.cameraview), Float32(state.distance))
-    render(v.planepoints, camera, state.cameraview, Float32(state.distance))
 
     #
     # Viewport 2 (right)
@@ -351,8 +355,8 @@ function Visualizer.render(camera::Camera, v::ViewportAlignment, state::Viewport
     # The plane is still rotated according to the first camera, not the fixed camera.
     # The idea is that the first viewport will define the orientation of the plane, and the second
     # viewport has a fixed perspective, and will allow us to see the plane from a different perspective.
+    render(v.planepoints, camera, state.fixedcameraview, state.cameraview, Float32(state.distance))
     render(v.plane, camera, state.fixedcameraview, camerarotation(state.cameraview), Float32(state.distance))
-    render(v.planepoints, camera, state.fixedcameraview, Float32(state.distance))
 end
 
 end
