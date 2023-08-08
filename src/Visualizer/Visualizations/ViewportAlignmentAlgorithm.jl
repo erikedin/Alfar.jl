@@ -40,7 +40,24 @@ struct IntersectingPlanePoints
         vertices = GLfloat[
             # Position
             # v_i                              # v_j
-             0.5f0,  0.5f0, 0.5f0, 0.5f0, 0.5f0, -0.5f0,
+            # Edge 0->1
+             0.5f0,  0.5f0,  0.5f0,  0.5f0,  0.5f0, -0.5f0,
+            # Edge 1->4
+             0.5f0,  0.5f0, -0.5f0, -0.5f0,  0.5f0, -0.5f0,
+            # Edge 4->7
+            -0.5f0,  0.5f0, -0.5f0, -0.5f0, -0.5f0, -0.5f0,
+            # Edge 0->2
+             0.5f0,  0.5f0,  0.5f0,  0.5f0, -0.5f0,  0.5f0,
+            # Edge 2->5
+             0.5f0, -0.5f0,  0.5f0,  0.5f0, -0.5f0, -0.5f0,
+            # Edge 5->7
+             0.5f0, -0.5f0, -0.5f0, -0.5f0, -0.5f0, -0.5f0,
+            # Edge 0->3
+             0.5f0,  0.5f0,  0.5f0, -0.5f0,  0.5f0,  0.5f0,
+            # Edge 3->6
+            -0.5f0,  0.5f0,  0.5f0, -0.5f0, -0.5f0,  0.5f0,
+            # Edge 6->7
+            -0.5f0, -0.5f0,  0.5f0, -0.5f0, -0.5f0, -0.5f0,
         ]
         attributevi = VertexAttribute(0, 3, GL_FLOAT, GL_FALSE, C_NULL)
         attributevj = VertexAttribute(1, 3, GL_FLOAT, GL_FALSE, Ptr{Cvoid}(3 * sizeof(GLfloat)))
