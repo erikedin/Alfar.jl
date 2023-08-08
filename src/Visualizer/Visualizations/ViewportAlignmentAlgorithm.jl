@@ -35,7 +35,7 @@ struct IntersectingPlanePoints
     pointvertices::VertexArray{GL_POINTS}
 
     function IntersectingPlanePoints()
-        program = ShaderProgram("shaders/visualization/pointvertex.glsl", "shaders/visualization/uniformcolorfragment.glsl")
+        program = ShaderProgram("shaders/visualization/pointvertex.glsl", "shaders/visualization/uniformcoloralpha.glsl")
 
         vertices = GLfloat[
             # Position
@@ -75,7 +75,7 @@ function render(p::IntersectingPlanePoints, camera::Camera, cameraview::CameraVi
     model = identitytransform()
     view = CameraViews.lookat(cameraview)
 
-    color = (0f0, 1f0, 1f0, 1.0f0)
+    color = (0f0, 1f0, 1f0)
 
     uniform(p.program, "projection", projection)
     uniform(p.program, "view", view)

@@ -17,6 +17,8 @@
 layout (location = 0) in vec3 vi;
 layout (location = 1) in vec3 vj;
 
+out float alpha;
+
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
@@ -33,8 +35,19 @@ void main()
         vec3 p3 = vi + lambda * eij;
         vec4 p = vec4(p3, 1.0);
         gl_Position = projection * view * model * p;
+        alpha = 1.0;
+
+        // Hide the point by making it transparent if lambda
+        // is outside the valid range [0, 1].
+        if (lambda < 0.0 || lambda > 1.0) {
+            alpha = 0.0;
+        }
     }
     else {
-        gl_Position = projection * view * model * vec4(vi, 1.0);
+        // Hide the point by making it transparent if the
+        // intersection is not valid because it's too close to being
+        // parallell to the edge.
+        gl_Position = vec4(vi, 1.0);
+        alpha = 0.0;
     }
 }
