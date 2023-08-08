@@ -14,8 +14,8 @@
 
 #version 420 core
 
-layout (location = 0) in vec3 vi;
-layout (location = 1) in vec3 vj;
+layout (location = 0) in vec3 v1;
+layout (location = 1) in vec3 v2;
 
 out float alpha;
 
@@ -25,29 +25,26 @@ uniform mat4 projection;
 uniform float distance;
 uniform vec3 normal;
 
-void main()
+bool intersection(in vec3 vi, in vec3 vj, out vec4 p)
 {
     vec3 eij = vj - vi;
     float ndotvi = dot(normal, vi);
     float ndoteij = dot(normal, eij);
-    if (abs(ndoteij) > 0.01) {
-        float lambda = (distance - ndotvi) / ndoteij;
-        vec3 p3 = vi + lambda * eij;
-        vec4 p = vec4(p3, 1.0);
-        gl_Position = projection * view * model * p;
-        alpha = 1.0;
 
-        // Hide the point by making it transparent if lambda
-        // is outside the valid range [0, 1].
-        if (lambda < 0.0 || lambda > 1.0) {
-            alpha = 0.0;
-        }
+    if (abs(ndoteij) < 0.01) {
+        return false;
     }
-    else {
-        // Hide the point by making it transparent if the
-        // intersection is not valid because it's too close to being
-        // parallell to the edge.
-        gl_Position = vec4(vi, 1.0);
-        alpha = 0.0;
-    }
+
+    float lambda = (distance - ndotvi) / ndoteij;
+    vec3 p3 = vi + lambda * eij;
+    p = vec4(p3, 1.0);
+    return lambda >= 0.0 && lambda <= 1.0;
+}
+
+void main()
+{
+    vec4 p = vec4(0.0, 0.0, 0.0, 0.0);
+    bool intersects12 = intersection(v1, v2, p);
+    alpha = intersects12 ? 1.0 : 0.0;
+    gl_Position = projection * view * model * p;
 }
