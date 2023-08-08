@@ -14,8 +14,8 @@
 
 #version 420 core
 
-layout (location = 0) in vec3 v1;
-layout (location = 1) in vec3 v2;
+layout (location = 0) in uint index1;
+layout (location = 1) in uint index2;
 
 out float alpha;
 
@@ -43,8 +43,20 @@ bool intersection(in vec3 vi, in vec3 vj, out vec4 p)
 
 void main()
 {
+    const vec3 vertices[8] = vec3[8](
+        vec3( 0.5,  0.5,   0.5),
+        vec3( 0.5,  0.5,  -0.5),
+        vec3( 0.5, -0.5,   0.5),
+        vec3(-0.5,  0.5,   0.5),
+        vec3(-0.5,  0.5,  -0.5),
+        vec3( 0.5, -0.5,  -0.5),
+        vec3(-0.5, -0.5,   0.5),
+        vec3(-0.5, -0.5,  -0.5)
+    );
+    vec3 vi = vertices[index1];
+    vec3 vj = vertices[index2];
     vec4 p = vec4(0.0, 0.0, 0.0, 0.0);
-    bool intersects12 = intersection(v1, v2, p);
+    bool intersects12 = intersection(vi, vj, p);
     alpha = intersects12 ? 1.0 : 0.0;
     gl_Position = projection * view * model * p;
 }

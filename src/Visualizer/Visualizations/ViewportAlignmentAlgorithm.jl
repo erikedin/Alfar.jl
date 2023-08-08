@@ -37,31 +37,23 @@ struct IntersectingPlanePoints
     function IntersectingPlanePoints()
         program = ShaderProgram("shaders/visualization/pointvertex.glsl", "shaders/visualization/uniformcoloralpha.glsl")
 
-        v0 = ( 0.5f0,  0.5f0,   0.5f0)
-        v1 = ( 0.5f0,  0.5f0,  -0.5f0)
-        v2 = ( 0.5f0, -0.5f0,   0.5f0)
-        v3 = (-0.5f0,  0.5f0,   0.5f0)
-        v4 = (-0.5f0,  0.5f0,  -0.5f0)
-        v5 = ( 0.5f0, -0.5f0,  -0.5f0)
-        v6 = (-0.5f0, -0.5f0,   0.5f0)
-        v7 = (-0.5f0, -0.5f0,  -0.5f0)
-        vertices = GLfloat[
-            v0..., v1...,
-            v1..., v4...,
-            v4..., v7...,
-            v0..., v2...,
-            v2..., v5...,
-            v5..., v7...,
-            v0..., v3...,
-            v3..., v6...,
-            v6..., v7...,
-            v1..., v5...,
-            v2..., v6...,
-            v3..., v4...,
+        vertices = GLint[
+            0, 1,
+            1, 4,
+            4, 7,
+            0, 2,
+            2, 5,
+            5, 7,
+            0, 3,
+            3, 6,
+            6, 7,
+            1, 5,
+            2, 6,
+            3, 4,
         ]
-        attributevi = VertexAttribute(0, 3, GL_FLOAT, GL_FALSE, C_NULL)
-        attributevj = VertexAttribute(1, 3, GL_FLOAT, GL_FALSE, Ptr{Cvoid}(3 * sizeof(GLfloat)))
-        vertexdata = VertexData{GLfloat}(vertices, VertexAttribute[attributevi, attributevj])
+        attributevi = VertexAttribute(0, 1, GL_INT, GL_FALSE, C_NULL)
+        attributevj = VertexAttribute(1, 1, GL_INT, GL_FALSE, Ptr{Cvoid}(1 * sizeof(GL_INT)))
+        vertexdata = VertexData{GLint}(vertices, VertexAttribute[attributevi, attributevj])
         pointvertices = VertexArray{GL_POINTS}(vertexdata)
 
         new(program, pointvertices)
