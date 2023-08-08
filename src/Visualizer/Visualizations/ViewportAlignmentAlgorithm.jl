@@ -124,14 +124,14 @@ function render(plane::IntersectingPlane, camera::Camera, cameraview::CameraView
 
     projection = perspective(camera)
 
-    model_rotation = convert(Matrix4{Float32, World, Object}, rotation)
-    model_translation = Matrix4{Float32, World, World}(
+    model_rotation = convert(Matrix4{Float32, World, World}, rotation)
+    model_translation = Matrix4{Float32, World, Object}(
         1f0, 0f0, 0f0, 0f0,
         0f0, 1f0, 0f0, 0f0,
         0f0, 0f0, 1f0, distance,
         0f0, 0f0, 0f0, 1f0,
     )
-    model = model_translation * model_rotation
+    model = model_rotation * model_translation
 
     view = CameraViews.lookat(cameraview)
     uniform(plane.program, "projection", projection)
