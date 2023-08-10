@@ -88,22 +88,6 @@ struct VertexAttribute
     offset::Ptr{Cvoid}
 end
 
-struct VertexData{T}
-    data::Vector{T}
-    attributes::Vector{VertexAttribute}
-end
-
-elementscount(v::VertexData{T}) where {T} = sum([a.elementcount for a in v.attributes])
-stride(v::VertexData{T}) where {T} = elementscount(v) * sizeof(T)
-
-function vertexAttribPointer(v::VertexData{T}, a::VertexAttribute) where {T}
-    glVertexAttribPointer(a.attributeid, a.elementcount, a.attributetype, a.isnormalized, stride(v), a.offset)
-end
-
-function vertexAttribPointer(v::VertexData{GLint}, a::VertexAttribute)
-    glVertexAttribIPointer(a.attributeid, a.elementcount, a.attributetype, stride(v), a.offset)
-end
-
 struct VertexBuffer
     id::GLuint
 
@@ -123,6 +107,27 @@ function bufferdata(vbo::VertexBuffer, data::Vector{T}, mode::GLenum) where {T}
     glBufferData(GL_ARRAY_BUFFER, sizeof(data), data, mode)
 end
 
+struct VertexData{T}
+    data::Vector{T}
+    attributes::Vector{VertexAttribute}
+    vbo::VertexBuffer
+
+    function VertexData{T}(data::Vector{T}, attributes::Vector{VertexAttribute}) where {T}
+        new(data, attributes, VertexBuffer())
+    end
+end
+
+elementscount(v::VertexData{T}) where {T} = sum([a.elementcount for a in v.attributes])
+stride(v::VertexData{T}) where {T} = elementscount(v) * sizeof(T)
+
+function vertexAttribPointer(v::VertexData{T}, a::VertexAttribute) where {T}
+    glVertexAttribPointer(a.attributeid, a.elementcount, a.attributetype, a.isnormalized, stride(v), a.offset)
+end
+
+function vertexAttribPointer(v::VertexData{GLint}, a::VertexAttribute)
+    glVertexAttribIPointer(a.attributeid, a.elementcount, a.attributetype, stride(v), a.offset)
+end
+
 struct VertexArray{Primitive}
     id::GLuint
     count::Int
@@ -136,8 +141,7 @@ struct VertexArray{Primitive}
         count = trunc(Int, length(firstvertexdata.data) / elementscount(firstvertexdata))
 
         for vertexdata in vertexdatas
-            vbo = VertexBuffer()
-            bufferdata(vbo, vertexdata.data, GL_DYNAMIC_DRAW)
+            bufferdata(vertexdata.vbo, vertexdata.data, GL_DYNAMIC_DRAW)
 
             for attribute in vertexdata.attributes
                 vertexAttribPointer(vertexdata, attribute)

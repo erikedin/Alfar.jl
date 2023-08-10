@@ -136,6 +136,40 @@ function render(plane::IntersectingPlane, camera::Camera, cameraview::CameraView
     renderarray(plane.planevertices)
 end
 
+struct VertexHighlight
+    program::ShaderProgram
+    pointvertex::VertexArray{GL_POINTS}
+    color::NTuple{4, Float32}
+
+    function VertexHighlight(color::NTuple{4, Float32})
+        program = ShaderProgram("shaders/visualization/vertexhighlight.glsl", "shaders/visualization/uniformcolorfragment.glsl")
+
+        vertices = GLfloat[
+            0.5f0, 0.5f0, 0.5f0,
+        ]
+        attributevertex = VertexAttribute(0, 3, GL_FLOAT, GL_FALSE, C_NULL)
+        vertexdata = VertexData{GLfloat}(vertices, VertexAttribute[attributevertex])
+        pointvertex = VertexArray{GL_POINTS}(vertexdata)
+        new(program, pointvertex, color)
+    end
+end
+
+function render(highlight::VertexHighlight, camera::Camera, cameraview::CameraView, vertex::Vector3{Float32, World})
+    use(highlight.program)
+
+    projection = perspective(camera)
+    model = identitytransform()
+    view = CameraViews.lookat(cameraview)
+
+    uniform(highlight.program, "projection", projection)
+    uniform(highlight.program, "view", view)
+    uniform(highlight.program, "model", model)
+
+    uniform(highlight.program, "color", highlight.color)
+
+    renderarray(highlight.pointvertex)
+end
+
 function fill1d!(data, i, color)
     data[1, i] = UInt8(color[1])
     data[2, i] = UInt8(color[2])
@@ -179,6 +213,7 @@ struct ViewportAlignment <: Visualizer.Visualization
     plane::IntersectingPlane
     planepoints::IntersectingPlanePoints
     marker::XYZMarker
+    fronthighlight::VertexHighlight
 
     function ViewportAlignment()
         program = ShaderProgram("shaders/visualization/vertexdiscrete3d.glsl",
@@ -254,7 +289,9 @@ struct ViewportAlignment <: Visualizer.Visualization
 
         wireframetexture = Texture{1}(makewireframetexture())
 
-        new(program, wireframe, wireframetexture, IntersectingPlane(), IntersectingPlanePoints(), XYZMarker())
+        fronthighlight = VertexHighlight((0f0, 1f0, 0f0, 1f0))
+
+        new(program, wireframe, wireframetexture, IntersectingPlane(), IntersectingPlanePoints(), XYZMarker(), fronthighlight)
     end
 end
 
@@ -342,6 +379,7 @@ function Visualizer.render(camera::Camera, v::ViewportAlignment, state::Viewport
 
     render(v.planepoints, camera, state.cameraview, state.cameraview, Float32(state.distance))
     render(v.plane, camera, state.cameraview, camerarotation(state.cameraview), Float32(state.distance))
+    render(v.fronthighlight, camera, state.cameraview, Vector3{Float32, World}(0f0, 0f0, 0f0))
 
     #
     # Viewport 2 (right)
@@ -366,6 +404,7 @@ function Visualizer.render(camera::Camera, v::ViewportAlignment, state::Viewport
     # viewport has a fixed perspective, and will allow us to see the plane from a different perspective.
     render(v.planepoints, camera, state.fixedcameraview, state.cameraview, Float32(state.distance))
     render(v.plane, camera, state.fixedcameraview, camerarotation(state.cameraview), Float32(state.distance))
+    render(v.fronthighlight, camera, state.fixedcameraview, Vector3{Float32, World}(0f0, 0f0, 0f0))
 end
 
 end
