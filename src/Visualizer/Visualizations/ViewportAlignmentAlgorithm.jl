@@ -139,6 +139,7 @@ end
 struct VertexHighlight
     program::ShaderProgram
     pointvertex::VertexArray{GL_POINTS}
+    vertexdata::VertexData{GLfloat}
     color::NTuple{4, Float32}
 
     function VertexHighlight(color::NTuple{4, Float32})
@@ -150,12 +151,15 @@ struct VertexHighlight
         attributevertex = VertexAttribute(0, 3, GL_FLOAT, GL_FALSE, C_NULL)
         vertexdata = VertexData{GLfloat}(vertices, VertexAttribute[attributevertex])
         pointvertex = VertexArray{GL_POINTS}(vertexdata)
-        new(program, pointvertex, color)
+        new(program, pointvertex, vertexdata, color)
     end
 end
 
 function render(highlight::VertexHighlight, camera::Camera, cameraview::CameraView, vertex::Vector3{Float32, World})
     use(highlight.program)
+
+    vertices = GLfloat[vertex.x, vertex.y, vertex.z]
+    Meshs.bufferdata(highlight.vertexdata.vbo, vertices, GL_DYNAMIC_DRAW)
 
     projection = perspective(camera)
     model = identitytransform()
@@ -214,6 +218,7 @@ struct ViewportAlignment <: Visualizer.Visualization
     planepoints::IntersectingPlanePoints
     marker::XYZMarker
     fronthighlight::VertexHighlight
+    backhighlight::VertexHighlight
 
     function ViewportAlignment()
         program = ShaderProgram("shaders/visualization/vertexdiscrete3d.glsl",
@@ -290,8 +295,9 @@ struct ViewportAlignment <: Visualizer.Visualization
         wireframetexture = Texture{1}(makewireframetexture())
 
         fronthighlight = VertexHighlight((0f0, 1f0, 0f0, 1f0))
+        backhighlight = VertexHighlight((1f0, 0f0, 0f0, 1f0))
 
-        new(program, wireframe, wireframetexture, IntersectingPlane(), IntersectingPlanePoints(), XYZMarker(), fronthighlight)
+        new(program, wireframe, wireframetexture, IntersectingPlane(), IntersectingPlanePoints(), XYZMarker(), fronthighlight, backhighlight)
     end
 end
 
@@ -358,7 +364,43 @@ function Visualizer.onmousedrag(::ViewportAlignment, state::ViewportAlignmentSta
     ViewportAlignmentState(state.distance, newcameraview, state.fixedcameraview)
 end
 
+function frontbackvertex(cameraview::CameraView) :: NTuple{2, Vector3{Float32, World}}
+    vertices = Vector3{Float32, World}[
+        Vector3{Float32, World}( 0.5f0,  0.5f0,  0.5f0), #v0
+        Vector3{Float32, World}( 0.5f0,  0.5f0, -0.5f0), #v1
+        Vector3{Float32, World}( 0.5f0, -0.5f0,  0.5f0), #v2
+        Vector3{Float32, World}(-0.5f0,  0.5f0,  0.5f0), #v3
+        Vector3{Float32, World}(-0.5f0,  0.5f0, -0.5f0), #v4
+        Vector3{Float32, World}( 0.5f0, -0.5f0, -0.5f0), #v5
+        Vector3{Float32, World}(-0.5f0, -0.5f0,  0.5f0), #v6
+        Vector3{Float32, World}(-0.5f0, -0.5f0, -0.5f0), #v7
+    ]
+
+    frontvertex = Vector3{Float32, World}(0f0, 0f0, 0f0)
+    frontdistance = Inf
+    backvertex = Vector3{Float32, World}(0f0, 0f0, 0f0)
+    backdistance = -Inf
+
+    for v in vertices
+        d = norm(cameraposition(cameraview) - v)
+
+        if d < frontdistance
+            frontdistance = d
+            frontvertex = v
+        end
+
+        if d > backdistance
+            backdistance = d
+            backvertex = v
+        end
+    end
+
+    (frontvertex, backvertex)
+end
+
 function Visualizer.render(camera::Camera, v::ViewportAlignment, state::ViewportAlignmentState)
+    (frontvertex, backvertex) = frontbackvertex(state.cameraview)
+
     #
     # Viewport 1 (left)
     #
@@ -377,9 +419,10 @@ function Visualizer.render(camera::Camera, v::ViewportAlignment, state::Viewport
 
     XYZMarkerObject.render(v.marker, camera, state.cameraview)
 
+    render(v.backhighlight, camera, state.cameraview, backvertex)
     render(v.planepoints, camera, state.cameraview, state.cameraview, Float32(state.distance))
     render(v.plane, camera, state.cameraview, camerarotation(state.cameraview), Float32(state.distance))
-    render(v.fronthighlight, camera, state.cameraview, Vector3{Float32, World}(0f0, 0f0, 0f0))
+    render(v.fronthighlight, camera, state.cameraview, frontvertex)
 
     #
     # Viewport 2 (right)
@@ -402,9 +445,10 @@ function Visualizer.render(camera::Camera, v::ViewportAlignment, state::Viewport
     # The plane is still rotated according to the first camera, not the fixed camera.
     # The idea is that the first viewport will define the orientation of the plane, and the second
     # viewport has a fixed perspective, and will allow us to see the plane from a different perspective.
+    render(v.backhighlight, camera, state.fixedcameraview, backvertex)
     render(v.planepoints, camera, state.fixedcameraview, state.cameraview, Float32(state.distance))
     render(v.plane, camera, state.fixedcameraview, camerarotation(state.cameraview), Float32(state.distance))
-    render(v.fronthighlight, camera, state.fixedcameraview, Vector3{Float32, World}(0f0, 0f0, 0f0))
+    render(v.fronthighlight, camera, state.fixedcameraview, frontvertex)
 end
 
 end
