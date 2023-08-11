@@ -139,26 +139,25 @@ end
 struct VertexHighlight
     program::ShaderProgram
     pointvertex::VertexArray{GL_POINTS}
-    vertexdata::VertexData{GLfloat}
+    vertexdata::VertexData{GLint}
     color::NTuple{4, Float32}
 
     function VertexHighlight(color::NTuple{4, Float32})
         program = ShaderProgram("shaders/visualization/vertexhighlight.glsl", "shaders/visualization/uniformcolorfragment.glsl")
 
-        vertices = GLfloat[
-            0.5f0, 0.5f0, 0.5f0,
-        ]
-        attributevertex = VertexAttribute(0, 3, GL_FLOAT, GL_FALSE, C_NULL)
-        vertexdata = VertexData{GLfloat}(vertices, VertexAttribute[attributevertex])
+        vertices = GLint[0]
+        attributevertex = VertexAttribute(0, 1, GL_INT, GL_FALSE, C_NULL)
+        vertexdata = VertexData{GLint}(vertices, VertexAttribute[attributevertex])
         pointvertex = VertexArray{GL_POINTS}(vertexdata)
         new(program, pointvertex, vertexdata, color)
     end
 end
 
-function render(highlight::VertexHighlight, camera::Camera, cameraview::CameraView, vertex::Vector3{Float32, World})
+function render(highlight::VertexHighlight, camera::Camera, cameraview::CameraView, vertexindex::Int)
     use(highlight.program)
 
-    vertices = GLfloat[vertex.x, vertex.y, vertex.z]
+    # The vertex index is one-indexed in the Julia code, so it needs to be made 0-indexed here.
+    vertices = GLint[vertexindex-1]
     Meshs.bufferdata(highlight.vertexdata.vbo, vertices, GL_DYNAMIC_DRAW)
 
     projection = perspective(camera)
@@ -433,7 +432,7 @@ function Visualizer.onmousedrag(::ViewportAlignment, state::ViewportAlignmentSta
     ViewportAlignmentState(state.distance, newcameraview, state.fixedcameraview)
 end
 
-function frontbackvertex(cameraview::CameraView) :: NTuple{2, Vector3{Float32, World}}
+function frontbackvertex(cameraview::CameraView) :: NTuple{2, Int}
     vertices = Vector3{Float32, World}[
         Vector3{Float32, World}( 0.5f0,  0.5f0,  0.5f0), #v0
         Vector3{Float32, World}( 0.5f0,  0.5f0, -0.5f0), #v1
@@ -445,17 +444,18 @@ function frontbackvertex(cameraview::CameraView) :: NTuple{2, Vector3{Float32, W
         Vector3{Float32, World}(-0.5f0, -0.5f0, -0.5f0), #v7
     ]
 
-    frontvertex = Vector3{Float32, World}(0f0, 0f0, 0f0)
+    frontvertex = 0
     frontdistance = Inf
-    backvertex = Vector3{Float32, World}(0f0, 0f0, 0f0)
+    backvertex = 0
     backdistance = -Inf
 
-    for v in vertices
+    for vertexindex = 1:8
+        v = vertices[vertexindex]
         d = norm(cameraposition(cameraview) - v)
 
         if d < frontdistance
             frontdistance = d
-            frontvertex = v
+            frontvertex = vertexindex
         end
 
         # Using >= here so that if several vertices have the same
@@ -463,7 +463,7 @@ function frontbackvertex(cameraview::CameraView) :: NTuple{2, Vector3{Float32, W
         # current default camera setup, but is kind of hacky.
         if d >= backdistance
             backdistance = d
-            backvertex = v
+            backvertex = vertexindex
         end
     end
 

@@ -14,7 +14,7 @@
 
 #version 420 core
 
-layout (location = 0) in vec4 vertex;
+layout (location = 0) in int vertexIndex;
 
 uniform mat4 model;
 uniform mat4 view;
@@ -22,5 +22,17 @@ uniform mat4 projection;
 
 void main()
 {
+    const vec4[8] vertices = vec4[8](
+        vec4( 0.5,  0.5,  0.5, 1.0),
+        vec4( 0.5,  0.5, -0.5, 1.0),
+        vec4( 0.5, -0.5,  0.5, 1.0),
+        vec4(-0.5,  0.5,  0.5, 1.0),
+        vec4(-0.5,  0.5, -0.5, 1.0),
+        vec4( 0.5, -0.5, -0.5, 1.0),
+        vec4(-0.5, -0.5,  0.5, 1.0),
+        vec4(-0.5, -0.5, -0.5, 1.0)
+    );
+
+    vec4 vertex = vertices[vertexIndex];
     gl_Position = projection * view * model * vertex;
 }
