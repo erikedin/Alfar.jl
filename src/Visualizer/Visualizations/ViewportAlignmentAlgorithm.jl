@@ -486,8 +486,8 @@ function Visualizer.render(camera::Camera, v::ViewportAlignment, state::Viewport
     uniform(v.program, "view", view)
     uniform(v.program, "projection", projection)
 
-    glBindTexture(GL_TEXTURE_1D, v.wireframetexture.textureid)
-    renderarray(v.wireframe)
+    #glBindTexture(GL_TEXTURE_1D, v.wireframetexture.textureid)
+    #renderarray(v.wireframe)
 
     XYZMarkerObject.render(v.marker, camera, state.cameraview)
 
@@ -509,8 +509,8 @@ function Visualizer.render(camera::Camera, v::ViewportAlignment, state::Viewport
     uniform(v.program, "view", view)
     uniform(v.program, "projection", projection)
 
-    glBindTexture(GL_TEXTURE_1D, v.wireframetexture.textureid)
-    renderarray(v.wireframe)
+    #glBindTexture(GL_TEXTURE_1D, v.wireframetexture.textureid)
+    #renderarray(v.wireframe)
 
     XYZMarkerObject.render(v.marker, camera, state.fixedcameraview)
 
