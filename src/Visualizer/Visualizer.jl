@@ -72,7 +72,6 @@ function handle(window, ev::SelectVisualizationEvent, state::VisualizerState)
 end
 
 function handle(window, ev::UserDefinedEvent, state::VisualizerState)
-    println("User defined event: $(ev)")
     newvisualizationstate = onevent(state.visualization, state.visualizationstate, ev)
     VisualizerState(state.visualization, newvisualizationstate)
 end

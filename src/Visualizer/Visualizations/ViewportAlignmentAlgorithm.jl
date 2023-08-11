@@ -315,11 +315,15 @@ function Visualizer.setflags(::ViewportAlignment)
     glEnable(GL_POINT_SMOOTH)
 end
 
-function Visualizer.setup(::ViewportAlignment)
+function initialcameraview()
     initialcameraposition = Vector3{Float32, World}(0f0, 0f0, 3f0)
     initialtarget = Vector3{Float32, World}(0f0, 0f0, 0f0)
     initialup = Vector3{Float32, World}(0f0, 1f0, 0f0)
-    cameraview = CameraView{Float32, World}(initialcameraposition, initialtarget, initialup)
+    CameraView{Float32, World}(initialcameraposition, initialtarget, initialup)
+end
+
+function Visualizer.setup(::ViewportAlignment)
+    cameraview = initialcameraview()
 
     # The fixed camera is shown from an angle to the original camera position
     xaxis = Vector3{Float32, World}(1f0, 0f0, 0f0)
@@ -455,8 +459,15 @@ struct RotateCameraEvent <: Visualizer.UserDefinedEvent
     rotation::PointRotation{Float32, World}
 end
 
+struct ResetCameraEvent <: Visualizer.UserDefinedEvent end
+
 function Visualizer.onevent(::ViewportAlignment, state::ViewportAlignmentState, ev::RotateCameraEvent) :: ViewportAlignmentState
     newcameraview = rotatecamera(state.cameraview, ev.rotation)
+    ViewportAlignmentState(state.distance, newcameraview, state.fixedcameraview)
+end
+
+function Visualizer.onevent(::ViewportAlignment, state::ViewportAlignmentState, ev::ResetCameraEvent) :: ViewportAlignmentState
+    newcameraview = initialcameraview()
     ViewportAlignmentState(state.distance, newcameraview, state.fixedcameraview)
 end
 
@@ -464,12 +475,12 @@ end
 # This is convenient so that rotations and math is available in a single module.
 module Exports
 
-using ..ViewportAlignmentAlgorithm: RotateCameraEvent
+using ..ViewportAlignmentAlgorithm: RotateCameraEvent, ResetCameraEvent
 using Alfar.WIP.Math
 using Alfar.WIP.Transformations
 using Alfar.Rendering: World
 
-export RotateCameraEvent
+export RotateCameraEvent, ResetCameraEvent
 export Vector3
 export PointRotation
 export World
