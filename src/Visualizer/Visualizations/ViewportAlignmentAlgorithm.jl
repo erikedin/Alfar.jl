@@ -451,4 +451,12 @@ function Visualizer.render(camera::Camera, v::ViewportAlignment, state::Viewport
     render(v.fronthighlight, camera, state.fixedcameraview, frontvertex)
 end
 
+struct RotateCameraEvent <: Visualizer.UserDefinedEvent
+    rotation::PointRotation{Float32, World}
+end
+
+function Visualizer.onevent(::ViewportAlignment, state::ViewportAlignmentState, ev::RotateCameraEvent) :: ViewportAlignmentState
+    state
+end
+
 end

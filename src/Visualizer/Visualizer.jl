@@ -38,7 +38,7 @@ const PredefinedVisualizers = Dict{String, Type{<:Visualization}}([
 struct MouseInputState
     isdragging::Bool
     dragorigin::NTuple{2, Float64}
-
+#
     MouseInputState() = new(false, (0.0, 0.0))
     MouseInputState(dragorigin) = new(true, dragorigin)
 end
@@ -49,8 +49,6 @@ mutable struct VisualizerState
 end
 
 VisualizerState() = VisualizerState(nothing, nothing)
-
-abstract type VizEvent end
 
 struct ExitEvent <: VizEvent end
 
@@ -71,6 +69,12 @@ function handle(window, ev::SelectVisualizationEvent, state::VisualizerState)
     visualizationstate = setup(visualizer)
 
     VisualizerState(visualizer, visualizationstate)
+end
+
+function handle(window, ev::UserDefinedEvent, state::VisualizerState)
+    println("User defined event: $(ev)")
+    newvisualizationstate = onevent(state.visualization, state.visualizationstate, ev)
+    VisualizerState(state.visualization, newvisualizationstate)
 end
 
 Shaders.use(::Nothing) = nothing

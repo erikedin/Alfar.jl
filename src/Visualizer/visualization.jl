@@ -21,6 +21,13 @@ abstract type Visualization end
 abstract type VisualizationState end
 
 #
+# Abstract types for any events received from the Julia REPL.
+#
+
+abstract type VizEvent end
+abstract type UserDefinedEvent <: VizEvent end
+
+#
 # Define the Visualization methods for `Nothing`, so that we don't have to
 # handle that as a special case.
 #
@@ -37,6 +44,14 @@ render(camera::Camera, ::Nothing, ::Nothing) = nothing
 onkeyboardinput(::Visualization, state::VisualizationState, ::KeyboardInputEvent) = state
 onmousescroll(::Visualization, state::VisualizationState, ::Tuple{Float64, Float64}) = state
 onmousedrag(::Visualization, state::VisualizationState, ::MouseDragEvent) = state
+
+#
+# User defined events are sent from the Julia REPL to the specific visualization,
+# currently in use.
+# Default to just returning the state, so you can override only those events you need.
+#
+
+onevent(::Visualization, state::VisualizationState, ::UserDefinedEvent) = state
 
 include("Objects/Objects.jl")
 
