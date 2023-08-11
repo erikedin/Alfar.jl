@@ -274,7 +274,7 @@ struct Box
     end
 end
 
-function render(box::Box, camera::Camera, cameraview::CameraView, frontVertexIndex::Int)
+function render(box::Box, camera::Camera, cameraview::CameraView, frontvertexindex::Int)
     use(box.program)
 
     projection = perspective(camera)
@@ -284,7 +284,9 @@ function render(box::Box, camera::Camera, cameraview::CameraView, frontVertexInd
     uniform(box.program, "projection", projection)
     uniform(box.program, "view", view)
     uniform(box.program, "model", model)
-    uniform(box.program, "frontVertexIndex", frontVertexIndex)
+    # frontvertexindex is 1-indexed, because it's from Julia code, but should be
+    # zero-indexed in the vertex shader.
+    uniform(box.program, "frontVertexIndex", frontvertexindex - 1)
 
     renderarray(box.boxwireframe)
 end
