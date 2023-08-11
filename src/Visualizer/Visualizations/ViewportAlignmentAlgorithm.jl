@@ -456,7 +456,39 @@ struct RotateCameraEvent <: Visualizer.UserDefinedEvent
 end
 
 function Visualizer.onevent(::ViewportAlignment, state::ViewportAlignmentState, ev::RotateCameraEvent) :: ViewportAlignmentState
-    state
+    newcameraview = rotatecamera(state.cameraview, ev.rotation)
+    ViewportAlignmentState(state.distance, newcameraview, state.fixedcameraview)
+end
+
+# Exports is a convenience-module that re-exports a bunch of commonly used types.
+# This is convenient so that rotations and math is available in a single module.
+module Exports
+
+using ..ViewportAlignmentAlgorithm: RotateCameraEvent
+using Alfar.WIP.Math
+using Alfar.WIP.Transformations
+using Alfar.Rendering: World
+
+export RotateCameraEvent
+export Vector3
+export PointRotation
+export World
+export AxisX, AxisY, AxisZ, AxisXYZ
+export rotatecamera
+export Radians90, Radians45, RadiansLittle
+
+const AxisX = Vector3{Float32, World}(1f0, 0f0, 0f0)
+const AxisY = Vector3{Float32, World}(0f0, 1f0, 0f0)
+const AxisZ = Vector3{Float32, World}(0f0, 0f0, 1f0)
+const AxisXYZ = Vector3{Float32, World}(1f0, 1f0, 1f0)
+const Radians90 = 0.5f0 * pi
+const Radians45 = 0.25f0 * pi
+const RadiansLittle = Radians90 / 16f0
+
+function rotatecamera(θ::Float32, axis::Vector3{Float32, World}) :: RotateCameraEvent
+    RotateCameraEvent(PointRotation{Float32, World}(θ, axis))
+end
+
 end
 
 end

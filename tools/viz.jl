@@ -19,4 +19,4 @@ context = Visualizer.start()
 ev = Visualizer.SelectVisualizationEvent("ViewportAlignment")
 put!(context.channel, ev)
 
-Visualizer.waituntilstop(context)
+#Visualizer.waituntilstop(context)
