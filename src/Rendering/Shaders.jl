@@ -135,6 +135,11 @@ function uniform(program::ShaderProgram, name::String, value::Float32)
     glUniform1f(location, value)
 end
 
+function uniform(program::ShaderProgram, name::String, value::Int)
+    location = uniformlocation(program, name)
+    glUniform1i(location, value)
+end
+
 function uniform(program::ShaderProgram, name::String, value::NTuple{3, GLfloat})
     location = uniformlocation(program, name)
     array = Ref([value...], 1)

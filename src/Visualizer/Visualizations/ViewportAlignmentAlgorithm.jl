@@ -274,6 +274,21 @@ struct Box
     end
 end
 
+function render(box::Box, camera::Camera, cameraview::CameraView, frontVertexIndex::Int)
+    use(box.program)
+
+    projection = perspective(camera)
+    model = identitytransform()
+    view = CameraViews.lookat(cameraview)
+
+    uniform(box.program, "projection", projection)
+    uniform(box.program, "view", view)
+    uniform(box.program, "model", model)
+    uniform(box.program, "frontVertexIndex", frontVertexIndex)
+
+    renderarray(box.boxwireframe)
+end
+
 struct ViewportAlignment <: Visualizer.Visualization
     program::Union{Nothing, ShaderProgram}
     wireframe::VertexArray{GL_LINES}
@@ -283,6 +298,7 @@ struct ViewportAlignment <: Visualizer.Visualization
     marker::XYZMarker
     fronthighlight::VertexHighlight
     backhighlight::VertexHighlight
+    box::Box
 
     function ViewportAlignment()
         program = ShaderProgram("shaders/visualization/vertexdiscrete3d.glsl",
@@ -361,7 +377,9 @@ struct ViewportAlignment <: Visualizer.Visualization
         fronthighlight = VertexHighlight((0f0, 1f0, 0f0, 1f0))
         backhighlight = VertexHighlight((1f0, 0f0, 0f0, 1f0))
 
-        new(program, wireframe, wireframetexture, IntersectingPlane(), IntersectingPlanePoints(), XYZMarker(), fronthighlight, backhighlight)
+        box = Box()
+
+        new(program, wireframe, wireframetexture, IntersectingPlane(), IntersectingPlanePoints(), XYZMarker(), fronthighlight, backhighlight, box)
     end
 end
 
@@ -488,6 +506,7 @@ function Visualizer.render(camera::Camera, v::ViewportAlignment, state::Viewport
 
     #glBindTexture(GL_TEXTURE_1D, v.wireframetexture.textureid)
     #renderarray(v.wireframe)
+    render(v.box, camera, state.cameraview, frontvertex)
 
     XYZMarkerObject.render(v.marker, camera, state.cameraview)
 
