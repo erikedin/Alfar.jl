@@ -12,11 +12,33 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+module SlicingViz
+
 using Alfar.Visualizer
+using Alfar.Rendering.Cameras
 
-context = Visualizer.start()
+struct Slicing <: Visualizer.Visualization
 
-ev = Visualizer.SelectVisualizationEvent("Slicing")
-put!(context.channel, ev)
+end
 
-#Visualizer.waituntilstop(context)
+struct SlicingState <: Visualizer.VisualizationState
+    numberofslices::Int
+end
+
+function Visualizer.setflags(::Slicing)
+
+end
+
+function Visualizer.setup(::Slicing) :: SlicingState
+    SlicingState(5)
+end
+
+function Visualizer.update(::Slicing, state::SlicingState) :: SlicingState
+    state
+end
+
+function Visualizer.render(::Camera, ::Slicing, ::SlicingState)
+
+end
+
+end
