@@ -49,7 +49,7 @@ struct IntersectingPlanePoints
     end
 end
 
-function render(p::IntersectingPlanePoints, camera::Camera, cameraview::CameraView, normalcameraview::CameraView, distance::Float32)
+function render(p::IntersectingPlanePoints, camera::Camera, cameraview::CameraView, normalcameraview::CameraView, distance::Float32, frontvertexindex::Int)
     use(p.program)
 
     projection = perspective(camera)
@@ -63,6 +63,7 @@ function render(p::IntersectingPlanePoints, camera::Camera, cameraview::CameraVi
     uniform(p.program, "model", model)
     uniform(p.program, "color", color)
     uniform(p.program, "distance", distance)
+    uniform(p.program, "frontVertexIndex", frontvertexindex - 1)
 
     # We define the slice to have a positive normal on its front facing side.
     # Since the slices should always be oriented to show their front facing sides to the camera,
@@ -481,7 +482,7 @@ function Visualizer.render(camera::Camera, v::ViewportAlignment, state::Viewport
     # to actually fix it. So for now we'll accept that the highlights aren't rendered properly in
     # some circumstances.
     render(v.backhighlight, camera, state.cameraview, backvertex)
-    render(v.planepoints, camera, state.cameraview, state.cameraview, Float32(state.distance))
+    render(v.planepoints, camera, state.cameraview, state.cameraview, Float32(state.distance), frontvertex)
     #render(v.plane, camera, state.cameraview, camerarotation(state.cameraview), Float32(state.distance))
     render(v.intersectingpolygon, camera, state.cameraview, state.cameraview, Float32(state.distance), frontvertex)
     render(v.fronthighlight, camera, state.cameraview, frontvertex)
@@ -499,7 +500,7 @@ function Visualizer.render(camera::Camera, v::ViewportAlignment, state::Viewport
     # The idea is that the first viewport will define the orientation of the plane, and the second
     # viewport has a fixed perspective, and will allow us to see the plane from a different perspective.
     render(v.backhighlight, camera, state.fixedcameraview, backvertex)
-    render(v.planepoints, camera, state.fixedcameraview, state.cameraview, Float32(state.distance))
+    render(v.planepoints, camera, state.fixedcameraview, state.cameraview, Float32(state.distance), frontvertex)
     #render(v.plane, camera, state.fixedcameraview, camerarotation(state.cameraview), Float32(state.distance))
     render(v.fronthighlight, camera, state.fixedcameraview, frontvertex)
 end

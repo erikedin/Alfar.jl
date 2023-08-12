@@ -127,8 +127,11 @@ void main()
         // The edges are specified as vertex indexes assuming that vertex 0 is the front-most
         // vertex. If another vertex is the front-most, we need to translate the vertex index
         // to that scenario.
-        int vertexStartIndex = vertexIndexBasedOnFront[edge.x];
-        int vertexEndIndex = vertexIndexBasedOnFront[edge.y];
+        // The vertexIndexBasedOnFront is a table indexed first by the `frontVertexIndex` uniform.
+        // Each row has 8 elements, representing the translated vertex indexes. To find the right row,
+        // start at `frontVertexIndex * 8`. Add the vertex index to find the correct element in that row.
+        int vertexStartIndex = vertexIndexBasedOnFront[frontVertexIndex * 8 + edge.x];
+        int vertexEndIndex = vertexIndexBasedOnFront[frontVertexIndex * 8 + edge.y];
 
         // Here, `vi` is the final coordinates of the edge start, and `vj` is the coordinates
         // of the edge end.
