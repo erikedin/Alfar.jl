@@ -340,9 +340,6 @@ function render(box::Box, camera::Camera, cameraview::CameraView, frontvertexind
 end
 
 struct ViewportAlignment <: Visualizer.Visualization
-    program::Union{Nothing, ShaderProgram}
-    wireframe::VertexArray{GL_LINES}
-    wireframetexture::Texture{1}
     plane::IntersectingPlane
     planepoints::IntersectingPlanePoints
     marker::XYZMarker
@@ -351,85 +348,12 @@ struct ViewportAlignment <: Visualizer.Visualization
     box::Box
 
     function ViewportAlignment()
-        program = ShaderProgram("shaders/visualization/vertexdiscrete3d.glsl",
-                                "shaders/visualization/fragmentdiscrete1dtransfer.glsl")
-
-        wireframevertices = GLfloat[
-            # Lines from front right bottom, around, counterclockwise
-             0.5f0, -0.5f0,  0.5f0, # Right bottom front
-             0.5f0,  0.5f0,  0.5f0, # Right top    front
-
-             0.5f0,  0.5f0,  0.5f0, # Right top    front
-            -0.5f0,  0.5f0,  0.5f0, # Left  top    front
-
-            -0.5f0,  0.5f0,  0.5f0, # Left  top    front
-            -0.5f0, -0.5f0,  0.5f0, # Left  bottom front
-
-            -0.5f0, -0.5f0,  0.5f0, # Left  bottom front
-             0.5f0, -0.5f0,  0.5f0, # Right bottom front
-
-            # Lines from front to back
-             0.5f0, -0.5f0,  0.5f0, # Right bottom front
-             0.5f0, -0.5f0, -0.5f0, # Right bottom back
-
-             0.5f0,  0.5f0,  0.5f0, # Right top    front
-             0.5f0,  0.5f0, -0.5f0, # Right top    back
-
-            -0.5f0,  0.5f0,  0.5f0, # Left  top    front
-            -0.5f0,  0.5f0, -0.5f0, # Left  top    back
-
-            -0.5f0, -0.5f0,  0.5f0, # Left  bottom front
-            -0.5f0, -0.5f0, -0.5f0, # Left  bottom back
-
-            # Lines from back right bottom, around, counterclockwise
-             0.5f0, -0.5f0, -0.5f0, # Right bottom back
-             0.5f0,  0.5f0, -0.5f0, # Right top    back
-
-             0.5f0,  0.5f0, -0.5f0, # Right top    back
-            -0.5f0,  0.5f0, -0.5f0, # Left  top    back
-
-            -0.5f0,  0.5f0, -0.5f0, # Left  top    back
-            -0.5f0, -0.5f0, -0.5f0, # Left  bottom back
-
-            -0.5f0, -0.5f0, -0.5f0, # Left  bottom back
-             0.5f0, -0.5f0, -0.5f0, # Right bottom back
-        ]
-        wireframecolors = GLint[
-            # Lines from front right bottom, around, counterclockwise
-            1, 1, # GREEN     # v0 -> v2 # Right bottom front -> Right top front
-            2, 2, # BLUE      # v0 -> v3 # Right top    front -> Left  top    front
-            2, 2, # BLUE      # v3 -> v6 # Left  top    front -> Left  bottom front
-            4, 4, # LOW GREEN # v2 -> v6 # Left  bottom front -> Right bottom front
-
-            # Lines from front to back
-            1, 1, # GREEN # v2 -> v5 # Right bottom front -> Right bottom back
-            0, 0, # RED       # v0 -> v1 # Right top    front -> Right top    back
-            5, 5, # LOW BLUE  # v3 -> v4 # Left  top    front -> Left  top    back
-            2, 2, # BLUE      # v6 -> v7 # Left  bottom front -> Left  bottom back
-
-            # Lines from back right bottom, around, counterclockwise
-            3, 3, # LOW RED   # v1 -> v5 # Right bottom back -> Right top    back
-            0, 0, # RED       # v1 -> v4 # Right top    back -> Left  top    back
-            0, 0, # RED       # v4 -> v7 # Left  top    back -> Left  bottom back
-            1, 1, # GREEN     # v5 -> v7 # Left  bottom back -> Right bottom back
-        ]
-
-        positionattribute = VertexAttribute(0, 3, GL_FLOAT, GL_FALSE, C_NULL)
-        wireframedata = VertexData{GLfloat}(wireframevertices, VertexAttribute[positionattribute])
-
-        colorattribute = VertexAttribute(1, 1, GL_INT, GL_FALSE, C_NULL)
-        wireframecolordata = VertexData{GLint}(wireframecolors, VertexAttribute[colorattribute])
-
-        wireframe = VertexArray{GL_LINES}(wireframedata, wireframecolordata)
-
-        wireframetexture = Texture{1}(makewireframetexture())
-
         fronthighlight = VertexHighlight((0f0, 1f0, 0f0, 1f0))
         backhighlight = VertexHighlight((1f0, 0f0, 0f0, 1f0))
 
         box = Box()
 
-        new(program, wireframe, wireframetexture, IntersectingPlane(), IntersectingPlanePoints(), XYZMarker(), fronthighlight, backhighlight, box)
+        new(IntersectingPlane(), IntersectingPlanePoints(), XYZMarker(), fronthighlight, backhighlight, box)
     end
 end
 
@@ -546,14 +470,6 @@ function Visualizer.render(camera::Camera, v::ViewportAlignment, state::Viewport
     #
     glViewport(0, 0, camera.windowwidth, camera.windowheight)
 
-    use(v.program)
-    view = CameraViews.lookat(state.cameraview)
-    projection = perspective(camera)
-    model = identitytransform()
-    uniform(v.program, "model", model)
-    uniform(v.program, "view", view)
-    uniform(v.program, "projection", projection)
-
     render(v.box, camera, state.cameraview, frontvertex)
 
     XYZMarkerObject.render(v.marker, camera, state.cameraview)
@@ -567,14 +483,6 @@ function Visualizer.render(camera::Camera, v::ViewportAlignment, state::Viewport
     # Viewport 2 (right)
     #
     glViewport(camera.windowwidth, 0, camera.windowwidth, camera.windowheight)
-
-    use(v.program)
-    view = CameraViews.lookat(state.fixedcameraview)
-    projection = perspective(camera)
-    model = identitytransform()
-    uniform(v.program, "model", model)
-    uniform(v.program, "view", view)
-    uniform(v.program, "projection", projection)
 
     render(v.box, camera, state.fixedcameraview, frontvertex)
 
