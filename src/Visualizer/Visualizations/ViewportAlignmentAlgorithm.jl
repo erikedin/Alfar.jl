@@ -138,11 +138,10 @@ struct IntersectingPolygon
         # There will be between 3-6 intersections, with intersection p0, p2, p4 being guaranteed.
         # This is a triangle fan, originating at intersection p0.
         intersectionindexes = GLint[
-            0, 4, 2,
-            #0, 1, 2,
-               #2, 3,
-               #3, 4,
-               #4, 5,
+            0, 1, 2,
+               2, 3,
+               3, 4,
+               4, 5,
         ]
 
         indexattribute = VertexAttribute(0, 1, GL_INT, GL_FALSE, C_NULL)
@@ -483,7 +482,7 @@ function Visualizer.render(camera::Camera, v::ViewportAlignment, state::Viewport
     # some circumstances.
     render(v.backhighlight, camera, state.cameraview, backvertex)
     render(v.planepoints, camera, state.cameraview, state.cameraview, Float32(state.distance))
-    render(v.plane, camera, state.cameraview, camerarotation(state.cameraview), Float32(state.distance))
+    #render(v.plane, camera, state.cameraview, camerarotation(state.cameraview), Float32(state.distance))
     render(v.intersectingpolygon, camera, state.cameraview, state.cameraview, Float32(state.distance), frontvertex)
     render(v.fronthighlight, camera, state.cameraview, frontvertex)
 
@@ -501,7 +500,7 @@ function Visualizer.render(camera::Camera, v::ViewportAlignment, state::Viewport
     # viewport has a fixed perspective, and will allow us to see the plane from a different perspective.
     render(v.backhighlight, camera, state.fixedcameraview, backvertex)
     render(v.planepoints, camera, state.fixedcameraview, state.cameraview, Float32(state.distance))
-    render(v.plane, camera, state.fixedcameraview, camerarotation(state.cameraview), Float32(state.distance))
+    #render(v.plane, camera, state.fixedcameraview, camerarotation(state.cameraview), Float32(state.distance))
     render(v.fronthighlight, camera, state.fixedcameraview, frontvertex)
 end
 
