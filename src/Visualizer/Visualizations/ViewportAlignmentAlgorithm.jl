@@ -35,25 +35,14 @@ struct IntersectingPlanePoints
     pointvertices::VertexArray{GL_POINTS}
 
     function IntersectingPlanePoints()
-        program = ShaderProgram("shaders/visualization/pointvertex.glsl", "shaders/visualization/uniformcoloralpha.glsl")
+        program = ShaderProgram("shaders/visualization/vs_polygon_intersecting_box.glsl",
+                                "shaders/visualization/uniformcolorfragment.glsl")
 
         vertices = GLint[
-            0, 1,
-            1, 4,
-            4, 7,
-            0, 2,
-            2, 5,
-            5, 7,
-            0, 3,
-            3, 6,
-            6, 7,
-            1, 5,
-            2, 6,
-            3, 4,
+            0, 1, 2, 3, 4, 5,
         ]
         attributevi = VertexAttribute(0, 1, GL_INT, GL_FALSE, C_NULL)
-        attributevj = VertexAttribute(1, 1, GL_INT, GL_FALSE, Ptr{Cvoid}(1 * sizeof(GL_INT)))
-        vertexdata = VertexData{GLint}(vertices, VertexAttribute[attributevi, attributevj])
+        vertexdata = VertexData{GLint}(vertices, VertexAttribute[attributevi])
         pointvertices = VertexArray{GL_POINTS}(vertexdata)
 
         new(program, pointvertices)
@@ -67,7 +56,7 @@ function render(p::IntersectingPlanePoints, camera::Camera, cameraview::CameraVi
     model = identitytransform()
     view = CameraViews.lookat(cameraview)
 
-    color = (0f0, 1f0, 1f0)
+    color = (0f0, 1f0, 1f0, 1f0)
 
     uniform(p.program, "projection", projection)
     uniform(p.program, "view", view)
@@ -381,6 +370,7 @@ function Visualizer.setflags(::ViewportAlignment)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
     glPointSize(10f0)
     glEnable(GL_POINT_SMOOTH)
+    glDisable(GL_CULL_FACE)
 end
 
 function initialcameraview()
