@@ -136,6 +136,54 @@ function render(plane::IntersectingPlane, camera::Camera, cameraview::CameraView
     renderarray(plane.planevertices)
 end
 
+struct IntersectingPolygon
+    program::ShaderProgram
+    polygon::VertexArray{GL_TRIANGLE_FAN}
+
+    function IntersectingPolygon()
+        program = ShaderProgram("shaders/visualization/vs_polygon_intersecting_box.glsl", "shaders/visualization/uniformcolorfragment.glsl")
+
+        # Instead of specifying actually vertices, or even vertex indexes to be looked up,
+        # here we specify the intersection points that will make up the polygon.
+        # There will be between 3-6 intersections, with intersection p0, p2, p4 being guaranteed.
+        # This is a triangle fan, originating at intersection p0.
+        intersectionindexes = GLint[
+            0, 1, 2,
+               2, 3,
+               3, 4,
+               4, 5,
+        ]
+
+        indexattribute = VertexAttribute(0, 1, GL_INT, GL_FALSE, C_NULL)
+        indexdata = VertexData{GLint}(intersectionindexes, VertexAttribute[indexattribute])
+
+        polygon = VertexArray{GL_TRIANGLE_FAN}(indexdata)
+
+        new(program, polygon)
+    end
+end
+
+function render(polygon::IntersectingPolygon, camera::Camera, cameraview::CameraView, normalcameraview::CameraView, distance::Float32)
+    use(polygon.program)
+
+    projection = perspective(camera)
+    model = identitytransform()
+    view = CameraViews.lookat(cameraview)
+
+    uniform(polygon.program, "projection", projection)
+    uniform(polygon.program, "view", view)
+    uniform(polygon.program, "model", model)
+    uniform(polygon.program, "distance", distance)
+
+    # We define the slice to have a positive normal on its front facing side.
+    # Since the slices should always be oriented to show their front facing sides to the camera,
+    # it implies that the normal is the directio
+    normal = -direction(normalcameraview)
+    uniform(polygon.program, "normal", normal)
+
+    renderarray(polygon.polygon)
+end
+
 struct VertexHighlight
     program::ShaderProgram
     pointvertex::VertexArray{GL_POINTS}
