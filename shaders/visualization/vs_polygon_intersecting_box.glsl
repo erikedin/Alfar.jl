@@ -44,15 +44,37 @@ void main()
 {
     // These vertices define the object-coordinates of the
     // box.
-    const vec4[8] vertices = vec4[8](
-        vec4( 0.5,  0.5,  0.5, 1.0),
-        vec4( 0.5,  0.5, -0.5, 1.0),
-        vec4( 0.5, -0.5,  0.5, 1.0),
-        vec4(-0.5,  0.5,  0.5, 1.0),
-        vec4(-0.5,  0.5, -0.5, 1.0),
-        vec4( 0.5, -0.5, -0.5, 1.0),
-        vec4(-0.5, -0.5,  0.5, 1.0),
-        vec4(-0.5, -0.5, -0.5, 1.0)
+    const vec3 vertices[8] = vec3[8](
+        vec3( 0.5,  0.5,   0.5),
+        vec3( 0.5,  0.5,  -0.5),
+        vec3( 0.5, -0.5,   0.5),
+        vec3(-0.5,  0.5,   0.5),
+        vec3(-0.5,  0.5,  -0.5),
+        vec3( 0.5, -0.5,  -0.5),
+        vec3(-0.5, -0.5,   0.5),
+        vec3(-0.5, -0.5,  -0.5)
+    );
+
+    // The edges defined in `intersectionEdges` are only really
+    // correct for the case when the front vertex is vertex 0. To
+    // get the correct vertices, based on which vertex is the front-most,
+    // we need to translate them here.
+    // This table is and 8x8 lookup table. If the front vertex index is `m`,
+    // then the 8 entries starting at `m*8` list the new vertex indexes.
+    // That is, whichever vertex that
+    // takes the place of vertex 0 is at `m*8 + 0`,
+    // takes the place of vertex 1 is at `m*8 + 1`,
+    // takes the place of vertex 2 is at `m*8 + 2`,
+    // and so on.
+    const int[64] vertexIndexBasedOnFront = int[64](
+        0, 1, 2, 3, 4, 5, 6, 7,
+        1, 4, 5, 0, 3, 7, 2, 6,
+        2, 6, 0, 5, 7, 3, 1, 4,
+        3, 0, 6, 4, 1, 2, 7, 5,
+        4, 3, 7, 1, 0, 6, 5, 2,
+        5, 2, 1, 7, 6, 0, 4, 3,
+        6, 7, 3, 2, 5, 4, 0, 1,
+        7, 5, 4, 6, 2, 1, 3, 0
     );
 
     // This is the intersection table. The question this table answers is,
@@ -60,7 +82,7 @@ void main()
     //  for an intersection?".
     // The table has 4 rows for each of the 6 possible intersections. So, the first of the
     // 4 edges to search has index
-    // frontVertexIndex * 4
+    // intersectionIndex * 4
     // the the front vertexes start at 0.
     const ivec2[24] intersectionEdges = ivec2[24](
         ivec2(0, 1),  // p0, index 0
@@ -89,14 +111,36 @@ void main()
         ivec2(6, 7)   // p5, index 23
     );
 
+    // The result of this vertex shader will be a position of an intersection,
+    // named `p` here.
+    vec4 p = vec4(0.0, 0.0, 0.0, 1.0);
 
-    // The edges are specified as vertex indexes assuming that vertex 0 is the front-most
-    // vertex. If another vertex is the front-most, we need to translate the vertex index
-    // to that scenario.
+    // There are (at most) four possible edges we should search for an intersection,
+    // listed in the above table `intersectionEdges`. The input `intersectionIndex` is used to find
+    // which section of the table we should start at (e.g. p0, p1, p2...).
+    // The loop index `i` is used to loop through the 4 rows for that section.
+    for (int i = 0; i < 4; i++) {
+        int edgeIndex = intersectionIndex * 4 + i;
+        ivec2 edge = intersectionEdges[edgeIndex];
+
+        // Now, edge.x is the start vertex index, and edge.y is the end vertex index.
+        // The edges are specified as vertex indexes assuming that vertex 0 is the front-most
+        // vertex. If another vertex is the front-most, we need to translate the vertex index
+        // to that scenario.
+        int vertexStartIndex = vertexIndexBasedOnFront[edge.x];
+        int vertexEndIndex = vertexIndexBasedOnFront[edge.y];
+
+        // Here, `vi` is the final coordinates of the edge start, and `vj` is the coordinates
+        // of the edge end.
+        vec3 vi = vertices[vertexStartIndex];
+        vec3 vj = vertices[vertexEndIndex];
+    }
+
+
 
     // TODO This is just for dev purposes. The actual position
     // will be calculated later.
-    vec4 p = vertices[intersectionIndex];
+    p = vec4(vertices[intersectionIndex], 1.0);
 
     // The input intersectionIndex specifies which of the 6 possible
     // intersections this vertex is for. It will need to search 4 possibilities.
