@@ -149,10 +149,11 @@ struct IntersectingPolygon
         # There will be between 3-6 intersections, with intersection p0, p2, p4 being guaranteed.
         # This is a triangle fan, originating at intersection p0.
         intersectionindexes = GLint[
-            0, 1, 2,
-               2, 3,
-               3, 4,
-               4, 5,
+            0, 4, 2,
+            #0, 1, 2,
+               #2, 3,
+               #3, 4,
+               #4, 5,
         ]
 
         indexattribute = VertexAttribute(0, 1, GL_INT, GL_FALSE, C_NULL)

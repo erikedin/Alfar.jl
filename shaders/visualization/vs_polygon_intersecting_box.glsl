@@ -134,16 +134,21 @@ void main()
         // of the edge end.
         vec3 vi = vertices[vertexStartIndex];
         vec3 vj = vertices[vertexEndIndex];
+
+        // Check if there is an intersection between the plane and the edge defined by `vi` and `vj`.
+        vec4 pout = vec4(0.0, 0.0, 0.0, 1.0);
+        bool hasIntersection = intersection(vi, vj, pout);
+
+        // We take the first intersection we find. In the cases when we're search for intersections
+        // p0, p2, p4, there will only be one possible intersection.
+        // For intersections p1, p3, p5, we have one potential intersection, but falls back to a guaranteed
+        // intersection (p0, p2, p4, respectively) if not found.
+        if (hasIntersection)
+        {
+            p = pout;
+            break;
+        }
     }
-
-
-
-    // TODO This is just for dev purposes. The actual position
-    // will be calculated later.
-    p = vec4(vertices[intersectionIndex], 1.0);
-
-    // The input intersectionIndex specifies which of the 6 possible
-    // intersections this vertex is for. It will need to search 4 possibilities.
 
     gl_Position = projection * view * model * p;
 }
