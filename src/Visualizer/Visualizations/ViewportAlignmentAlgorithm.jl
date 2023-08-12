@@ -510,6 +510,11 @@ end
 
 struct ResetCameraEvent <: Visualizer.UserDefinedEvent end
 
+struct MoveCameraEvent <: Visualizer.UserDefinedEvent
+    position::Vector3{Float32, World}
+    up::Vector3{Float32, World}
+end
+
 function Visualizer.onevent(::ViewportAlignment, state::ViewportAlignmentState, ev::RotateCameraEvent) :: ViewportAlignmentState
     newcameraview = rotatecamera(state.cameraview, ev.rotation)
     ViewportAlignmentState(state.distance, newcameraview, state.fixedcameraview)
@@ -520,21 +525,27 @@ function Visualizer.onevent(::ViewportAlignment, state::ViewportAlignmentState, 
     ViewportAlignmentState(state.distance, newcameraview, state.fixedcameraview)
 end
 
+function Visualizer.onevent(::ViewportAlignment, state::ViewportAlignmentState, ev::MoveCameraEvent) :: ViewportAlignmentState
+    origin = Vector3{Float32, World}(0f0, 0f0, 0f0)
+    newcameraview = CameraView{Float32, World}(ev.position, origin, ev.up)
+    ViewportAlignmentState(state.distance, newcameraview, state.fixedcameraview)
+end
+
 # Exports is a convenience-module that re-exports a bunch of commonly used types.
 # This is convenient so that rotations and math is available in a single module.
 module Exports
 
-using ..ViewportAlignmentAlgorithm: RotateCameraEvent, ResetCameraEvent
+using ..ViewportAlignmentAlgorithm: RotateCameraEvent, ResetCameraEvent, MoveCameraEvent
 using Alfar.WIP.Math
 using Alfar.WIP.Transformations
 using Alfar.Rendering: World
 
-export RotateCameraEvent, ResetCameraEvent
+export RotateCameraEvent, ResetCameraEvent, MoveCameraEvent
 export Vector3
 export PointRotation
 export World
 export AxisX, AxisY, AxisZ, AxisXYZ
-export rotatecamera
+export rotatecamera, showface
 export Radians90, Radians45, RadiansLittle
 
 const AxisX = Vector3{Float32, World}(1f0, 0f0, 0f0)
@@ -549,6 +560,21 @@ function rotatecamera(θ::Float32, axis::Vector3{Float32, World}) :: RotateCamer
     RotateCameraEvent(PointRotation{Float32, World}(θ, axis))
 end
 
+function showface(face::Vector3{Float32, World}) :: MoveCameraEvent
+    ups = Dict{Vector3{Float32, World}, Vector3{Float32, World}}(
+         AxisX => AxisY,
+        -AxisX => AxisY,
+         AxisZ => AxisY,
+        -AxisZ => AxisY,
+         AxisY => AxisZ,
+        -AxisY => AxisZ,
+    )
+
+    up = ups[face]
+
+    MoveCameraEvent(3f0 * face, up)
 end
+
+end # module Exports
 
 end
