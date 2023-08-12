@@ -139,8 +139,9 @@ end
 struct IntersectingPolygon
     program::ShaderProgram
     polygon::VertexArray{GL_TRIANGLE_FAN}
+    color::NTuple{4, Float32}
 
-    function IntersectingPolygon()
+    function IntersectingPolygon(color::NTuple{4, Float32})
         program = ShaderProgram("shaders/visualization/vs_polygon_intersecting_box.glsl", "shaders/visualization/uniformcolorfragment.glsl")
 
         # Instead of specifying actually vertices, or even vertex indexes to be looked up,
@@ -159,11 +160,16 @@ struct IntersectingPolygon
 
         polygon = VertexArray{GL_TRIANGLE_FAN}(indexdata)
 
-        new(program, polygon)
+        new(program, polygon, color)
     end
 end
 
-function render(polygon::IntersectingPolygon, camera::Camera, cameraview::CameraView, normalcameraview::CameraView, distance::Float32)
+function render(polygon::IntersectingPolygon,
+                camera::Camera,
+                cameraview::CameraView,
+                normalcameraview::CameraView,
+                distance::Float32,
+                frontvertexindex::Int)
     use(polygon.program)
 
     projection = perspective(camera)
@@ -174,10 +180,12 @@ function render(polygon::IntersectingPolygon, camera::Camera, cameraview::Camera
     uniform(polygon.program, "view", view)
     uniform(polygon.program, "model", model)
     uniform(polygon.program, "distance", distance)
+    uniform(polygon.program, "color", polygon.color)
+    uniform(polygon.program, "frontVertexIndex", frontvertexindex - 1)
 
     # We define the slice to have a positive normal on its front facing side.
     # Since the slices should always be oriented to show their front facing sides to the camera,
-    # it implies that the normal is the directio
+    # it implies that the normal is the direction.
     normal = -direction(normalcameraview)
     uniform(polygon.program, "normal", normal)
 
@@ -346,6 +354,7 @@ struct ViewportAlignment <: Visualizer.Visualization
     fronthighlight::VertexHighlight
     backhighlight::VertexHighlight
     box::Box
+    intersectingpolygon::IntersectingPolygon
 
     function ViewportAlignment()
         fronthighlight = VertexHighlight((0f0, 1f0, 0f0, 1f0))
@@ -353,7 +362,9 @@ struct ViewportAlignment <: Visualizer.Visualization
 
         box = Box()
 
-        new(IntersectingPlane(), IntersectingPlanePoints(), XYZMarker(), fronthighlight, backhighlight, box)
+        intersectingpolygon = IntersectingPolygon((0f0, 1f0, 0f0, 1f0))
+
+        new(IntersectingPlane(), IntersectingPlanePoints(), XYZMarker(), fronthighlight, backhighlight, box, intersectingpolygon)
     end
 end
 
@@ -482,6 +493,7 @@ function Visualizer.render(camera::Camera, v::ViewportAlignment, state::Viewport
     render(v.backhighlight, camera, state.cameraview, backvertex)
     render(v.planepoints, camera, state.cameraview, state.cameraview, Float32(state.distance))
     render(v.plane, camera, state.cameraview, camerarotation(state.cameraview), Float32(state.distance))
+    render(v.intersectingpolygon, camera, state.cameraview, state.cameraview, Float32(state.distance), frontvertex)
     render(v.fronthighlight, camera, state.cameraview, frontvertex)
 
     #
