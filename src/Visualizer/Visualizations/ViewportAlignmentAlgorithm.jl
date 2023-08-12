@@ -474,6 +474,11 @@ function Visualizer.render(camera::Camera, v::ViewportAlignment, state::Viewport
 
     XYZMarkerObject.render(v.marker, camera, state.cameraview)
 
+    # Note that the front and back highlights should really be rendered before or after the
+    # intersecting plane (in the current code), because the plane is transparent and that's
+    # something you need to do to ensure proper rendering. However, I don't care enough about it
+    # to actually fix it. So for now we'll accept that the highlights aren't rendered properly in
+    # some circumstances.
     render(v.backhighlight, camera, state.cameraview, backvertex)
     render(v.planepoints, camera, state.cameraview, state.cameraview, Float32(state.distance))
     render(v.plane, camera, state.cameraview, camerarotation(state.cameraview), Float32(state.distance))
