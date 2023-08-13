@@ -27,7 +27,13 @@ using Alfar.Visualizer.Objects.Boxs
 using Alfar.WIP.Math
 using Alfar.WIP.Transformations
 
-function frontvertex(cameraview::CameraView) :: Int
+struct FrontBackVertex
+    frontvertexindex::Int
+    backvertexindex::Int
+    fronttoback::Vector3{Float32, World}
+end
+
+function frontvertex(cameraview::CameraView) :: FrontBackVertex
     vertices = Vector3{Float32, World}[
         Vector3{Float32, World}( 0.5f0,  0.5f0,  0.5f0), #v0
         Vector3{Float32, World}( 0.5f0,  0.5f0, -0.5f0), #v1
@@ -41,6 +47,8 @@ function frontvertex(cameraview::CameraView) :: Int
 
     frontvertex = 0
     frontdistance = Inf
+    backvertex = 0
+    backdistance = -Inf
 
     for vertexindex = 1:8
         v = vertices[vertexindex]
@@ -51,10 +59,23 @@ function frontvertex(cameraview::CameraView) :: Int
             frontvertex = vertexindex
         end
 
+        # Using >= here so that if several vertices have the same
+        # distance, it uses the last one. This is what we want in the
+        # current default camera setup, but is kind of hacky.
+        if d >= backdistance
+            backdistance = d
+            backvertex = vertexindex
+        end
     end
 
+    fronttoback = vertices[frontvertex] - vertices[backvertex]
+
     # Convert from Julias one-indexing to OpenGLs zero-indexing
-    frontvertex - 1
+    FrontBackVertex(
+        frontvertex - 1,
+        backvertex - 1,
+        fronttoback,
+    )
 end
 
 
@@ -125,9 +146,17 @@ struct Slices
 end
 
 function render(slices::Slices, camera::Camera, cameraview::CameraView, normalcameraview::CameraView, n::Int)
-    frontvertexindex = frontvertex(normalcameraview)
-    for distance=0.0f0:0.1f0:Float32(n)*0.1f0
-        render(slices.polygon, camera, cameraview, normalcameraview, distance, frontvertexindex)
+    frontback = frontvertex(normalcameraview)
+
+    # The slices are spread out across the distance between the front and the back vertex.
+    # As long as the box has all sides with length 1, then this distance is always
+    # sqrt(1^2 + 1^2 + 1^2) = sqrt(3)
+    frontbackdistance = Float32(sqrt(3)) * dot(direction(normalcameraview), frontback.fronttoback)
+
+    for whichslice = 1:n
+        distanceratio = Float32(whichslice) / Float32(n + 1) - 0.5f0
+        distance = distanceratio * frontbackdistance
+        render(slices.polygon, camera, cameraview, normalcameraview, distance, frontback.frontvertexindex)
     end
 end
 
