@@ -25,6 +25,7 @@ using Alfar.Rendering.Inputs
 using Alfar.Rendering: World
 using Alfar.Visualizer.Objects.Boxs
 using Alfar.WIP.Math
+using Alfar.WIP.Transformations
 
 function frontvertex(cameraview::CameraView) :: Int
     vertices = Vector3{Float32, World}[
@@ -142,6 +143,7 @@ end
 struct SlicingState <: Visualizer.VisualizationState
     numberofslices::Int
     cameraview::CameraView
+    fixedcameraview::CameraView
 end
 
 function Visualizer.setflags(::Slicing)
@@ -156,7 +158,13 @@ function Visualizer.setup(::Slicing) :: SlicingState
     target = Vector3{Float32, World}(0f0, 0f0, 0f0)
     up = Vector3{Float32, World}(0f0, 1f0, 0f0)
     cameraview = CameraView{Float32, World}(position, target, up)
-    SlicingState(5, cameraview)
+
+    xaxis = Vector3{Float32, World}(1f0, 0f0, 0f0)
+    yaxis = Vector3{Float32, World}(0f0, 1f0, 0f0)
+    perspectiveshift = PointRotation{Float32, World}(3f0 * pi / 16f0, yaxis) ∘ PointRotation{Float32, World}(-3f0 * pi / 16f0, xaxis)
+    fixedcameraview = rotatecamera(cameraview, perspectiveshift)
+
+    SlicingState(5, cameraview, fixedcameraview)
 end
 
 function Visualizer.update(::Slicing, state::SlicingState) :: SlicingState
@@ -165,17 +173,17 @@ end
 
 function Visualizer.onmousedrag(::Slicing, state::SlicingState, ev::MouseDragStartEvent)
     newcameraview = onmousedrag(state.cameraview, ev)
-    SlicingState(state.numberofslices, newcameraview)
+    SlicingState(state.numberofslices, newcameraview, state.fixedcameraview)
 end
 
 function Visualizer.onmousedrag(::Slicing, state::SlicingState, ev::MouseDragEndEvent)
     newcameraview = onmousedrag(state.cameraview, ev)
-    SlicingState(state.numberofslices, newcameraview)
+    SlicingState(state.numberofslices, newcameraview, state.fixedcameraview)
 end
 
 function Visualizer.onmousedrag(::Slicing, state::SlicingState, ev::MouseDragPositionEvent)
     newcameraview = onmousedrag(state.cameraview, ev)
-    SlicingState(state.numberofslices, newcameraview)
+    SlicingState(state.numberofslices, newcameraview, state.fixedcameraview)
 end
 
 function Visualizer.render(camera::Camera, slicing::Slicing, state::SlicingState)
@@ -185,6 +193,13 @@ function Visualizer.render(camera::Camera, slicing::Slicing, state::SlicingState
     Boxs.render(slicing.box, camera, state.cameraview)
 
     render(slicing.slices, camera, state.cameraview, state.cameraview, state.numberofslices)
+
+    # Viewport 2 (right)
+    glViewport(camera.windowwidth, 0, camera.windowwidth, camera.windowheight)
+
+    Boxs.render(slicing.box, camera, state.fixedcameraview)
+
+    render(slicing.slices, camera, state.fixedcameraview, state.cameraview, state.numberofslices)
 end
 
 end # module Slicings
