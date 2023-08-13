@@ -72,13 +72,10 @@ function Visualizer.onmousedrag(::Slicing, state::SlicingState, ev::MouseDragPos
 end
 
 function Visualizer.render(camera::Camera, slicing::Slicing, state::SlicingState)
-    # TODO: Temporary hard coding of the front vertex until the code is in a common place
-    frontvertexindex = 1
-
     # Viewport 1 (left)
     glViewport(0, 0, camera.windowwidth, camera.windowheight)
 
-    Boxs.render(slicing.box, camera, state.cameraview, frontvertexindex)
+    Boxs.render(slicing.box, camera, state.cameraview)
 end
 
 end # module Slicings
