@@ -14,4 +14,5 @@
 
 module Objects
 include("XYZMarkerObject.jl")
+include("Boxs.jl")
 end
