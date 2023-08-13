@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-module SlicingViz
+module Slicings
 
 using Alfar.Visualizer
 using Alfar.Rendering.Cameras
@@ -41,4 +41,4 @@ function Visualizer.render(::Camera, ::Slicing, ::SlicingState)
 
 end
 
-end
+end # module Slicings
