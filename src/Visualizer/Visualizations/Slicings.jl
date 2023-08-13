@@ -15,6 +15,7 @@
 module Slicings
 
 using ModernGL
+using GLFW
 
 using Alfar.Visualizer
 using Alfar.Rendering.Cameras
@@ -213,6 +214,17 @@ end
 function Visualizer.onmousedrag(::Slicing, state::SlicingState, ev::MouseDragPositionEvent)
     newcameraview = onmousedrag(state.cameraview, ev)
     SlicingState(state.numberofslices, newcameraview, state.fixedcameraview)
+end
+
+function Visualizer.onkeyboardinput(::Slicing, state::SlicingState, ev::KeyboardInputEvent)
+    n = if ev.action == GLFW.PRESS && ev.key == GLFW.KEY_R
+            1
+    elseif ev.action == GLFW.PRESS && ev.key == GLFW.KEY_F
+            -1
+    else
+        0
+    end
+    SlicingState(state.numberofslices + n, state.cameraview, state.fixedcameraview)
 end
 
 function Visualizer.render(camera::Camera, slicing::Slicing, state::SlicingState)
