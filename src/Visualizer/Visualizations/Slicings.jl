@@ -125,7 +125,9 @@ end
 
 function render(slices::Slices, camera::Camera, cameraview::CameraView, normalcameraview::CameraView, n::Int)
     frontvertexindex = frontvertex(normalcameraview)
-    render(slices.polygon, camera, cameraview, normalcameraview, 0f0, frontvertexindex)
+    for distance=0.0f0:0.1f0:Float32(n)*0.1f0
+        render(slices.polygon, camera, cameraview, normalcameraview, distance, frontvertexindex)
+    end
 end
 
 struct Slicing <: Visualizer.Visualization
