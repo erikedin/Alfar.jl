@@ -146,7 +146,16 @@ struct Slices
     end
 end
 
-function render(slices::Slices, camera::Camera, cameraview::CameraView, normalcameraview::CameraView, n::Int)
+function render(slices::Slices,
+                camera::Camera,
+                cameraview::CameraView,
+                normalcameraview::CameraView,
+                n::Int,
+                textureid::GLuint,
+                transfertextureid::GLuint)
+    glBindTexture(GL_TEXTURE_3D, textureid)
+    glBindTexture(GL_TEXTURE_1D, transfertextureid)
+
     frontback = frontvertex(normalcameraview)
 
     # The slices are spread out across the distance between the front and the back vertex.
@@ -351,15 +360,15 @@ struct Slicing <: Visualizer.Visualization
     box::Box
     slices::Slices
     textureid::GLuint
-    texturetransferid::GLuint
+    transfertextureid::GLuint
 
     function Slicing()
         texturedefinition = generate3dintensitytexture(256, 256, 256)
         textureid = make3dtexture(texturedefinition)
 
         texturetransferdefinition = generatetexturetransferfunction()
-        texturetransferid = maketransfertexture(texturetransferdefinition)
-        new(Box(), Slices(), textureid, texturetransferid)
+        transfertextureid = maketransfertexture(texturetransferdefinition)
+        new(Box(), Slices(), textureid, transfertextureid)
     end
 end
 
@@ -426,14 +435,14 @@ function Visualizer.render(camera::Camera, slicing::Slicing, state::SlicingState
 
     Boxs.render(slicing.box, camera, state.cameraview)
 
-    render(slicing.slices, camera, state.cameraview, state.cameraview, state.numberofslices)
+    render(slicing.slices, camera, state.cameraview, state.cameraview, state.numberofslices, slicing.textureid, slicing.transfertextureid)
 
     # Viewport 2 (right)
     glViewport(camera.windowwidth, 0, camera.windowwidth, camera.windowheight)
 
     Boxs.render(slicing.box, camera, state.fixedcameraview)
 
-    render(slicing.slices, camera, state.fixedcameraview, state.cameraview, state.numberofslices)
+    render(slicing.slices, camera, state.fixedcameraview, state.cameraview, state.numberofslices, slicing.textureid, slicing.transfertextureid)
 end
 
 end # module Slicings
