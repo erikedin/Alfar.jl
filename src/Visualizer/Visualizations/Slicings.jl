@@ -87,7 +87,7 @@ struct IntersectingPolygon
 
     function IntersectingPolygon(color::NTuple{4, Float32})
         program = ShaderProgram("shaders/visualization/vs_polygon_intersecting_box.glsl",
-                                "shaders/visualization/uniformcolorfragment.glsl")
+                                "shaders/visualization/fragment1dtransfer.glsl")
 
         # Instead of specifying actually vertices, or even vertex indexes to be looked up,
         # here we specify the intersection points that will make up the polygon.
