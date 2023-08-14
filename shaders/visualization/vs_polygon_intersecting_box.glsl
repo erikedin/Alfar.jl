@@ -55,6 +55,19 @@ void main()
         vec3(-0.5, -0.5,  -0.5)
     );
 
+    // These texture coordinates are hard coded for now.
+    // These should be in an array uniform.
+    const vec3 texturecoordinates[8] = vec3[8](
+        vec3(1.0, 1.0, 1.0),
+        vec3(1.0, 1.0, 0.0),
+        vec3(1.0, 0.0, 1.0),
+        vec3(0.0, 1.0, 1.0),
+        vec3(0.0, 1.0, 0.0),
+        vec3(1.0, 0.0, 0.0),
+        vec3(0.0, 0.0, 1.0),
+        vec3(0.0, 0.0, 0.0)
+    );
+
     // The edges defined in `intersectionEdges` are only really
     // correct for the case when the front vertex is vertex 0. To
     // get the correct vertices, based on which vertex is the front-most,
