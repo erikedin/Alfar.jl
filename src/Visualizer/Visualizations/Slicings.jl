@@ -161,12 +161,119 @@ function render(slices::Slices, camera::Camera, cameraview::CameraView, normalca
     end
 end
 
+#
+# A 3D texture for demonstrating the Slicing.
+# This is the texture from 09_viewportanimated.jl
+# The size needs to be a multiple of two at each dimension.
+#
+
+struct TextureDefinition3D
+    width::Int
+    height::Int
+    depth::Int
+    data
+end
+
+function fillintensity!(data, (width, height, depth), color)
+   for x = 1:width
+        for y = 1:height
+            for z = 1:depth
+                data[x, y, z] = UInt8(color)
+            end
+        end
+    end
+end
+
+# This defines a 3D texture with a single channel of intensity, rather than a color
+# as in the previous samples. The transfer function in the fragment shader converts these
+# intensities to colors.
+function generate3dintensitytexture(width, height, depth)
+    flattexturedata = zeros(UInt8, width*height*depth)
+    texturedata = reshape(flattexturedata, (depth, height, width))
+
+    halfwidth = trunc(Int, width/2)
+    halfheight = trunc(Int, height/2)
+    halfdepth = trunc(Int, depth/2)
+
+    # Fill each quadrant
+    frontquadrant1 = @view texturedata[halfwidth+1:width    , halfheight+1:height    , 1:halfdepth]
+    frontquadrant2 = @view texturedata[          1:halfwidth, halfheight+1:height    , 1:halfdepth]
+    frontquadrant3 = @view texturedata[          1:halfwidth,            1:halfheight, 1:halfdepth]
+    frontquadrant4 = @view texturedata[halfwidth+1:width    ,            1:halfheight, 1:halfdepth]
+
+    backquadrant1  = @view texturedata[halfwidth+1:width    , halfheight+1:height    , halfdepth+1:depth]
+    backquadrant2  = @view texturedata[          1:halfwidth, halfheight+1:height    , halfdepth+1:depth]
+    backquadrant3  = @view texturedata[          1:halfwidth,            1:halfheight, halfdepth+1:depth]
+    backquadrant4  = @view texturedata[halfwidth+1:width    ,            1:halfheight, halfdepth+1:depth]
+
+    quadrantsize = (halfwidth, halfheight, halfdepth)
+    fillintensity!(backquadrant1, quadrantsize, 16)
+    fillintensity!(backquadrant2, quadrantsize, 48)
+    fillintensity!(backquadrant3, quadrantsize, 80)
+    fillintensity!(backquadrant4, quadrantsize, 112)
+
+    fillintensity!(frontquadrant1, quadrantsize, 144)
+    fillintensity!(frontquadrant2, quadrantsize, 176)
+    fillintensity!(frontquadrant3, quadrantsize, 208)
+    fillintensity!(frontquadrant4, quadrantsize, 240)
+
+    # Fill the center with a yellow bar.
+    barwidth = trunc(Int, width / 4)
+    barheight = trunc(Int, width / 4)
+    halfbarheight = trunc(Int, height / 8)
+    halfbarwidth = trunc(Int, width / 8)
+    yellowbar = @view texturedata[halfwidth  - halfbarwidth  + 1:halfwidth  + halfbarwidth,
+                                  halfheight - halfbarheight + 1:halfheight + halfbarheight,
+                                  1:depth]
+    fillintensity!(yellowbar, (barwidth, barheight, depth), 255)
+
+
+    TextureDefinition3D(width, height, depth, flattexturedata)
+end
+
+# This is raw OpenGL code, not wrapped in Julia code. This is good for now,
+# but should be wrapped for the real deal.
+function make3dtexture(texturedefinition::TextureDefinition3D)
+    glActiveTexture(GL_TEXTURE0)
+
+    textureRef = Ref{GLuint}()
+    glGenTextures(1, textureRef)
+    textureid = textureRef[]
+
+    glBindTexture(GL_TEXTURE_3D, textureid)
+
+    glTexImage3D(GL_TEXTURE_3D,
+                 0,
+                 GL_RED,
+                 texturedefinition.width,
+                 texturedefinition.height,
+                 texturedefinition.depth,
+                 0,
+                 GL_RED,
+                 GL_UNSIGNED_BYTE,
+                 texturedefinition.data)
+    glGenerateMipmap(GL_TEXTURE_3D)
+
+    glTexParameterf(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
+    glTexParameterf(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
+    glTexParameterf(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE)
+
+    textureid
+end
+
+#
+# Slicing visualization
+#
+
 struct Slicing <: Visualizer.Visualization
     box::Box
     slices::Slices
+    textureid::GLuint
 
     function Slicing()
-        new(Box(), Slices())
+        texturedefinition = generate3dintensitytexture(256, 256, 256)
+        textureid = make3dtexture(texturedefinition)
+        new(Box(), Slices(), textureid)
     end
 end
 
