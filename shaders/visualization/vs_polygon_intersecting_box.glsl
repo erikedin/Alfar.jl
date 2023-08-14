@@ -24,7 +24,9 @@ uniform float distance;
 uniform vec3 normal;
 uniform int frontVertexIndex;
 
-bool intersection(in vec3 vi, in vec3 vj, out vec4 p)
+out vec3 TexCoord;
+
+bool intersection(in vec3 vi, in vec3 vj, out vec4 p, out float lambda)
 {
     vec3 eij = vj - vi;
     float ndotvi = dot(normal, vi);
@@ -34,7 +36,7 @@ bool intersection(in vec3 vi, in vec3 vj, out vec4 p)
         return false;
     }
 
-    float lambda = (distance - ndotvi) / ndoteij;
+    lambda = (distance - ndotvi) / ndoteij;
     vec3 p3 = vi + lambda * eij;
     p = vec4(p3, 1.0);
     return lambda >= 0.0 && lambda <= 1.0;
@@ -153,7 +155,8 @@ void main()
 
         // Check if there is an intersection between the plane and the edge defined by `vi` and `vj`.
         vec4 pout = vec4(0.0, 0.0, 0.0, 1.0);
-        bool hasIntersection = intersection(vi, vj, pout);
+        float lambda = 0.0;
+        bool hasIntersection = intersection(vi, vj, pout, lambda);
 
         // We take the first intersection we find. In the cases when we're search for intersections
         // p0, p2, p4, there will only be one possible intersection.
@@ -161,6 +164,15 @@ void main()
         // intersection (p0, p2, p4, respectively) if not found.
         if (hasIntersection)
         {
+            // To find the texture coordinates, interpolate between the texture coordinates
+            // for the vertices (after they're translated to the actual vertices),
+            // using `lambda` as the interpolation factor.
+            // Lambda is already calculated to be where along the vi-vj edge there is an
+            // intersection.
+            TexCoord = mix(texturecoordinates[vertexStartIndex],
+                           texturecoordinates[vertexEndIndex],
+                           lambda);
+
             p = pout;
             break;
         }
