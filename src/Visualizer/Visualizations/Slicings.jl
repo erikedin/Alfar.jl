@@ -262,6 +262,88 @@ function make3dtexture(texturedefinition::TextureDefinition3D)
 end
 
 #
+# This is the 1D texture transfer function that actually defines the colors.
+# Also copied from samples/09_viewportanimated.jl.
+#
+
+struct TextureDefinition1D
+    width::Int
+    data
+end
+
+function fill1d!(data, from, to, color)
+    for i = from:to
+        data[1, i] = UInt8(color[1])
+        data[2, i] = UInt8(color[2])
+        data[3, i] = UInt8(color[3])
+        data[4, i] = UInt8(color[4])
+    end
+end
+
+function generatetexturetransferfunction() :: TextureDefinition1D
+    # The transfer function that calculates colors from intensities
+    # is moved here from the fragment shader. The fragment shader
+    # can now be re-used for different transfer functions by
+    # binding a different 1D texture.
+    channels = 4
+    width = 256
+
+    flattransfer = zeros(UInt8, channels*width)
+    transfer = reshape(flattransfer, (channels, width))
+
+    # Back octant 1, transparent
+    fill1d!(transfer, 1, 32,   (  0,   0,   0,   0))
+    # Back octant 2
+    fill1d!(transfer, 33, 64,  (255,   0, 255, 255))
+    # Back octant 3
+    fill1d!(transfer, 65, 96,  (  0, 255, 255, 255))
+    # Back octant 4
+    fill1d!(transfer, 97, 128, (127, 255, 212, 255))
+
+    # Front octant 1
+    fill1d!(transfer, 129, 160, (255, 255, 255,  64))
+    # Front octant 2
+    fill1d!(transfer, 161, 192, (255,   0,   0, 255))
+    # Front octant 3
+    fill1d!(transfer, 193, 224, (  0, 255,   0, 255))
+    # Front octant 4
+    fill1d!(transfer, 225, 249, (  0,   0, 255, 255))
+
+    # Yellow bar
+    fill1d!(transfer, 250, 256, (255, 255,   0, 255))
+
+    TextureDefinition1D(width, flattransfer)
+end
+
+function maketransfertexture(texturedefinition::TextureDefinition1D)
+    glActiveTexture(GL_TEXTURE1)
+
+    textureRef = Ref{GLuint}()
+    glGenTextures(1, textureRef)
+    textureid = textureRef[]
+
+    glBindTexture(GL_TEXTURE_1D, textureid)
+
+    glTexImage1D(GL_TEXTURE_1D,
+                 0,
+                 GL_RGBA,
+                 texturedefinition.width,
+                 0,
+                 GL_RGBA,
+                 GL_UNSIGNED_BYTE,
+                 texturedefinition.data)
+    glGenerateMipmap(GL_TEXTURE_1D)
+
+
+    bordercolor = GLfloat[1f0, 1f0, 0f0, 1f0]
+    glTexParameterfv(GL_TEXTURE_1D, GL_TEXTURE_BORDER_COLOR, Ref(bordercolor, 1))
+    glTexParameterf(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER)
+    glTexParameterf(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
+
+    textureid
+end
+
+#
 # Slicing visualization
 #
 
@@ -269,11 +351,15 @@ struct Slicing <: Visualizer.Visualization
     box::Box
     slices::Slices
     textureid::GLuint
+    texturetransferid::GLuint
 
     function Slicing()
         texturedefinition = generate3dintensitytexture(256, 256, 256)
         textureid = make3dtexture(texturedefinition)
-        new(Box(), Slices(), textureid)
+
+        texturetransferdefinition = generatetexturetransferfunction()
+        texturetransferid = maketransfertexture(texturetransferdefinition)
+        new(Box(), Slices(), textureid, texturetransferid)
     end
 end
 
