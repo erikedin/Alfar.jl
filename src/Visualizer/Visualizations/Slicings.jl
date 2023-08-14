@@ -163,7 +163,7 @@ function render(slices::Slices,
     # sqrt(1^2 + 1^2 + 1^2) = sqrt(3)
     frontbackdistance = Float32(sqrt(3)) * dot(direction(normalcameraview), frontback.fronttoback)
 
-    for whichslice = 1:n
+    for whichslice = n:-1:1
         distanceratio = Float32(whichslice) / Float32(n + 1) - 0.5f0
         distance = distanceratio * frontbackdistance
         render(slices.polygon, camera, cameraview, normalcameraview, distance, frontback.frontvertexindex)
@@ -396,7 +396,7 @@ function Visualizer.setup(::Slicing) :: SlicingState
     perspectiveshift = PointRotation{Float32, World}(3f0 * pi / 16f0, yaxis) ∘ PointRotation{Float32, World}(-3f0 * pi / 16f0, xaxis)
     fixedcameraview = rotatecamera(cameraview, perspectiveshift)
 
-    SlicingState(5, cameraview, fixedcameraview)
+    SlicingState(500, cameraview, fixedcameraview)
 end
 
 function Visualizer.update(::Slicing, state::SlicingState) :: SlicingState
