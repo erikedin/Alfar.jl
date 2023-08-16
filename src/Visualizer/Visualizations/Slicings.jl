@@ -420,9 +420,17 @@ end
 
 function Visualizer.onkeyboardinput(::Slicing, state::SlicingState, ev::KeyboardInputEvent)
     n = if ev.action == GLFW.PRESS && ev.key == GLFW.KEY_R
+        if ev.mods & GLFW.MOD_SHIFT != 0
+            50
+        else
             1
+        end
     elseif ev.action == GLFW.PRESS && ev.key == GLFW.KEY_F
+        if ev.mods & GLFW.MOD_SHIFT != 0
+            -50
+        else
             -1
+        end
     else
         0
     end
