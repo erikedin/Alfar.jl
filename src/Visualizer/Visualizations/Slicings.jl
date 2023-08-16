@@ -419,22 +419,25 @@ function Visualizer.onmousedrag(::Slicing, state::SlicingState, ev::MouseDragPos
 end
 
 function Visualizer.onkeyboardinput(::Slicing, state::SlicingState, ev::KeyboardInputEvent)
+    big = 50
+    medium = 10
+    small = 1
     n = if ev.action == GLFW.PRESS && ev.key == GLFW.KEY_R
-        if ev.mods & GLFW.MOD_SHIFT != 0
-            50
-        else
-            1
-        end
+        1
     elseif ev.action == GLFW.PRESS && ev.key == GLFW.KEY_F
-        if ev.mods & GLFW.MOD_SHIFT != 0
-            -50
-        else
-            -1
-        end
+        -1
     else
         0
     end
-    SlicingState(state.numberofslices + n, state.cameraview, state.fixedcameraview)
+    modifier = if ev.mods & GLFW.MOD_CONTROL != 0
+        big
+    elseif ev.mods & GLFW.MOD_SHIFT != 0
+        medium
+    else
+        small
+    end
+    howmanymoreslices = n * modifier
+    SlicingState(state.numberofslices + howmanymoreslices, state.cameraview, state.fixedcameraview)
 end
 
 function Visualizer.render(camera::Camera, slicing::Slicing, state::SlicingState)
