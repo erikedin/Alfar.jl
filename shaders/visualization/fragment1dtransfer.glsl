@@ -20,8 +20,13 @@ out vec4 FragColor;
 layout (binding = 0) uniform sampler3D mytexture;
 layout (binding = 1) uniform sampler1D transfer;
 
+uniform int numberOfSlices;
+
 void main()
 {
     vec4 intensity = texture(mytexture, TexCoord);
-    FragColor = texture(transfer, intensity.r);
+    vec4 color1d = texture(transfer, intensity.r);
+
+    float alpha = 1 - pow(1 - color1d.a, 40.0 / numberOfSlices);
+    FragColor = vec4(color1d.rgb, alpha);
 }

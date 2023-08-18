@@ -114,7 +114,8 @@ function render(polygon::IntersectingPolygon,
                 cameraview::CameraView,
                 normalcameraview::CameraView,
                 distance::Float32,
-                frontvertexindex::Int)
+                frontvertexindex::Int,
+                numberOfSlices::Int)
     use(polygon.program)
 
     projection = perspective(camera)
@@ -127,6 +128,7 @@ function render(polygon::IntersectingPolygon,
     uniform(polygon.program, "distance", distance)
     uniform(polygon.program, "color", polygon.color)
     uniform(polygon.program, "frontVertexIndex", frontvertexindex)
+    uniform(polygon.program, "numberOfSlices", numberOfSlices)
 
     # We define the slice to have a positive normal on its front facing side.
     # Since the slices should always be oriented to show their front facing sides to the camera,
@@ -166,7 +168,7 @@ function render(slices::Slices,
     for whichslice = n:-1:1
         distanceratio = Float32(whichslice) / Float32(n + 1) - 0.5f0
         distance = distanceratio * frontbackdistance
-        render(slices.polygon, camera, cameraview, normalcameraview, distance, frontback.frontvertexindex)
+        render(slices.polygon, camera, cameraview, normalcameraview, distance, frontback.frontvertexindex, n)
     end
 end
 
