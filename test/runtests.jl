@@ -28,6 +28,3 @@ include("rendering/cameraview_test.jl")
 include("rendering/viewport_alignment_test.jl")
 
 end
-
-include("STL/STLbinary_test.jl")
-include("STL/STLbinarywrite_test.jl")

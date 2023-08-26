@@ -21,8 +21,6 @@ include("Meshs.jl")
 include("VolumeTextures.jl")
 include("Format/Format.jl")
 include("Rendering/Rendering.jl")
-include("Render.jl")
-include("Tools.jl")
 include("Main.jl")
 include("Visualizer/Visualizer.jl")
 
