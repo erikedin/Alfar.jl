@@ -19,55 +19,10 @@ include("WIP/WIP.jl")
 include("Fractal.jl")
 include("Meshs.jl")
 include("VolumeTextures.jl")
-include("Format/Format.jl")
 include("Rendering/Rendering.jl")
-include("Main.jl")
 include("Visualizer/Visualizer.jl")
 
 using GLFW
 using ModernGL
-using Alfar.Meshs
-using Alfar.Render
-using Alfar.Format.STL
-using Alfar.Main
-
-function run()
-    # Create a window and its OpenGL context
-    window = GLFW.CreateWindow(640, 480, "Alfar")
-
-    # Make the window's context current
-    GLFW.MakeContextCurrent(window)
-
-    glEnable(GL_CULL_FACE)
-    glEnable(GL_BLEND)
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-    glEnable(GL_DEPTH_TEST)
-
-    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
-    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
-    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_REPEAT)
-    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_REPEAT)
-    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_REPEAT)
-
-    app = AlfarMain()
-    configureinput(app, window)
-
-    # Loop until the user closes the window
-    while !GLFW.WindowShouldClose(window)
-        glClearColor(0.2f0, 0.3f0, 0.3f0, 1.0f0)
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-
-	    # Render here
-        render(app)
-
-	    # Swap front and back buffers
-	    GLFW.SwapBuffers(window)
-
-	    # Poll for and process events
-	    GLFW.PollEvents()
-    end
-
-    GLFW.DestroyWindow(window)
-end
 
 end # module Alfar
