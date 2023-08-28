@@ -198,7 +198,7 @@ struct ViewportAnimated09 <: Visualization
     slices::Slices
 
     function ViewportAnimated09()
-        program = ShaderProgram("shaders/visualization/basic3dvertex.glsl", "shaders/visualization/fragment1dtransfer.glsl")
+        program = ShaderProgram("shaders/visualization/basic3dvertex.glsl", "shaders/visualization/fragment1d.glsl")
 
         glActiveTexture(GL_TEXTURE0)
         volumetexture = Texture{3}(generate3dintensitytexture(256, 256, 256))
