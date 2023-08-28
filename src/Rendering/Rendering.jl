@@ -22,6 +22,7 @@ using Alfar.WIP.Math
 #
 struct Object end
 struct World end
+struct View end
 
 World(x::T, y::T, z::T, w::T) where {T} = Vector4{T, World}(x, y, z, w)
 World(x::T, y::T, z::T) where {T} = Vector3{T, World}(x, y, z)
