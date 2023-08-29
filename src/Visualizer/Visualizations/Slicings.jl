@@ -23,7 +23,7 @@ using Alfar.Rendering.CameraViews
 using Alfar.Rendering.Shaders
 using Alfar.Rendering.Meshs
 using Alfar.Rendering.Inputs
-using Alfar.Rendering: World
+using Alfar.Rendering: World, View, Object
 using Alfar.Visualizer.Objects.Boxs
 using Alfar.WIP.Math
 using Alfar.WIP.Transformations
@@ -119,7 +119,7 @@ function render(polygon::IntersectingPolygon,
     use(polygon.program)
 
     projection = perspective(camera)
-    model = identitytransform()
+    model = identitytransform(View, Object)
     view = CameraViews.lookat(cameraview)
 
     uniform(polygon.program, "projection", projection)

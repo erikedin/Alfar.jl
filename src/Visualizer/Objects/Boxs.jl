@@ -20,6 +20,7 @@ using Alfar.Rendering.CameraViews
 using Alfar.Rendering.Cameras
 using Alfar.Rendering.Meshs
 using Alfar.Rendering.Shaders
+using Alfar.Rendering: View, Object
 
 export Box
 
@@ -60,7 +61,7 @@ function render(box::Box, camera::Camera, cameraview::CameraView)
     use(box.program)
 
     projection = perspective(camera)
-    model = identitytransform()
+    model = identitytransform(View, Object)
     view = CameraViews.lookat(cameraview)
 
     uniform(box.program, "projection", projection)

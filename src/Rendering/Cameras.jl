@@ -16,6 +16,9 @@ module Cameras
 
 using ModernGL
 
+using Alfar.WIP.Math
+using Alfar.Rendering: World, View
+
 export Camera
 export identitytransform, perspective
 
@@ -40,7 +43,7 @@ function Camera(width, height) :: Camera
     )
 end
 
-function identitytransform{ToSystem, FromSystem}() :: Matrix4{GLfloat, ToSystem, FromSystem} where {ToSystem, FromSystem}
+function identitytransform(::Type{ToSystem}, ::Type{FromSystem}) :: Matrix4{GLfloat, ToSystem, FromSystem} where {ToSystem, FromSystem}
     Matrix4{GLfloat, ToSystem, FromSystem}(
         1f0, 0f0, 0f0, 0f0,
         0f0, 1f0, 0f0, 0f0,

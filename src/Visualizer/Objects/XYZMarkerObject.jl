@@ -54,20 +54,6 @@ struct XYZMarker
     end
 end
 
-function render(marker::XYZMarker, camera::Camera, camerastate::CameraState)
-    use(marker.program)
-
-    projection = perspective(camera)
-    model = objectmodel()
-    view = Cameras.lookat(camerastate)
-
-    uniform(marker.program, "projection", projection)
-    uniform(marker.program, "view", view)
-    uniform(marker.program, "model", model)
-
-    renderarray(marker.lines)
-end
-
 function render(marker::XYZMarker, camera::Camera, cameraview::CameraView)
     use(marker.program)
 
