@@ -16,10 +16,13 @@ module ViewportAnimated09Visualization
 
 using Alfar.Visualizer
 using Alfar.Rendering.Cameras
+using Alfar.Rendering.CameraViews
 using Alfar.Rendering.Meshs
 using Alfar.Rendering.Shaders
 using Alfar.Rendering.Textures
-using Alfar.Math
+using Alfar.Rendering: World, Object, View
+using Alfar.WIP.Math
+using Alfar.WIP.Transformations
 
 using ModernGL
 using GLFW
@@ -279,13 +282,20 @@ end
 function Visualizer.render(camera::Camera, v::ViewportAnimated09, state::ViewportAnimated09State)
     # Camera position
     # The first view sees the object from the front.
-    originalcameraposition = CameraPosition((0f0, 0f0, -3f0), (0f0, 1f0, 0f0))
-
     zangle = 1f0 * pi / 8f0
-    viewtransform = rotatez(zangle) * rotatey(state.viewangle)
-    camerapositionviewport1 = transform(originalcameraposition, viewtransform)
-    viewtransform2 = rotatez(zangle) * rotatey(state.viewangle - 5f0 * pi / 16f0)
-    camerapositionviewport2 = transform(originalcameraposition, viewtransform2)
+    zaxis = Vector3{Float32, World}(0f0, 0f0, 1f0)
+    yaxis = Vector3{Float32, World}(0f0, 1f0, 0f0)
+
+    viewport1rotation = PointRotation{Float32, World}(zangle, zaxis) ∘ PointRotation{Float32, World}(state.viewangle, yaxis)
+    initialcameraposition = Vector3{Float32, World}(0f0, 0f0, -3f0)
+    initialtarget = Vector3{Float32, World}(0f0, 0f0, 0f0)
+    initialup = Vector3{Float32, World}(0f0, 1f0, 0f0)
+    cameraviewport1 = CameraView{Float32, World}(initialcameraposition, initialtarget, initialup)
+    cameraviewport1 = rotatecamera(cameraviewport1, viewport1rotation)
+
+    yangle = state.viewangle - 5f0 * pi / 16f0
+    viewport2rotation = PointRotation{Float32, World}(zangle, zaxis) ∘ PointRotation{Float32, World}(yangle, yaxis)
+    cameraviewport2 = rotatecamera(cameraviewport1, viewport2rotation)
 
     #
     # Viewport 1 (left)
@@ -293,10 +303,9 @@ function Visualizer.render(camera::Camera, v::ViewportAnimated09, state::Viewpor
     glViewport(0, 0, camera.windowwidth, camera.windowheight)
 
     # Set uniforms
-    cameratarget = (0f0, 0f0, 0f0)
-    view = lookat(camerapositionviewport1, cameratarget)
+    view = lookat(cameraviewport1)
     projection = perspective(camera)
-    model = objectmodel()
+    model = identitytransform(View, Object)
 
     uniform(v.program, "model", model)
     uniform(v.program, "view", view)
@@ -311,10 +320,9 @@ function Visualizer.render(camera::Camera, v::ViewportAnimated09, state::Viewpor
     glViewport(camera.windowwidth, 0, camera.windowwidth, camera.windowheight)
 
     # Set uniforms
-    cameratarget = (0f0, 0f0, 0f0)
-    view = lookat(camerapositionviewport2, cameratarget)
+    view = lookat(cameraviewport2)
     projection = perspective(camera)
-    model = objectmodel()
+    model = identitytransform(View, Object)
     uniform(v.program, "model", model)
     uniform(v.program, "view", view)
     uniform(v.program, "projection", projection)
