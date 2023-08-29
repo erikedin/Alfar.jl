@@ -26,7 +26,7 @@ using Alfar.Rendering.CameraViews
 using Alfar.Rendering.Shaders
 using Alfar.Rendering.Meshs
 using Alfar.Rendering.Textures
-using Alfar.Rendering: World, Object
+using Alfar.Rendering: World, Object, View
 using Alfar.WIP.Math
 using Alfar.WIP.Transformations
 
@@ -53,7 +53,7 @@ function render(p::IntersectingPlanePoints, camera::Camera, cameraview::CameraVi
     use(p.program)
 
     projection = perspective(camera)
-    model = identitytransform()
+    model = identitytransform(View, Object)
     view = CameraViews.lookat(cameraview)
 
     color = (0f0, 1f0, 1f0, 1f0)
@@ -163,7 +163,7 @@ function render(polygon::IntersectingPolygon,
     use(polygon.program)
 
     projection = perspective(camera)
-    model = identitytransform()
+    model = identitytransform(View, Object)
     view = CameraViews.lookat(cameraview)
 
     uniform(polygon.program, "projection", projection)
@@ -207,7 +207,7 @@ function render(highlight::VertexHighlight, camera::Camera, cameraview::CameraVi
     Meshs.bufferdata(highlight.vertexdata.vbo, vertices, GL_DYNAMIC_DRAW)
 
     projection = perspective(camera)
-    model = identitytransform()
+    model = identitytransform(View, Object)
     view = CameraViews.lookat(cameraview)
 
     uniform(highlight.program, "projection", projection)
@@ -324,7 +324,7 @@ function render(box::Box, camera::Camera, cameraview::CameraView, frontvertexind
     use(box.program)
 
     projection = perspective(camera)
-    model = identitytransform()
+    model = identitytransform(View, Object)
     view = CameraViews.lookat(cameraview)
 
     uniform(box.program, "projection", projection)
