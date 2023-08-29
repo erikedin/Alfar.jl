@@ -14,9 +14,19 @@
 
 using Alfar.Visualizer
 
-context = Visualizer.start()
+vizs = if isempty(ARGS)
+    ["Slicing"]
+else
+    ARGS
+end
 
-ev = Visualizer.SelectVisualizationEvent("Slicing")
-put!(context.channel, ev)
+for vizname in vizs
+    context = Visualizer.start()
 
-#Visualizer.waituntilstop(context)
+    ev = Visualizer.SelectVisualizationEvent(vizname)
+    put!(context.channel, ev)
+
+    if !isinteractive()
+        Visualizer.waituntilstop(context)
+    end
+end
