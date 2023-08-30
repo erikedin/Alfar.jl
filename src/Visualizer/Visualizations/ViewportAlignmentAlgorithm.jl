@@ -27,8 +27,8 @@ using Alfar.Rendering.Shaders
 using Alfar.Rendering.Meshs
 using Alfar.Rendering.Textures
 using Alfar.Rendering: World, Object, View
-using Alfar.WIP.Math
-using Alfar.WIP.Transformations
+using Alfar.Math
+using Alfar.Math.Transformations
 
 struct IntersectingPlanePoints
     program::ShaderProgram
@@ -538,8 +538,8 @@ end
 module Exports
 
 using ..ViewportAlignmentAlgorithm: RotateCameraEvent, ResetCameraEvent, MoveCameraEvent
-using Alfar.WIP.Math
-using Alfar.WIP.Transformations
+using Alfar.Math
+using Alfar.Math.Transformations
 using Alfar.Rendering: World
 
 export RotateCameraEvent, ResetCameraEvent, MoveCameraEvent

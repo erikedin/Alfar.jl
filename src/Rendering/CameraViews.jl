@@ -14,9 +14,9 @@
 
 module CameraViews
 
-using Alfar.WIP.Math
+using Alfar.Math
+using Alfar.Math.Transformations
 using Alfar.Rendering.Inputs
-using Alfar.WIP.Transformations
 
 export CameraView, direction, up, right, onmousedrag, lookat, CameraViewSpace
 export cameraposition, camerarotation, rotatecamera

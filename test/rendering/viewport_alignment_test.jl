@@ -13,7 +13,7 @@
 # limitations under the License.
 
 using Test
-using Alfar.WIP.Math
+using Alfar.Math
 
 # These tests are for a test implementation of the viewport alignment intersection code.
 # The real implementation runs in a vertex shader, written in GLSL, and is hard to test.

@@ -21,7 +21,7 @@ export VertexShader, FragmentShader
 using ModernGL
 
 using Alfar
-using Alfar.WIP.Math
+using Alfar.Math
 
 #
 # Shader exceptions
@@ -151,7 +151,7 @@ function uniform(program::ShaderProgram, name::String, value::NTuple{4, GLfloat}
     glUniform4fv(location, 1, array)
 end
 
-function uniform(program::ShaderProgram, name::String, m::Alfar.WIP.Math.Matrix4{GLfloat, ToSystem, FromSystem}) where {ToSystem, FromSystem}
+function uniform(program::ShaderProgram, name::String, m::Matrix4{GLfloat, ToSystem, FromSystem}) where {ToSystem, FromSystem}
     location = uniformlocation(program, name)
     array = Ref([m.a11, m.a21, m.a31, m.a41,
                  m.a12, m.a22, m.a32, m.a42,
@@ -161,7 +161,7 @@ function uniform(program::ShaderProgram, name::String, m::Alfar.WIP.Math.Matrix4
     glUniformMatrix4fv(location, 1, GL_FALSE, array)
 end
 
-function uniform(program::ShaderProgram, name::String, v::Alfar.WIP.Math.Vector3{GLfloat, System}) where {System}
+function uniform(program::ShaderProgram, name::String, v::Vector3{GLfloat, System}) where {System}
     location = uniformlocation(program, name)
     array = Ref([v.x, v.y, v.z], 1)
     glUniform3fv(location, 1, array)

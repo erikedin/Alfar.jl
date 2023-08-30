@@ -21,8 +21,8 @@ using Alfar.Rendering.Meshs
 using Alfar.Rendering.Shaders
 using Alfar.Rendering.Textures
 using Alfar.Rendering: World, Object, View
-using Alfar.WIP.Math
-using Alfar.WIP.Transformations
+using Alfar.Math
+using Alfar.Math.Transformations
 
 using ModernGL
 using GLFW

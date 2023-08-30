@@ -24,7 +24,7 @@ using Alfar.Visualizer.Inputs
 using Alfar.Rendering: World
 using Alfar.Rendering.Cameras
 using Alfar.Rendering.CameraViews
-using Alfar.WIP.Math
+using Alfar.Math
 
 struct JustXYZMarkerState <: Visualizer.VisualizationState
     cameraview::CameraView{Float32, World}

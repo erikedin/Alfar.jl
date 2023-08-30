@@ -25,8 +25,8 @@ using Alfar.Rendering.Meshs
 using Alfar.Rendering.Inputs
 using Alfar.Rendering: World, View, Object
 using Alfar.Visualizer.Objects.Boxs
-using Alfar.WIP.Math
-using Alfar.WIP.Transformations
+using Alfar.Math
+using Alfar.Math.Transformations
 
 struct FrontBackVertex
     frontvertexindex::Int

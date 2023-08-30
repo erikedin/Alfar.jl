@@ -15,7 +15,7 @@
 
 module Rendering
 
-using Alfar.WIP.Math
+using Alfar.Math
 
 #
 # Common coordinate systems

@@ -16,7 +16,7 @@ module Cameras
 
 using ModernGL
 
-using Alfar.WIP.Math
+using Alfar.Math
 using Alfar.Rendering: World, View
 
 export Camera

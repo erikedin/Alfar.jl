@@ -12,9 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-using Alfar.WIP.Transformations
+using Alfar.Math.Transformations
+using Alfar.Math
 
-@testset "Alfar.WIP.Transformations" begin
+@testset "Alfar.Math.Transformations" begin
 
 struct TestCoordinateSystem1 end
 struct TestCoordinateSystem2 end
