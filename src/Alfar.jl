@@ -14,7 +14,6 @@
 
 module Alfar
 
-include("Math.jl")
 include("WIP/WIP.jl")
 include("Fractal.jl")
 include("Meshs.jl")
