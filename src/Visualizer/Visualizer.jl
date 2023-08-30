@@ -21,7 +21,6 @@ using Distributed
 
 using Alfar.Rendering.Shaders
 using Alfar.Rendering.Cameras
-using Alfar.Math
 
 export KeyboardInputEvent
 

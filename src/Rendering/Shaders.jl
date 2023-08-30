@@ -21,7 +21,6 @@ export VertexShader, FragmentShader
 using ModernGL
 
 using Alfar
-using Alfar.Math
 using Alfar.WIP.Math
 
 #
@@ -150,19 +149,6 @@ function uniform(program::ShaderProgram, name::String, value::NTuple{4, GLfloat}
     location = uniformlocation(program, name)
     array = Ref([value...], 1)
     glUniform4fv(location, 1, array)
-end
-
-function uniform(program::ShaderProgram, name::String, value::Alfar.Math.Matrix4{GLfloat})
-    location = uniformlocation(program, name)
-    array = Ref([value.e...], 1)
-    glUniformMatrix4fv(location, 1, GL_FALSE, array)
-end
-
-# TODO This is temporary, should be removed once we consistently use Matrix4
-function uniform(program::ShaderProgram, name::String, value::Matrix{GLfloat})
-    location = uniformlocation(program, name)
-    array = Ref([value...], 1)
-    glUniformMatrix4fv(location, 1, GL_FALSE, array)
 end
 
 function uniform(program::ShaderProgram, name::String, m::Alfar.WIP.Math.Matrix4{GLfloat, ToSystem, FromSystem}) where {ToSystem, FromSystem}
