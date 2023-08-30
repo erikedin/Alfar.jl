@@ -26,6 +26,19 @@ export KeyboardInputEvent
 
 @everywhere using Alfar.Visualizer
 
+#
+# Math helpers
+# These are temporary methods until I make a 2D vector properly.
+const Vector2{T} = NTuple{2, T}
+
+function Base.:-(a::Vector2{T}, b::Vector2{T}) :: Vector2{T} where {T}
+    (a[1] - b[1], a[2] - b[2])
+end
+
+#
+# Visualizer
+#
+
 include("visualization.jl")
 
 const PredefinedVisualizers = Dict{String, Type{<:Visualization}}([
