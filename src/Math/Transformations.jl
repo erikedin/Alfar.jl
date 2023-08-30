@@ -14,7 +14,7 @@
 
 module Transformations
 
-using Alfar.WIP.Math
+using Alfar.Math
 
 export PointRotation, transform
 
