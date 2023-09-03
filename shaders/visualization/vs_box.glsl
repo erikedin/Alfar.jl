@@ -23,14 +23,14 @@ uniform mat4 model;
 void main()
 {
     const vec4[8] vertices = vec4[8](
-        vec4( 0.5,  0.5,  0.5, 1.0),
-        vec4( 0.5,  0.5, -0.5, 1.0),
-        vec4( 0.5, -0.5,  0.5, 1.0),
-        vec4(-0.5,  0.5,  0.5, 1.0),
-        vec4(-0.5,  0.5, -0.5, 1.0),
-        vec4( 0.5, -0.5, -0.5, 1.0),
-        vec4(-0.5, -0.5,  0.5, 1.0),
-        vec4(-0.5, -0.5, -0.5, 1.0)
+        vec4( 0.5,  0.5,  0.5, 1.0), // 0: Right, Top, Front
+        vec4( 0.5,  0.5, -0.5, 1.0), // 1: Right, Top, Back
+        vec4( 0.5, -0.5,  0.5, 1.0), // 2: Right, Bottom, Front
+        vec4(-0.5,  0.5,  0.5, 1.0), // 3: Left, Top, Front
+        vec4(-0.5,  0.5, -0.5, 1.0), // 4: Left, Top, Back
+        vec4( 0.5, -0.5, -0.5, 1.0), // 5: Right, Bottom, Back
+        vec4(-0.5, -0.5,  0.5, 1.0), // 6: Left, Bottom, Front
+        vec4(-0.5, -0.5, -0.5, 1.0)  // 7: Left, Bottom, Back
     );
 
     vec4 p = vertices[vertexIndex];
