@@ -25,7 +25,7 @@ using Alfar.Rendering: World, View, Object
 using Alfar.Visualizer.Objects.Boxs
 using Alfar.Math
 
-export Slices, SliceTransfer, render
+export ViewportAlignedSlicing, SliceTransfer, render
 
 struct FrontBackVertex
     frontvertexindex::Int
@@ -195,6 +195,22 @@ function render(slices::Slices,
         distance = distanceratio * frontbackdistance
         render(slices.polygon, camera, cameraview, normalcameraview, distance, frontback.frontvertexindex, slicetransfer, n)
     end
+end
+
+# ViewportAlignedSlicing renders box and a configurable number of slices of that box.
+struct ViewportAlignedSlicing
+    box::Box
+    slices::Slices
+    slicetransfer::SliceTransfer
+
+    function ViewportAlignedSlicing(slicetransfer::SliceTransfer)
+        new(Box(), Slices(), slicetransfer)
+    end
+end
+
+function render(v::ViewportAlignedSlicing, camera::Camera, cameraview::CameraView, normalcameraview::CameraView, numberofslices::Int)
+    Boxs.render(v.box, camera, cameraview)
+    render(v.slices, camera, cameraview, normalcameraview, numberofslices, v.slicetransfer)
 end
 
 end # module ViewportAlignedSlicings

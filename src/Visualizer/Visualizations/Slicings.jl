@@ -217,9 +217,7 @@ end
 #
 
 struct Slicing <: Visualizer.Visualization
-    box::Box
-    slices::ViewportAlignedSlicings.Slices
-    slicetransfer::SliceTransfer
+    viewportalignedslicing::ViewportAlignedSlicing
 
     function Slicing()
         texturedefinition = generate3dintensitytexture(256, 256, 256)
@@ -228,7 +226,9 @@ struct Slicing <: Visualizer.Visualization
         texturetransferdefinition = generatetexturetransferfunction()
         transfertextureid = maketransfertexture(texturetransferdefinition)
         slicetransfer = SliceTransfer(textureid, transfertextureid, 40f0)
-        new(Box(), ViewportAlignedSlicings.Slices(), slicetransfer)
+
+        viewportalignedslicing = ViewportAlignedSlicing(slicetransfer)
+        new(viewportalignedslicing)
     end
 end
 
@@ -304,16 +304,17 @@ function Visualizer.render(camera::Camera, slicing::Slicing, state::SlicingState
     # Viewport 1 (left)
     glViewport(0, 0, camera.windowwidth, camera.windowheight)
 
-    Boxs.render(slicing.box, camera, state.cameraview)
-
-    render(slicing.slices, camera, state.cameraview, state.cameraview, state.numberofslices, slicing.slicetransfer)
+    #Boxs.render(slicing.box, camera, state.cameraview)
+    #render(slicing.slices, camera, state.cameraview, state.cameraview, state.numberofslices, slicing.slicetransfer)
+    render(slicing.viewportalignedslicing, camera, state.cameraview, state.cameraview, state.numberofslices)
 
     # Viewport 2 (right)
     glViewport(camera.windowwidth, 0, camera.windowwidth, camera.windowheight)
 
-    Boxs.render(slicing.box, camera, state.fixedcameraview)
+    #Boxs.render(slicing.box, camera, state.fixedcameraview)
+    #render(slicing.slices, camera, state.fixedcameraview, state.cameraview, state.numberofslices, slicing.slicetransfer)
 
-    render(slicing.slices, camera, state.fixedcameraview, state.cameraview, state.numberofslices, slicing.slicetransfer)
+    render(slicing.viewportalignedslicing, camera, state.fixedcameraview, state.cameraview, state.numberofslices)
 end
 
 end # module Slicings
