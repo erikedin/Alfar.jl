@@ -25,172 +25,10 @@ using Alfar.Rendering.Meshs
 using Alfar.Rendering.Inputs
 using Alfar.Rendering: World, View, Object
 using Alfar.Visualizer.Objects.Boxs
+using Alfar.Visualizer.Objects.ViewportAlignedSlicings
 using Alfar.Math
 using Alfar.Math.Transformations
 
-struct FrontBackVertex
-    frontvertexindex::Int
-    backvertexindex::Int
-    fronttoback::Vector3{Float32, World}
-end
-
-function frontvertex(cameraview::CameraView) :: FrontBackVertex
-    vertices = Vector3{Float32, World}[
-        Vector3{Float32, World}( 0.5f0,  0.5f0,  0.5f0), #v0
-        Vector3{Float32, World}( 0.5f0,  0.5f0, -0.5f0), #v1
-        Vector3{Float32, World}( 0.5f0, -0.5f0,  0.5f0), #v2
-        Vector3{Float32, World}(-0.5f0,  0.5f0,  0.5f0), #v3
-        Vector3{Float32, World}(-0.5f0,  0.5f0, -0.5f0), #v4
-        Vector3{Float32, World}( 0.5f0, -0.5f0, -0.5f0), #v5
-        Vector3{Float32, World}(-0.5f0, -0.5f0,  0.5f0), #v6
-        Vector3{Float32, World}(-0.5f0, -0.5f0, -0.5f0), #v7
-    ]
-
-    frontvertex = 0
-    frontdistance = Inf
-    backvertex = 0
-    backdistance = -Inf
-
-    for vertexindex = 1:8
-        v = vertices[vertexindex]
-        d = norm(cameraposition(cameraview) - v)
-
-        if d < frontdistance
-            frontdistance = d
-            frontvertex = vertexindex
-        end
-
-        # Using >= here so that if several vertices have the same
-        # distance, it uses the last one. This is what we want in the
-        # current default camera setup, but is kind of hacky.
-        if d >= backdistance
-            backdistance = d
-            backvertex = vertexindex
-        end
-    end
-
-    fronttoback = vertices[frontvertex] - vertices[backvertex]
-
-    # Convert from Julias one-indexing to OpenGLs zero-indexing
-    FrontBackVertex(
-        frontvertex - 1,
-        backvertex - 1,
-        fronttoback,
-    )
-end
-
-struct SliceTransfer
-    textureid::GLuint
-    transfertextureid::GLuint
-    referencesamplingrate::Float32
-end
-
-relativesamplingrate(t::SliceTransfer, n::Int) = t.referencesamplingrate / Float32(n)
-
-function bind(t::SliceTransfer)
-    glBindTexture(GL_TEXTURE_3D, t.textureid)
-    glBindTexture(GL_TEXTURE_1D, t.transfertextureid)
-end
-
-function uniforms(program::ShaderProgram, t::SliceTransfer, n::Int)
-    uniform(program, "relativeSamplingRate", relativesamplingrate(t, n))
-end
-
-struct IntersectingPolygon
-    program::ShaderProgram
-    polygon::VertexArray{GL_TRIANGLE_FAN}
-    color::NTuple{4, Float32}
-
-    function IntersectingPolygon(color::NTuple{4, Float32})
-        # TODO Note that the fragment shader and the `SliceTransfer` struct are connected
-        # and depend on each other. The `SliceTransfer` struct will set the correct uniforms
-        # as expected by the fragment shader and will also bind the correct textures.
-        # Therefore, maybe the shader program should come from `SliceTransfer` instead.
-        program = ShaderProgram("shaders/visualization/vs_polygon_intersecting_box.glsl",
-                                "shaders/visualization/fragment1dtransfer.glsl")
-
-        # Instead of specifying actually vertices, or even vertex indexes to be looked up,
-        # here we specify the intersection points that will make up the polygon.
-        # There will be between 3-6 intersections, with intersection p0, p2, p4 being guaranteed.
-        # This is a triangle fan, originating at intersection p0.
-        intersectionindexes = GLint[
-            0, 1, 2,
-               2, 3,
-               3, 4,
-               4, 5,
-        ]
-
-        indexattribute = VertexAttribute(0, 1, GL_INT, GL_FALSE, C_NULL)
-        indexdata = VertexData{GLint}(intersectionindexes, VertexAttribute[indexattribute])
-
-        polygon = VertexArray{GL_TRIANGLE_FAN}(indexdata)
-
-        new(program, polygon, color)
-    end
-end
-
-function render(polygon::IntersectingPolygon,
-                camera::Camera,
-                cameraview::CameraView,
-                normalcameraview::CameraView,
-                distance::Float32,
-                frontvertexindex::Int,
-                slicetransfer::SliceTransfer,
-                numberofslices::Int)
-    use(polygon.program)
-
-    projection = perspective(camera)
-    model = identitytransform(View, Object)
-    view = CameraViews.lookat(cameraview)
-
-    uniform(polygon.program, "projection", projection)
-    uniform(polygon.program, "view", view)
-    uniform(polygon.program, "model", model)
-    uniform(polygon.program, "distance", distance)
-    uniform(polygon.program, "color", polygon.color)
-    uniform(polygon.program, "frontVertexIndex", frontvertexindex)
-
-    uniforms(polygon.program, slicetransfer, numberofslices)
-
-    # We define the slice to have a positive normal on its front facing side.
-    # Since the slices should always be oriented to show their front facing sides to the camera,
-    # it implies that the normal is the direction.
-    normal = -direction(normalcameraview)
-    uniform(polygon.program, "normal", normal)
-
-    renderarray(polygon.polygon)
-end
-
-struct Slices
-    polygon::IntersectingPolygon
-
-    function Slices()
-        polygon = IntersectingPolygon((0f0, 1f0, 0f0, 1f0))
-        new(polygon)
-    end
-end
-
-function render(slices::Slices,
-                camera::Camera,
-                cameraview::CameraView,
-                normalcameraview::CameraView,
-                n::Int,
-                slicetransfer::SliceTransfer)
-    bind(slicetransfer)
-
-    frontback = frontvertex(normalcameraview)
-
-    # The slices are spread out across the distance between the front and the back vertex.
-    # As long as the box has all sides with length 1, then this distance is always
-    # sqrt(1^2 + 1^2 + 1^2) = sqrt(3)
-    frontbackdistance = Float32(sqrt(3)) * dot(direction(normalcameraview), frontback.fronttoback)
-
-    for whichslice = n:-1:1
-        distanceratio = Float32(whichslice) / Float32(n + 1) - 0.5f0
-        distance = distanceratio * frontbackdistance
-        render(slices.polygon, camera, cameraview, normalcameraview, distance, frontback.frontvertexindex, slicetransfer, n)
-    end
-end
 
 #
 # A 3D texture for demonstrating the Slicing.
@@ -380,7 +218,7 @@ end
 
 struct Slicing <: Visualizer.Visualization
     box::Box
-    slices::Slices
+    slices::ViewportAlignedSlicings.Slices
     slicetransfer::SliceTransfer
 
     function Slicing()
@@ -390,7 +228,7 @@ struct Slicing <: Visualizer.Visualization
         texturetransferdefinition = generatetexturetransferfunction()
         transfertextureid = maketransfertexture(texturetransferdefinition)
         slicetransfer = SliceTransfer(textureid, transfertextureid, 40f0)
-        new(Box(), Slices(), slicetransfer)
+        new(Box(), ViewportAlignedSlicings.Slices(), slicetransfer)
     end
 end
 

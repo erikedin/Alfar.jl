@@ -15,4 +15,5 @@
 module Objects
 include("XYZMarkerObject.jl")
 include("Boxs.jl")
+include("ViewportAlignedSlicings.jl")
 end
