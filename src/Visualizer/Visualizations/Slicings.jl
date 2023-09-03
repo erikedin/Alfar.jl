@@ -79,6 +79,22 @@ function frontvertex(cameraview::CameraView) :: FrontBackVertex
     )
 end
 
+struct SliceTransfer
+    textureid::GLuint
+    transfertextureid::GLuint
+    referencesamplingrate::Float32
+end
+
+relativesamplingrate(t::SliceTransfer, n::Int) = t.referencesamplingrate / Float32(n)
+
+function bind(t::SliceTransfer)
+    glBindTexture(GL_TEXTURE_3D, t.textureid)
+    glBindTexture(GL_TEXTURE_1D, t.transfertextureid)
+end
+
+function uniforms(program::ShaderProgram, t::SliceTransfer, n::Int)
+    uniform(program, "relativeSamplingRate", relativesamplingrate(t, n))
+end
 
 struct IntersectingPolygon
     program::ShaderProgram
@@ -86,6 +102,10 @@ struct IntersectingPolygon
     color::NTuple{4, Float32}
 
     function IntersectingPolygon(color::NTuple{4, Float32})
+        # TODO Note that the fragment shader and the `SliceTransfer` struct are connected
+        # and depend on each other. The `SliceTransfer` struct will set the correct uniforms
+        # as expected by the fragment shader and will also bind the correct textures.
+        # Therefore, maybe the shader program should come from `SliceTransfer` instead.
         program = ShaderProgram("shaders/visualization/vs_polygon_intersecting_box.glsl",
                                 "shaders/visualization/fragment1dtransfer.glsl")
 
@@ -115,7 +135,8 @@ function render(polygon::IntersectingPolygon,
                 normalcameraview::CameraView,
                 distance::Float32,
                 frontvertexindex::Int,
-                relativeSamplingRate::Float32)
+                slicetransfer::SliceTransfer,
+                numberofslices::Int)
     use(polygon.program)
 
     projection = perspective(camera)
@@ -128,7 +149,8 @@ function render(polygon::IntersectingPolygon,
     uniform(polygon.program, "distance", distance)
     uniform(polygon.program, "color", polygon.color)
     uniform(polygon.program, "frontVertexIndex", frontvertexindex)
-    uniform(polygon.program, "relativeSamplingRate", relativeSamplingRate)
+
+    uniforms(polygon.program, slicetransfer, numberofslices)
 
     # We define the slice to have a positive normal on its front facing side.
     # Since the slices should always be oriented to show their front facing sides to the camera,
@@ -153,10 +175,8 @@ function render(slices::Slices,
                 cameraview::CameraView,
                 normalcameraview::CameraView,
                 n::Int,
-                textureid::GLuint,
-                transfertextureid::GLuint)
-    glBindTexture(GL_TEXTURE_3D, textureid)
-    glBindTexture(GL_TEXTURE_1D, transfertextureid)
+                slicetransfer::SliceTransfer)
+    bind(slicetransfer)
 
     frontback = frontvertex(normalcameraview)
 
@@ -165,22 +185,10 @@ function render(slices::Slices,
     # sqrt(1^2 + 1^2 + 1^2) = sqrt(3)
     frontbackdistance = Float32(sqrt(3)) * dot(direction(normalcameraview), frontback.fronttoback)
 
-    # Relative sampling rate is used to adjust the transparency for slices. If there are many slices,
-    # then each slice should be more transparent, as it all adds up, and it needs to be constant, regardless
-    # of how many slices there are.
-    # The transparency in the texture transfer function is chosen to correspond to a "reference sampling rate".
-    # The sampling rate is the actual number of slices used in the rendering, and this varies with user input.
-    # The relative sampling rate is the reference sampling rate, divided by the current sampling rate.
-    # Here the reference sampling rate is hard coded to be 40.0, which along with the transfer function gives
-    # a reasonable effect. Note that this value is basically arbitrarily chosen, to make the white octant in
-    # the data reasonably transparent.
-    referenceSamplingRate = 40f0
-    relativeSamplingRate = referenceSamplingRate / Float32(n)
-
     for whichslice = n:-1:1
         distanceratio = Float32(whichslice) / Float32(n + 1) - 0.5f0
         distance = distanceratio * frontbackdistance
-        render(slices.polygon, camera, cameraview, normalcameraview, distance, frontback.frontvertexindex, relativeSamplingRate)
+        render(slices.polygon, camera, cameraview, normalcameraview, distance, frontback.frontvertexindex, slicetransfer, n)
     end
 end
 
@@ -373,8 +381,7 @@ end
 struct Slicing <: Visualizer.Visualization
     box::Box
     slices::Slices
-    textureid::GLuint
-    transfertextureid::GLuint
+    slicetransfer::SliceTransfer
 
     function Slicing()
         texturedefinition = generate3dintensitytexture(256, 256, 256)
@@ -382,7 +389,8 @@ struct Slicing <: Visualizer.Visualization
 
         texturetransferdefinition = generatetexturetransferfunction()
         transfertextureid = maketransfertexture(texturetransferdefinition)
-        new(Box(), Slices(), textureid, transfertextureid)
+        slicetransfer = SliceTransfer(textureid, transfertextureid, 40f0)
+        new(Box(), Slices(), slicetransfer)
     end
 end
 
@@ -460,14 +468,14 @@ function Visualizer.render(camera::Camera, slicing::Slicing, state::SlicingState
 
     Boxs.render(slicing.box, camera, state.cameraview)
 
-    render(slicing.slices, camera, state.cameraview, state.cameraview, state.numberofslices, slicing.textureid, slicing.transfertextureid)
+    render(slicing.slices, camera, state.cameraview, state.cameraview, state.numberofslices, slicing.slicetransfer)
 
     # Viewport 2 (right)
     glViewport(camera.windowwidth, 0, camera.windowwidth, camera.windowheight)
 
     Boxs.render(slicing.box, camera, state.fixedcameraview)
 
-    render(slicing.slices, camera, state.fixedcameraview, state.cameraview, state.numberofslices, slicing.textureid, slicing.transfertextureid)
+    render(slicing.slices, camera, state.fixedcameraview, state.cameraview, state.numberofslices, slicing.slicetransfer)
 end
 
 end # module Slicings
