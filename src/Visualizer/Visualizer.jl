@@ -46,6 +46,7 @@ const PredefinedVisualizers = Dict{String, Type{<:Visualization}}([
     ("ViewportAlignment", ViewportAlignmentAlgorithm.ViewportAlignment),
     ("JustXYZMarker", JustXYZMarkers.JustXYZMarker),
     ("Slicing", Slicings.Slicing),
+    ("ShowTexture", ShowTextures.ShowTexture),
 ])
 
 struct MouseInputState
