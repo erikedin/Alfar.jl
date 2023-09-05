@@ -20,13 +20,15 @@ else
     ARGS
 end
 
+context = Ref{Visualizer.VisualizerContext}()
+
 for vizname in vizs
-    context = Visualizer.start()
+    context[] = Visualizer.start()
 
     ev = Visualizer.SelectVisualizationEvent(vizname)
-    put!(context.channel, ev)
+    put!(context[].channel, ev)
 
     if !isinteractive()
-        Visualizer.waituntilstop(context)
+        Visualizer.waituntilstop(context[])
     end
 end

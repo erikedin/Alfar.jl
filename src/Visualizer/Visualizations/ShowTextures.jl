@@ -71,13 +71,14 @@ end
 
 struct ShowTextureState <: Visualizer.VisualizationState
     cameraview::CameraView{Float32, World}
+    textureid::Union{Nothing, GLuint}
 end
 
 function Visualizer.setup(::ShowTexture)
     position = Vector3{Float32, World}(0f0, 0f0, 3f0)
     up = Vector3{Float32, World}(0f0, 1f0, 0f0)
     target = Vector3{Float32, World}(0f0, 0f0, 0f0)
-    ShowTextureState(CameraView{Float32, World}(position, target, up))
+    ShowTextureState(CameraView{Float32, World}(position, target, up), nothing)
 end
 
 function Visualizer.setflags(::ShowTexture)
@@ -97,4 +98,61 @@ function Visualizer.render(camera::Camera, st::ShowTexture, state::ShowTextureSt
     rendertexture(st.texturepolygon, camera, state.cameraview)
 end
 
+struct TextureSize2D
+    width::Int
+    height::Int
 end
+
+struct TextureData2D{T} <: Visualizer.UserDefinedEvent
+    size::TextureSize2D
+    data::Vector{T}
+end
+
+function make2dtexture(texturedata::TextureData2D{Float32})
+    glActiveTexture(GL_TEXTURE0)
+
+    textureRef = Ref{GLuint}()
+    glGenTextures(1, textureRef)
+    textureid = textureRef[]
+
+    glBindTexture(GL_TEXTURE_2D, textureid)
+
+    glTexImage2D(GL_TEXTURE_2D,
+                 0,
+                 GL_RED,
+                 texturedata.size.width,
+                 texturedata.size.height,
+                 0,
+                 GL_RED,
+                 GL_FLOAT,
+                 texturedata.data)
+    glGenerateMipmap(GL_TEXTURE_2D)
+
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
+
+    textureid
+end
+
+function Visualizer.onevent(::ShowTexture, state::ShowTextureState, texturedata::TextureData2D{Float32}) :: ShowTextureState
+    textureid = make2dtexture(texturedata)
+    println("New texture id: $(textureid)")
+    ShowTextureState(state.cameraview, textureid)
+end
+
+module Exports
+
+using Alfar.Math
+using ..ShowTextures: TextureData2D, TextureSize2D
+
+export semitransparent
+
+function semitransparent() :: TextureData2D
+    size = TextureSize2D(16, 16)
+    data = repeat(Float32[0.5f0], 16*16)
+    TextureData2D(size, data)
+end
+
+end # Exports
+
+end # module ShowTextures
