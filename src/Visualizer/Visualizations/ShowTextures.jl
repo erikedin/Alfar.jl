@@ -25,9 +25,46 @@ using Alfar.Rendering.Shaders
 using Alfar.Rendering.Meshs
 using Alfar.Math
 
+struct Box2D
+    program::ShaderProgram
+    vertices::VertexArray{GL_LINE_LOOP}
+
+    function Box2D()
+        program = ShaderProgram("shaders/visualization/vs_box.glsl",
+                                "shaders/visualization/uniformcolorfragment.glsl")
+
+        indexes = GLint[
+            0, 2, 6, 3,
+        ]
+
+        attribute = VertexAttribute(0, 1, GL_INT, GL_FALSE, C_NULL)
+        data = VertexData{GLint}(indexes, VertexAttribute[attribute])
+        vertices = VertexArray{GL_LINE_LOOP}(data)
+
+        new(program, vertices)
+    end
+end
+
+function render(box::Box2D, camera::Camera, cameraview::CameraView)
+    use(box.program)
+
+    projection = perspective(camera)
+    view = CameraViews.lookat(cameraview)
+    model = identitytransform(View, Object)
+
+    uniform(box.program, "projection", projection)
+    uniform(box.program, "view", view)
+    uniform(box.program, "model", model)
+
+    uniform(box.program, "color", (1f0, 0f0, 0f0, 1f0))
+
+    renderarray(box.vertices)
+end
+
 struct TexturePolygon
     program::ShaderProgram
     vertices::VertexArray{GL_TRIANGLES}
+    box::Box2D
 
     function TexturePolygon()
         program = ShaderProgram("shaders/visualization/vs_box.glsl",
@@ -35,17 +72,25 @@ struct TexturePolygon
 
         indexes = GLint[
             0, 3, 6,
-            0, 6, 2,
+            0, 2, 6,
         ]
 
         attribute = VertexAttribute(0, 1, GL_INT, GL_FALSE, C_NULL)
         data = VertexData{GLint}(indexes, VertexAttribute[attribute])
         vertices = VertexArray{GL_TRIANGLES}(data)
-        new(program, vertices)
+
+        box = Box2D()
+        new(program, vertices, box)
     end
 end
 
-function rendertexture(t::TexturePolygon, camera::Camera, cameraview::CameraView{Float32, World})
+function rendertexture(t::TexturePolygon, camera::Camera, cameraview::CameraView{Float32, World}, ::Nothing)
+    render(t.box, camera, cameraview)
+end
+
+function rendertexture(t::TexturePolygon, camera::Camera, cameraview::CameraView{Float32, World}, textureid::GLuint)
+    render(t.box, camera, cameraview)
+
     use(t.program)
 
     projection = perspective(camera)
@@ -56,7 +101,7 @@ function rendertexture(t::TexturePolygon, camera::Camera, cameraview::CameraView
     uniform(t.program, "view", view)
     uniform(t.program, "model", model)
 
-    uniform(t.program, "color", (1f0, 0f0, 0f0, 1f0))
+    uniform(t.program, "color", (0f0, 1f0, 0f0, 0.5f0))
 
     renderarray(t.vertices)
 end
@@ -95,7 +140,7 @@ function Visualizer.render(camera::Camera, st::ShowTexture, state::ShowTextureSt
     # Viewport 1 (left)
     glViewport(0, 0, camera.windowwidth, camera.windowheight)
 
-    rendertexture(st.texturepolygon, camera, state.cameraview)
+    rendertexture(st.texturepolygon, camera, state.cameraview, state.textureid)
 end
 
 struct TextureSize2D
