@@ -25,6 +25,87 @@ using Alfar.Rendering.Shaders
 using Alfar.Rendering.Meshs
 using Alfar.Math
 
+struct TextureDefinition1D
+    width::Int
+    data
+end
+
+function fill1d!(data, from, to, color)
+    for i = from:to
+        data[1, i] = UInt8(color[1])
+        data[2, i] = UInt8(color[2])
+        data[3, i] = UInt8(color[3])
+        data[4, i] = UInt8(color[4])
+    end
+end
+
+function generatetexturetransferfunction() :: TextureDefinition1D
+    # The transfer function that calculates colors from intensities
+    # is moved here from the fragment shader. The fragment shader
+    # can now be re-used for different transfer functions by
+    # binding a different 1D texture.
+    channels = 4
+    width = 256
+
+    flattransfer = zeros(UInt8, channels*width)
+    transfer = reshape(flattransfer, (channels, width))
+
+    # Back octant 1, transparent
+    fill1d!(transfer, 1, 32,   (  0,   0,   0,   0))
+    # Back octant 2
+    fill1d!(transfer, 33, 64,  (255,   0, 255, 255))
+    # Back octant 3
+    fill1d!(transfer, 65, 96,  (  0, 255, 255, 255))
+    # Back octant 4
+    fill1d!(transfer, 97, 128, (127, 255, 212, 255))
+
+    # Front octant 1
+    fill1d!(transfer, 129, 160, (255, 255, 255,  64))
+    # Front octant 2
+    fill1d!(transfer, 161, 192, (255,   0,   0, 255))
+    # Front octant 3
+    fill1d!(transfer, 193, 224, (  0, 255,   0, 255))
+    # Front octant 4
+    fill1d!(transfer, 225, 249, (  0,   0, 255, 255))
+
+    # Yellow bar
+    fill1d!(transfer, 250, 256, (255, 255,   0, 255))
+
+    TextureDefinition1D(width, flattransfer)
+end
+
+function maketransfertexture(texturedefinition::TextureDefinition1D)
+    glActiveTexture(GL_TEXTURE1)
+
+    textureRef = Ref{GLuint}()
+    glGenTextures(1, textureRef)
+    textureid = textureRef[]
+
+    glBindTexture(GL_TEXTURE_1D, textureid)
+
+    glTexImage1D(GL_TEXTURE_1D,
+                 0,
+                 GL_RGBA,
+                 texturedefinition.width,
+                 0,
+                 GL_RGBA,
+                 GL_UNSIGNED_INT,
+                 texturedefinition.data)
+    glGenerateMipmap(GL_TEXTURE_1D)
+
+
+    bordercolor = GLfloat[1f0, 1f0, 0f0, 1f0]
+    glTexParameterfv(GL_TEXTURE_1D, GL_TEXTURE_BORDER_COLOR, Ref(bordercolor, 1))
+    glTexParameterf(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER)
+    glTexParameterf(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
+
+    textureid
+end
+
+struct transparencytransfer() :: GLuint
+    maketransfertexture(generatetexturetransferfunction())
+end
+
 struct Box2D
     program::ShaderProgram
     vertices::VertexArray{GL_LINE_LOOP}
@@ -65,10 +146,11 @@ struct TexturePolygon
     program::ShaderProgram
     vertices::VertexArray{GL_TRIANGLES}
     box::Box2D
+    transfertextureid::GLuint
 
     function TexturePolygon()
         program = ShaderProgram("shaders/visualization/vs_box_2d_texture.glsl",
-                                "shaders/visualization/uniformcolorfragment.glsl")
+                                "shaders/visualization/fragment_transfer_2d_1d.glsl")
 
         indexes = GLint[
             0, 2, 3,
@@ -80,7 +162,9 @@ struct TexturePolygon
         vertices = VertexArray{GL_TRIANGLES}(data)
 
         box = Box2D()
-        new(program, vertices, box)
+        transfertextureid = transparencytransfer()
+
+        new(program, vertices, box, transfertextureid)
     end
 end
 
@@ -92,6 +176,9 @@ function rendertexture(t::TexturePolygon, camera::Camera, cameraview::CameraView
     render(t.box, camera, cameraview)
 
     use(t.program)
+
+    glBindTexture(GL_TEXTURE_2D, textureid)
+    glBindTexture(GL_TEXTURE_2D, t.transfertextureid)
 
     projection = perspective(camera)
     view = CameraViews.lookat(cameraview)

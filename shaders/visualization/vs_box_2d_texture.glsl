@@ -20,7 +20,7 @@ uniform mat4 projection;
 uniform mat4 view;
 uniform mat4 model;
 
-out vec2 TextureCoordinate;
+out vec2 TexCoord;
 
 void main()
 {
@@ -40,5 +40,5 @@ void main()
 
     vec4 p = vertices[vertexIndex];
     gl_Position = projection * view * model * p;
-    TextureCoordinate = textureCoordinates[vertexIndex];
+    TexCoord = textureCoordinates[vertexIndex];
 }
