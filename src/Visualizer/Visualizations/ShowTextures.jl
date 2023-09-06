@@ -30,11 +30,11 @@ struct Box2D
     vertices::VertexArray{GL_LINE_LOOP}
 
     function Box2D()
-        program = ShaderProgram("shaders/visualization/vs_box.glsl",
+        program = ShaderProgram("shaders/visualization/vs_box_2d_texture.glsl",
                                 "shaders/visualization/uniformcolorfragment.glsl")
 
         indexes = GLint[
-            0, 2, 6, 3,
+            0, 2, 3, 1,
         ]
 
         attribute = VertexAttribute(0, 1, GL_INT, GL_FALSE, C_NULL)
@@ -67,12 +67,12 @@ struct TexturePolygon
     box::Box2D
 
     function TexturePolygon()
-        program = ShaderProgram("shaders/visualization/vs_box.glsl",
+        program = ShaderProgram("shaders/visualization/vs_box_2d_texture.glsl",
                                 "shaders/visualization/uniformcolorfragment.glsl")
 
         indexes = GLint[
-            0, 3, 6,
-            0, 2, 6,
+            0, 2, 3,
+            0, 1, 3,
         ]
 
         attribute = VertexAttribute(0, 1, GL_INT, GL_FALSE, C_NULL)
