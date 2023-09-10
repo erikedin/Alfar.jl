@@ -17,21 +17,44 @@ module Show3DTextures
 using GLFW
 using ModernGL
 
+using Alfar.Math
 using Alfar.Rendering.Cameras
 using Alfar.Rendering.CameraViews
 using Alfar.Rendering.Inputs
 using Alfar.Rendering.Textures
 using Alfar.Rendering: World, View, Object
 using Alfar.Visualizer
+using Alfar.Visualizer.Objects.ViewportAlignedSlicings
+using Alfar.Visualizer.Objects.Boxs
+
+#
+#
+#
+
+function maketransfertexture() :: IntensityTexture{1, UInt16}
+    dim = TextureDimension{1}(65536)
+    data = UInt16[]
+    for i = 1:dim.width
+        push!(data, UInt16(65535))
+        push!(data, UInt16(0))
+        push!(data, UInt16(0))
+        push!(data, UInt16(i-1))
+    end
+    IntensityTexture{1, UInt16}(dim, data)
+end
 
 struct Show3DTexture <: Visualizer.Visualization
+    box::Box
 
+    Show3DTexture() = new(Box())
 end
 
 struct Show3DTextureState <: Visualizer.VisualizationState
-    textureid::Union{Nothing, GLuint}
-    transfertextureid::Union{Nothing, GLuint}
+    texture::Union{Nothing, IntensityTexture{3, UInt16}}
+    transfertexture::Union{Nothing, IntensityTexture{1, UInt16}}
     cameraview::CameraView{Float32, World}
+    numberofslices::Int
+    referencesamplingrate::Float32
 end
 
 function Visualizer.setflags(::Show3DTexture)
@@ -41,8 +64,14 @@ function Visualizer.setflags(::Show3DTexture)
 end
 
 function Visualizer.setup(::Show3DTexture)
-    cameraview = CameraView{Float32, World}()
-    Show3DTextureState(nothing, nothing, cameraview)
+    position = Vector3{Float32, World}(0f0, 0f0, 3f0)
+    target = Vector3{Float32, World}(0f0, 0f0, 0f0)
+    up = Vector3{Float32, World}(0f0, 1f0, 0f0)
+    cameraview = CameraView{Float32, World}(position, target, up)
+
+    initialnumberofslices = 100
+    referencesamplingrate = 113 # TODO: Hard coded according to CThead in the Stanford Volume Data Archive
+    Show3DTextureState(nothing, nothing, cameraview, initialnumberofslices, referencesamplingrate)
 end
 
 function Visualizer.update(::Show3DTexture, state::Show3DTextureState)
@@ -50,6 +79,21 @@ function Visualizer.update(::Show3DTexture, state::Show3DTextureState)
 end
 
 function Visualizer.render(camera::Camera, st::Show3DTexture, state::Show3DTextureState)
+    glViewport(0, 0, camera.windowwidth, camera.windowheight)
+
+    Boxs.render(st.box, camera, state.cameraview)
+
+    # TODO: make methods for nothing
+    if state.texture != nothing && state.transfertexture != nothing
+        # TODO: We can't recreate ViewportAlignedSlicing in every frame.
+        slicetransfer = SliceTransfer(state.texture.id, state.transfertexture.id, state.referencesamplingrate)
+        viewportalignedslicing = ViewportAlignedSlicing(slicetransfer)
+        render(viewportalignedslicing,
+            camera,
+            state.cameraview,
+            state.cameraview,
+            state.numberofslices)
+    end
 
 end
 
@@ -58,7 +102,8 @@ function Visualizer.onkeyboardinput(::Show3DTexture, state::Show3DTextureState, 
 end
 
 function Visualizer.onmousedrag(::Show3DTexture, state::Show3DTextureState, ev::MouseDragEvent) :: Show3DTextureState
-    state
+    newcameraview = CameraViews.onmousedrag(state.cameraview, ev)
+    Show3DTextureState(state.texture, state.transfertexture, newcameraview, state.numberofslices, state.referencesamplingrate)
 end
 
 
