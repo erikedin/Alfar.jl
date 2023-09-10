@@ -19,6 +19,8 @@ using ModernGL
 export TextureDimension
 export FlatBinaryFormat, IntensityTextureInput
 export IntensityTexture
+export InternalRGBA, InputRGBA
+export Texture
 
 # There are two aspects to textures:
 # 1. Input textures, read from files or other sources.
@@ -79,77 +81,99 @@ end
 # OpenGL textures.
 #
 
+
+abstract type InternalFormat end
+struct InternalRGBA{T} <: InternalFormat end
+
+abstract type InputFormat end
+struct InputRGBA{T} <: InputFormat end
+
 function mapinternalformat(t::Type) :: GLenum
     types = Dict{Type, GLenum}(
+        UInt8 => GL_R8,
         UInt16 => GL_R16,
     )
     types[t]
 end
 
+mapinternalformat(::Type{InternalRGBA{UInt8}}) = GL_RGBA8
+
+function mapformat(::Type{InputRGBA{T}}) :: GLenum where {T}
+    GL_RGBA
+end
+
 function maptexturetype(t::Type) :: GLenum
     types = Dict{Type, GLenum}(
+        UInt8  => GL_UNSIGNED_BYTE,
         UInt16 => GL_UNSIGNED_SHORT,
     )
     types[t]
 end
 
-function texImage(texture::IntensityTexture{1, Type},
-                  internalformat::GLenum
+function maptexturetype(::Type{InputRGBA{T}}) :: GLenum where {T}
+    maptexturetype(T)
+end
+
+function texImage(dimension::TextureDimension{1},
+                  data::Vector{Type},
+                  internalformat::GLenum,
                   format::GLenum,
                   texturetype::GLenum,
-                  textureid::GLuint) :: GLuint where {Type}
+                  textureid::GLuint) where {Type}
 
     glBindTexture(GL_TEXTURE_1D, textureid)
-    glTexImage2D(GL_TEXTURE_1D,
+    glTexImage1D(GL_TEXTURE_1D,
                  0,                      # level: Mipmap level, keep at zero.
                  internalformat,
-                 width(texture.dimension),
+                 width(dimension),
                  0,                      # Required to be zero.
                  format,
                  texturetype,
-                 texture.data
+                 data
                  )
     glGenerateMipmap(GL_TEXTURE_1D)
 end
 
-function texImage(texture::IntensityTexture{2, Type},
-                  internalformat::GLenum
+function texImage(dimension::TextureDimension{2},
+                  data::Vector{Type},
+                  internalformat::GLenum,
                   format::GLenum,
                   texturetype::GLenum,
-                  textureid::GLuint) :: GLuint where {Type}
+                  textureid::GLuint) where {Type}
 
     glBindTexture(GL_TEXTURE_2D, textureid)
     glTexImage2D(GL_TEXTURE_2D,
                  0,                      # level: Mipmap level, keep at zero.
                  internalformat,
-                 width(texture.dimension),
-                 height(texture.dimension),
+                 width(dimension),
+                 height(dimension),
                  0,                      # Required to be zero.
                  format,
                  texturetype,
-                 texture.data
+                 data
                  )
     glGenerateMipmap(GL_TEXTURE_2D)
 end
 
-function texImage(texture::IntensityTexture{3, Type},
-                  internalformat::GLenum
+function texImage(dimension::TextureDimension{3},
+                  data::Vector{Type},
+                  internalformat::GLenum,
                   format::GLenum,
                   texturetype::GLenum,
-                  textureid::GLuint) :: GLuint where {Type}
+                  textureid::GLuint) where {Type}
 
     glBindTexture(GL_TEXTURE_3D, textureid)
 
     glTexImage3D(GL_TEXTURE_3D,
                  0,                      # level: Mipmap level, keep at zero.
                  internalformat,
-                 width(texture.dimension),
-                 height(texture.dimension),
-                 depth(texture.dimension),
+                 width(dimension),
+                 height(dimension),
+                 depth(dimension),
                  0,                      # Required to be zero.
                  format,
                  texturetype,
-                 texture.data
+                 data
                 )
     glGenerateMipmap(GL_TEXTURE_3D)
 end
@@ -188,7 +212,63 @@ struct IntensityTexture{D, Type}
         # Example: UInt16 -> GL_UNSIGNED_SHORT
         texturetype = maptexturetype(Type)
 
-        texImage{D, Type}(input, internalformat, format, texturetype, textureid)
+        texImage(input.dimension, input.data, internalformat, format, texturetype, textureid)
+
+        new(textureid)
+    end
+end
+
+#
+# General textures
+#
+
+# Texture is a general texture type, where each OpenGL parameter can be chosen.
+struct Texture{D, Type, TextureUnit, InternalFormat, Format}
+    id::GLuint
+
+    function Texture{D, Type, TextureUnit, InternalFormat, Format}(
+                input::IntensityTextureInput{D, Type}) where {D, Type, TextureUnit, InternalFormat, Format}
+
+        glActiveTexture(TextureUnit)
+
+        textureref = Ref{GLuint}()
+        glGenTextures(1, textureref)
+        textureid = textureref[]
+
+        texImage(input, InternalFormat, Format, TextureType, textureid)
+
+        new(textureid)
+    end
+
+    function Texture{D, Type, TextureUnit, InternalFormat, Format}(
+                dim::TextureDimension{D}, data::Vector{Type}) where {D, Type, TextureUnit, InternalFormat, Format}
+
+        glActiveTexture(TextureUnit)
+
+        textureref = Ref{GLuint}()
+        glGenTextures(1, textureref)
+        textureid = textureref[]
+
+        # The internal format specifies how OpenGL should represent the texels internally.
+        # For now, just map the input type to the closest corresponding OpenGL type.
+        # OpenGL is capable of conversion, so one could have a different internal format
+        # than the format that you pass in, but for now we just map them here.
+        # For instance, if `Type` is `UInt16`, then this corresponds to an internal format
+        # `GL_R16`, which has the same size and range.
+        internalformat = mapinternalformat(Type)
+
+        # The format specifies the format of the data you pass in, not how the texture is
+        # stored by OpenGL (see internalformat above).
+        # Since this is an intensity texture, there is a single scalar value stored, so
+        # this goes in GL_RED.
+        format = mapformat(Format)
+
+        # This is the type of the elements in the `input`. We simply map this from a Julia
+        # type to an OpenGL type.
+        # Example: UInt16 -> GL_UNSIGNED_SHORT
+        texturetype = maptexturetype(Format)
+
+        texImage(dim, data, internalformat, format, texturetype, textureid)
 
         new(textureid)
     end
