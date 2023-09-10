@@ -235,7 +235,7 @@ struct Texture{D, Type, TextureUnit, InternalFormat, Format}
         glGenTextures(1, textureref)
         textureid = textureref[]
 
-        texImage(input, InternalFormat, Format, TextureType, textureid)
+        texImage(input.dimension, input.data, InternalFormat, Format, TextureType, textureid)
 
         new(textureid)
     end
@@ -255,7 +255,7 @@ struct Texture{D, Type, TextureUnit, InternalFormat, Format}
         # than the format that you pass in, but for now we just map them here.
         # For instance, if `Type` is `UInt16`, then this corresponds to an internal format
         # `GL_R16`, which has the same size and range.
-        internalformat = mapinternalformat(Type)
+        internalformat = mapinternalformat(InternalFormat)
 
         # The format specifies the format of the data you pass in, not how the texture is
         # stored by OpenGL (see internalformat above).

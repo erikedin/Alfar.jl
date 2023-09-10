@@ -45,7 +45,7 @@ end
 
 texture = IntensityTexture{2, UInt16}(textureinput)
 
-ev = Exports.NewTexture{IntensityTexture{2, UInt16}}(texture)
+ev = Exports.NewTexture{IntensityTextureInput{2, UInt16}}(textureinput)
 put!(context[].channel, ev)
 
 if !isinteractive()

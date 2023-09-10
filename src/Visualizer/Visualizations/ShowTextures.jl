@@ -63,17 +63,14 @@ function render(box::Box2D, camera::Camera, cameraview::CameraView)
 end
 
 function maketransfertexture()
-    dim = TextureDimension{1}(8)
-    data = UInt8[
-        255, 0, 0, 16,
-        255, 0, 0, 32,
-        255, 0, 0, 48,
-        255, 0, 0, 64,
-        255, 0, 0, 82,
-        255, 0, 0, 96,
-        255, 0, 0, 112,
-        255, 0, 0, 128,
-    ]
+    dim = TextureDimension{1}(256)
+    data = UInt8[ ]
+    for i=1:256
+        push!(data, 0)
+        push!(data, 0)
+        push!(data, 255)
+        push!(data, i-1)
+    end
     Texture{1, UInt8, GL_TEXTURE1, InternalRGBA{UInt8}, InputRGBA{UInt8}}(
         dim, data
     )
@@ -125,8 +122,6 @@ function rendertexture(t::TexturePolygon, camera::Camera, cameraview::CameraView
     uniform(t.program, "view", view)
     uniform(t.program, "model", model)
 
-    uniform(t.program, "color", (0f0, 1f0, 0f0, 0.5f0))
-
     renderarray(t.vertices)
 end
 
@@ -152,6 +147,7 @@ end
 
 function Visualizer.setflags(::ShowTexture)
     glEnable(GL_DEPTH_TEST)
+    glEnable(GL_BLEND)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
     glDisable(GL_CULL_FACE)
 end
@@ -172,8 +168,8 @@ struct NewTexture{T} <: Visualizer.UserDefinedEvent
 end
 
 function Visualizer.onevent(::ShowTexture, state::ShowTextureState, newtexture::NewTexture{T}) :: ShowTextureState where {T}
-    println("Intensity texture id: $(newtexture.texture.id)")
-    ShowTextureState(state.cameraview, newtexture.texture.id)
+    texture = IntensityTexture{2, UInt16}(newtexture.texture)
+    ShowTextureState(state.cameraview, texture.id)
 end
 
 module Exports
