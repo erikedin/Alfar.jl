@@ -35,12 +35,18 @@ function maketransfertexture() :: Texture{1, UInt16, GL_TEXTURE1, InternalRGBA{U
     dim = TextureDimension{1}(65536)
     data = UInt16[]
     for i = 1:width(dim)
-        push!(data, UInt16(65535))
-        push!(data, UInt16(0))
-        push!(data, UInt16(0))
-        push!(data, UInt16(i-1))
+        append!(data, UInt16[UInt16(65535), UInt16(0), UInt16(0), UInt16(i-1)])
     end
     Texture{1, UInt16, GL_TEXTURE1, InternalRGBA{UInt16}, InputRGBA{UInt16}}(dim, data)
+end
+
+function makesmalltransfertexture() :: Texture{1, UInt8, GL_TEXTURE1, InternalRGBA{UInt8}, InputRGBA{UInt8}}
+    dim = TextureDimension{1}(256)
+    data = UInt8[]
+    for i = 1:width(dim)
+        append!(data, UInt8[UInt8(255), UInt8(0), UInt8(0), UInt8(i-1)])
+    end
+    Texture{1, UInt8, GL_TEXTURE1, InternalRGBA{UInt8}, InputRGBA{UInt8}}(dim, data)
 end
 
 struct Show3DTexture <: Visualizer.Visualization
@@ -51,7 +57,8 @@ end
 
 struct Show3DTextureState <: Visualizer.VisualizationState
     texture::Union{Nothing, IntensityTexture{3, UInt16}}
-    transfertexture::Union{Nothing, Texture{1, UInt16, GL_TEXTURE1, InternalRGBA{UInt16}, InputRGBA{UInt16}}}
+    #transfertexture::Union{Nothing, Texture{1, UInt16, GL_TEXTURE1, InternalRGBA{UInt16}, InputRGBA{UInt16}}}
+    transfertexture::Union{Nothing, Texture{1, UInt8, GL_TEXTURE1, InternalRGBA{UInt8}, InputRGBA{UInt8}}}
     cameraview::CameraView{Float32, World}
     numberofslices::Int
     referencesamplingrate::Float32
@@ -61,6 +68,7 @@ function Visualizer.setflags(::Show3DTexture)
     glEnable(GL_DEPTH_TEST)
     glEnable(GL_BLEND)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+    glDisable(GL_CULL_FACE)
 end
 
 function Visualizer.setup(::Show3DTexture)
@@ -69,9 +77,9 @@ function Visualizer.setup(::Show3DTexture)
     up = Vector3{Float32, World}(0f0, 1f0, 0f0)
     cameraview = CameraView{Float32, World}(position, target, up)
 
-    initialnumberofslices = 100
-    referencesamplingrate = 113 # TODO: Hard coded according to CThead in the Stanford Volume Data Archive
-    transfertexture = maketransfertexture()
+    initialnumberofslices = 500
+    referencesamplingrate = 5 # TODO: Hard coded according to CThead in the Stanford Volume Data Archive
+    transfertexture = makesmalltransfertexture()
     Show3DTextureState(nothing, transfertexture, cameraview, initialnumberofslices, referencesamplingrate)
 end
 
@@ -82,10 +90,8 @@ end
 function Visualizer.render(camera::Camera, st::Show3DTexture, state::Show3DTextureState)
     glViewport(0, 0, camera.windowwidth, camera.windowheight)
 
-    Boxs.render(st.box, camera, state.cameraview)
-
     # TODO: make methods for nothing
-    if state.texture != nothing && state.transfertexture != nothing
+    if state.texture !== nothing && state.transfertexture !== nothing
         # TODO: We can't recreate ViewportAlignedSlicing in every frame.
         slicetransfer = SliceTransfer(state.texture.id, state.transfertexture.id, state.referencesamplingrate)
         viewportalignedslicing = ViewportAlignedSlicing(slicetransfer)
@@ -114,6 +120,7 @@ end
 
 function Visualizer.onevent(::Show3DTexture, state::Show3DTextureState, ev::New3DTexture) :: Show3DTextureState
     println("New 3D texture: $(ev.input.dimension)")
+    println("New 3D texture: Data size = $(length(ev.input.data))")
     texture = IntensityTexture{3, UInt16}(ev.input)
     Show3DTextureState(texture, state.transfertexture, state.cameraview, state.numberofslices, state.referencesamplingrate)
 end
