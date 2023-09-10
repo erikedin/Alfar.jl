@@ -43,6 +43,11 @@ textureinput = open(slicepath, "r") do io
     IntensityTextureInput{2, UInt16}(dimension, flatformat)
 end
 
+texture = IntensityTexture{2, UInt16}(textureinput)
+
+ev = Exports.NewTexture{IntensityTexture{2, UInt16}}(texture)
+put!(context[].channel, ev)
+
 if !isinteractive()
     Visualizer.waituntilstop(context[])
 end

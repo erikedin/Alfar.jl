@@ -22,6 +22,7 @@ using Alfar.Rendering.Cameras
 using Alfar.Rendering.CameraViews
 using Alfar.Rendering: World, Object, View
 using Alfar.Rendering.Shaders
+using Alfar.Rendering.Textures
 using Alfar.Rendering.Meshs
 using Alfar.Math
 
@@ -211,60 +212,20 @@ function Visualizer.render(camera::Camera, st::ShowTexture, state::ShowTextureSt
     rendertexture(st.texturepolygon, camera, state.cameraview, state.textureid)
 end
 
-struct TextureSize2D
-    width::Int
-    height::Int
+struct NewTexture{T} <: Visualizer.UserDefinedEvent
+    texture::T
 end
 
-struct TextureData2D{T} <: Visualizer.UserDefinedEvent
-    size::TextureSize2D
-    data::Vector{T}
-end
-
-function make2dtexture(texturedata::TextureData2D{Float32})
-    glActiveTexture(GL_TEXTURE0)
-
-    textureRef = Ref{GLuint}()
-    glGenTextures(1, textureRef)
-    textureid = textureRef[]
-
-    glBindTexture(GL_TEXTURE_2D, textureid)
-
-    glTexImage2D(GL_TEXTURE_2D,
-                 0,
-                 GL_RED,
-                 texturedata.size.width,
-                 texturedata.size.height,
-                 0,
-                 GL_RED,
-                 GL_FLOAT,
-                 texturedata.data)
-    glGenerateMipmap(GL_TEXTURE_2D)
-
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
-
-    textureid
-end
-
-function Visualizer.onevent(::ShowTexture, state::ShowTextureState, texturedata::TextureData2D{Float32}) :: ShowTextureState
-    textureid = make2dtexture(texturedata)
-    println("New texture id: $(textureid)")
-    ShowTextureState(state.cameraview, textureid)
+function Visualizer.onevent(::ShowTexture, state::ShowTextureState, newtexture::NewTexture{T}) :: ShowTextureState where {T}
+    println("Intensity texture id: $(newtexture.texture.id)")
+    ShowTextureState(state.cameraview, newtexture.texture.id)
 end
 
 module Exports
 
 using Alfar.Math
-using ..ShowTextures: TextureData2D, TextureSize2D
+using ..ShowTextures: TextureData2D, TextureSize2D, NewTexture
 
-export semitransparent
-
-function semitransparent(value::Float32 = 0.5f0) :: TextureData2D
-    size = TextureSize2D(16, 16)
-    data = repeat(Float32[value], 16*16)
-    TextureData2D(size, data)
-end
 
 end # Exports
 

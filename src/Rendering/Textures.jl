@@ -121,7 +121,7 @@ struct IntensityTexture{D, Type}
         # This is the type of the elements in the `input`. We simply map this from a Julia
         # type to an OpenGL type.
         # Example: UInt16 -> GL_UNSIGNED_SHORT
-		texturetype = maptype(Type)
+		texturetype = maptexturetype(Type)
 
 		glTexImage2D(GL_TEXTURE_2D,          # Hard coded because D=2
 					 0,                      # level: Mipmap level, keep at zero.
