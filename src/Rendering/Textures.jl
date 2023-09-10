@@ -87,22 +87,62 @@ function maptexturetype(t::Type) :: GLenum
     types[t]
 end
 
+function texImage(texture::IntensityTexture{2, Type},
+                  internalformat::GLenum
+                  format::GLenum,
+                  texturetype::GLenum,
+                  textureid::GLuint) :: GLuint where {Type}
+
+    glBindTexture(GL_TEXTURE_2D, textureid)
+    glTexImage2D(GL_TEXTURE_2D,          # Hard coded because D=2
+                 0,                      # level: Mipmap level, keep at zero.
+                 internalformat,
+                 width(texture.dimension),
+                 height(texture.dimension),
+                 0,                      # Required to be zero.
+                 format,
+                 texturetype,
+                 texture.data
+                 )
+    glGenerateMipmap(GL_TEXTURE_2D)
+end
+
+function texImage(texture::IntensityTexture{3, Type},
+                  internalformat::GLenum
+                  format::GLenum,
+                  texturetype::GLenum,
+                  textureid::GLuint) :: GLuint where {Type}
+
+    glBindTexture(GL_TEXTURE_3D, textureid)
+
+    glTexImage3D(GL_TEXTURE_3D,          # Hard coded because D=3
+                 0,                      # level: Mipmap level, keep at zero.
+                 internalformat,
+                 width(texture.dimension),
+                 height(texture.dimension),
+                 depth(texture.dimension),
+                 0,                      # Required to be zero.
+                 format,
+                 texturetype,
+                 texture.data
+                )
+    glGenerateMipmap(GL_TEXTURE_3D)
+end
+
 # IntensityTexture is an OpenGL texture where each texel is an intensity.
 # An intensity is characterized by being a continuous scalar value.
 # A scalar value implies that this is a single channel texture.
 struct IntensityTexture{D, Type}
-	id::GLuint
+    id::GLuint
 
-	function IntensityTexture{2, Type}(input::IntensityTextureInput{2, Type}) where {Type}
-		# TODO: Make a parameter out of this.
+    function IntensityTexture{D, Type}(input::IntensityTextureInput{D, Type}) where {D, Type}
+        # TODO: Make a parameter out of this.
         #       Decide if this is a constructor parameter or a struct type parameter.
-		glActiveTexture(GL_TEXTURE0)
+        glActiveTexture(GL_TEXTURE0)
 
-		textureref = Ref{GLuint}()
-		glGenTextures(1, textureref)
-		textureid = textureref[]
-
-		glBindTexture(GL_TEXTURE_2D, textureid)
+        textureref = Ref{GLuint}()
+        glGenTextures(1, textureref)
+        textureid = textureref[]
 
         # The internal format specifies how OpenGL should represent the texels internally.
         # For now, just map the input type to the closest corresponding OpenGL type.
@@ -110,77 +150,23 @@ struct IntensityTexture{D, Type}
         # than the format that you pass in, but for now we just map them here.
         # For instance, if `Type` is `UInt16`, then this corresponds to an internal format
         # `GL_R16`, which has the same size and range.
-		internalformat = mapinternalformat(Type)
+        internalformat = mapinternalformat(Type)
 
         # The format specifies the format of the data you pass in, not how the texture is
         # stored by OpenGL (see internalformat above).
         # Since this is an intensity texture, there is a single scalar value stored, so
         # this goes in GL_RED.
-		format = GL_RED
+        format = GL_RED
 
         # This is the type of the elements in the `input`. We simply map this from a Julia
         # type to an OpenGL type.
         # Example: UInt16 -> GL_UNSIGNED_SHORT
-		texturetype = maptexturetype(Type)
+        texturetype = maptexturetype(Type)
 
-		glTexImage2D(GL_TEXTURE_2D,          # Hard coded because D=2
-					 0,                      # level: Mipmap level, keep at zero.
-					 internalformat,
-					 width(input.dimension),
-					 height(input.dimension),
-					 0,                      # Required to be zero.
-					 format,
-					 texturetype,
-					 input.data
-					)
+        texImage{D, Type}(input, internalformat, format, texturetype, textureid)
 
-		new(textureid)
-	end
-
-	function IntensityTexture{3, Type}(input::IntensityTextureInput{3, Type}) where {Type}
-		# TODO: Make a parameter out of this.
-        #       Decide if this is a constructor parameter or a struct type parameter.
-		glActiveTexture(GL_TEXTURE0)
-
-		textureref = Ref{GLuint}()
-		glGenTextures(1, textureref)
-		textureid = textureref[]
-
-		glBindTexture(GL_TEXTURE_3D, textureid)
-
-        # The internal format specifies how OpenGL should represent the texels internally.
-        # For now, just map the input type to the closest corresponding OpenGL type.
-        # OpenGL is capable of conversion, so one could have a different internal format
-        # than the format that you pass in, but for now we just map them here.
-        # For instance, if `Type` is `UInt16`, then this corresponds to an internal format
-        # `GL_R16`, which has the same size and range.
-		internalformat = mapinternalformat(Type)
-
-        # The format specifies the format of the data you pass in, not how the texture is
-        # stored by OpenGL (see internalformat above).
-        # Since this is an intensity texture, there is a single scalar value stored, so
-        # this goes in GL_RED.
-		format = GL_RED
-
-        # This is the type of the elements in the `input`. We simply map this from a Julia
-        # type to an OpenGL type.
-        # Example: UInt16 -> GL_UNSIGNED_SHORT
-        texturetype = maptype(Type)
-
-		glTexImage3D(GL_TEXTURE_3D,          # Hard coded because D=3
-					 0,                      # level: Mipmap level, keep at zero.
-					 internalformat,
-					 width(input.dimension),
-					 height(input.dimension),
-					 depth(input.dimension),
-					 0,                      # Required to be zero.
-					 format,
-					 texturetype,
-					 input.data
-					)
-
-		new(textureid)
-	end
+        new(textureid)
+    end
 end
 
 end
