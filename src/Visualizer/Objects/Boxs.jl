@@ -16,6 +16,7 @@ module Boxs
 
 using ModernGL
 
+using Alfar
 using Alfar.Rendering.CameraViews
 using Alfar.Rendering.Cameras
 using Alfar.Rendering.Meshs
@@ -30,8 +31,9 @@ struct Box
     color::NTuple{4, Float32}
 
     function Box(color::NTuple{4, Float32} = (0f0, 0f0, 1f0, 1f0))
-        program = ShaderProgram("shaders/visualization/vs_box.glsl",
-                                "shaders/visualization/uniformcolorfragment.glsl")
+        vshader = pkgdir(Alfar, "shaders", "visualization", "vs_box.glsl")
+        fragmentshader = pkgdir(Alfar, "shaders", "visualization", "uniformcolorfragment.glsl")
+        program = ShaderProgram(vshader, fragmentshader)
 
         boxvertices = GLint[
             0, 1,

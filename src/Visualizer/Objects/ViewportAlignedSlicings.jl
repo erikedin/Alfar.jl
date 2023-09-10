@@ -17,6 +17,7 @@ module ViewportAlignedSlicings
 using ModernGL
 using GLFW
 
+using Alfar
 using Alfar.Rendering.Cameras
 using Alfar.Rendering.CameraViews
 using Alfar.Rendering.Meshs
@@ -106,12 +107,13 @@ struct IntersectingPolygon
     color::NTuple{4, Float32}
 
     function IntersectingPolygon(color::NTuple{4, Float32})
+        vshader = pkgdir(Alfar, "shaders", "visualization", "vs_polygon_intersecting_box.glsl")
+        fragmentshader = pkgdir(Alfar, "shaders", "visualization", "fragment1dtransfer.glsl")
         # TODO Note that the fragment shader and the `SliceTransfer` struct are connected
         # and depend on each other. The `SliceTransfer` struct will set the correct uniforms
         # as expected by the fragment shader and will also bind the correct textures.
         # Therefore, maybe the shader program should come from `SliceTransfer` instead.
-        program = ShaderProgram("shaders/visualization/vs_polygon_intersecting_box.glsl",
-                                "shaders/visualization/fragment1dtransfer.glsl")
+        program = ShaderProgram(vshader, fragmentshader)
 
         # Instead of specifying actually vertices, or even vertex indexes to be looked up,
         # here we specify the intersection points that will make up the polygon.
