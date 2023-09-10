@@ -44,7 +44,7 @@ include("visualization.jl")
 export onevent
 
 const PredefinedVisualizers = Dict{String, Type{<:Visualization}}([
-    ("ViewportAnimated09", ViewportAnimated09Visualization.ViewportAnimated09),
+    #("ViewportAnimated09", ViewportAnimated09Visualization.ViewportAnimated09),
     ("ViewportAlignment", ViewportAlignmentAlgorithm.ViewportAlignment),
     ("JustXYZMarker", JustXYZMarkers.JustXYZMarker),
     ("Slicing", Slicings.Slicing),

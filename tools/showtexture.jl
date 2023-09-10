@@ -14,6 +14,7 @@
 
 using Alfar.Visualizer
 using Alfar.Visualizer.ShowTextures.Exports
+using Alfar.Rendering.Textures
 
 context = Ref{Visualizer.VisualizerContext}()
 
@@ -23,11 +24,23 @@ ev = Visualizer.SelectVisualizationEvent("ShowTexture")
 put!(context[].channel, ev)
 
 
-for value = 0.0f0:0.1f0:0.8f0
-    ev = Exports.semitransparent(value)
-    put!(context[].channel, ev)
+#for value = 0.0f0:0.1f0:0.8f0
+#    ev = Exports.semitransparent(value)
+#    put!(context[].channel, ev)
+#
+#    sleep(2)
+#end
 
-    sleep(2)
+slicepath = if length(ARGS) > 0
+    ARGS[1]
+else
+    "CThead.90"
+end
+
+textureinput = open(slicepath, "r") do io
+    flatformat = FlatBinaryFormat{UInt16}(io)
+    dimension = TextureDimension{2}(256, 256)
+    IntensityTextureInput{2, UInt16}(dimension, flatformat)
 end
 
 if !isinteractive()

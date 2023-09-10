@@ -57,6 +57,6 @@ include("Objects/Objects.jl")
 
 include("Visualizations/JustXYZMarker.jl")
 include("Visualizations/ViewportAlignmentAlgorithm.jl")
-include("Visualizations/ViewportAnimated09.jl")
+#include("Visualizations/ViewportAnimated09.jl")
 include("Visualizations/Slicings.jl")
 include("Visualizations/ShowTextures.jl")

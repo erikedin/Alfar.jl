@@ -16,6 +16,10 @@ module Textures
 
 using ModernGL
 
+export TextureDimension
+export FlatBinaryFormat, IntensityTextureInput
+export IntensityTexture
+
 # There are two aspects to textures:
 # 1. Input textures, read from files or other sources.
 # 2. OpenGL textures, which are used by OpenGL for rendering.
@@ -24,13 +28,17 @@ using ModernGL
 
 struct TextureDimension{D}
     dim::NTuple{D, Int}
+
+    function TextureDimension{2}(width::Int, height::Int)
+        new((width, height))
+    end
 end
 
 width(td::TextureDimension{D}) where {D} = td.dim[1]
 height(td::TextureDimension{D}) where {D} = td.dim[2]
 depth(td::TextureDimension{D}) where {D} = td.dim[3]
 
-numberofelements(td::TextureDimension{D}) where {D} = reduce(Base.:*, td.dim, init=1)
+numberofelements(td::TextureDimension{D}) where {D} = prod(td.dim)
 
 #
 # Input textures
@@ -43,7 +51,7 @@ struct FlatBinaryFormat{T} <: IO
     io::IO
 end
 
-read(fbf::FlatBinaryFormat{T}, ::Type{T}) where {T} = read(fbf.io, T)
+read(fbf::FlatBinaryFormat{T}, ::Type{T}) where {T} = Base.read(fbf.io, T)
 
 struct IntensityTextureInput{D, Type}
     data::Vector{Type}
@@ -52,9 +60,9 @@ struct IntensityTextureInput{D, Type}
     function IntensityTextureInput{D, Type}(dimension::TextureDimension{D}, io::IO) where {D, Type}
         n = numberofelements(dimension)
 
-        data = Vector{T}()
+        data = Vector{Type}()
         for i=1:n
-            push!(data, read(io, T))
+            push!(data, read(io, Type))
         end
 
         new(data, dimension)
@@ -157,7 +165,7 @@ struct IntensityTexture{D, Type}
         # This is the type of the elements in the `input`. We simply map this from a Julia
         # type to an OpenGL type.
         # Example: UInt16 -> GL_UNSIGNED_SHORT
-		texturetype = maptype(Type)
+        texturetype = maptype(Type)
 
 		glTexImage3D(GL_TEXTURE_3D,          # Hard coded because D=3
 					 0,                      # level: Mipmap level, keep at zero.
