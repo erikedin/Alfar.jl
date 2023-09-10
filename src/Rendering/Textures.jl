@@ -29,8 +29,14 @@ export IntensityTexture
 struct TextureDimension{D}
     dim::NTuple{D, Int}
 
+    function TextureDimension{1}(width::Int)
+        new((width,))
+    end
     function TextureDimension{2}(width::Int, height::Int)
         new((width, height))
+    end
+    function TextureDimension{2}(width::Int, height::Int, depth::Int)
+        new((width, height, depth))
     end
 end
 
@@ -87,6 +93,25 @@ function maptexturetype(t::Type) :: GLenum
     types[t]
 end
 
+function texImage(texture::IntensityTexture{1, Type},
+                  internalformat::GLenum
+                  format::GLenum,
+                  texturetype::GLenum,
+                  textureid::GLuint) :: GLuint where {Type}
+
+    glBindTexture(GL_TEXTURE_1D, textureid)
+    glTexImage2D(GL_TEXTURE_1D,
+                 0,                      # level: Mipmap level, keep at zero.
+                 internalformat,
+                 width(texture.dimension),
+                 0,                      # Required to be zero.
+                 format,
+                 texturetype,
+                 texture.data
+                 )
+    glGenerateMipmap(GL_TEXTURE_1D)
+end
+
 function texImage(texture::IntensityTexture{2, Type},
                   internalformat::GLenum
                   format::GLenum,
@@ -94,7 +119,7 @@ function texImage(texture::IntensityTexture{2, Type},
                   textureid::GLuint) :: GLuint where {Type}
 
     glBindTexture(GL_TEXTURE_2D, textureid)
-    glTexImage2D(GL_TEXTURE_2D,          # Hard coded because D=2
+    glTexImage2D(GL_TEXTURE_2D,
                  0,                      # level: Mipmap level, keep at zero.
                  internalformat,
                  width(texture.dimension),
@@ -115,7 +140,7 @@ function texImage(texture::IntensityTexture{3, Type},
 
     glBindTexture(GL_TEXTURE_3D, textureid)
 
-    glTexImage3D(GL_TEXTURE_3D,          # Hard coded because D=3
+    glTexImage3D(GL_TEXTURE_3D,
                  0,                      # level: Mipmap level, keep at zero.
                  internalformat,
                  width(texture.dimension),
