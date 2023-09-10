@@ -40,6 +40,11 @@ struct TextureDimension{D}
     function TextureDimension{2}(width::Int, height::Int, depth::Int)
         new((width, height, depth))
     end
+
+end
+
+function TextureDimension{D}(dim::TextureDimension{D-1}, next::Int)
+    TextureDimension{D}(dim.dim..., next)
 end
 
 width(td::TextureDimension{D}) where {D} = td.dim[1]
@@ -215,6 +220,46 @@ struct IntensityTexture{D, Type}
         texImage(input.dimension, input.data, internalformat, format, texturetype, textureid)
 
         new(textureid)
+    end
+
+    function IntensityTexture{D, Type}(inputs::Vector{IntensityTextureInput{D-1, Type}}) where {D, Type}
+        data = Vector{Type}()
+        for input in inputs
+            append!(data, input.data)
+        end
+
+        # TODO: Make a parameter out of this.
+        #       Decide if this is a constructor parameter or a struct type parameter.
+        glActiveTexture(GL_TEXTURE0)
+
+        textureref = Ref{GLuint}()
+        glGenTextures(1, textureref)
+        textureid = textureref[]
+
+        # The internal format specifies how OpenGL should represent the texels internally.
+        # For now, just map the input type to the closest corresponding OpenGL type.
+        # OpenGL is capable of conversion, so one could have a different internal format
+        # than the format that you pass in, but for now we just map them here.
+        # For instance, if `Type` is `UInt16`, then this corresponds to an internal format
+        # `GL_R16`, which has the same size and range.
+        internalformat = mapinternalformat(Type)
+
+        # The format specifies the format of the data you pass in, not how the texture is
+        # stored by OpenGL (see internalformat above).
+        # Since this is an intensity texture, there is a single scalar value stored, so
+        # this goes in GL_RED.
+        format = GL_RED
+
+        # This is the type of the elements in the `input`. We simply map this from a Julia
+        # type to an OpenGL type.
+        # Example: UInt16 -> GL_UNSIGNED_SHORT
+        texturetype = maptexturetype(Type)
+
+        newdimension = TextureDimension{D}(input.dimension, length(inputs))
+        texImage(newdimension, data, internalformat, format, texturetype, textureid)
+
+        new(textureid)
+
     end
 end
 
