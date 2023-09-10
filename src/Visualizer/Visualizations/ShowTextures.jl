@@ -30,13 +30,11 @@ struct TextureDefinition1D
     data
 end
 
-function fill1d!(data, from, to, color)
-    for i = from:to
-        data[1, i] = UInt8(color[1])
-        data[2, i] = UInt8(color[2])
-        data[3, i] = UInt8(color[3])
-        data[4, i] = UInt8(color[4])
-    end
+function fill1d!(data, at, color)
+    data[1, at] = UInt8(color[1])
+    data[2, at] = UInt8(color[2])
+    data[3, at] = UInt8(color[3])
+    data[4, at] = UInt8(color[4])
 end
 
 function generatetexturetransferfunction() :: TextureDefinition1D
@@ -50,26 +48,9 @@ function generatetexturetransferfunction() :: TextureDefinition1D
     flattransfer = zeros(UInt8, channels*width)
     transfer = reshape(flattransfer, (channels, width))
 
-    # Back octant 1, transparent
-    fill1d!(transfer, 1, 32,   (  0,   0,   0,   0))
-    # Back octant 2
-    fill1d!(transfer, 33, 64,  (255,   0, 255, 255))
-    # Back octant 3
-    fill1d!(transfer, 65, 96,  (  0, 255, 255, 255))
-    # Back octant 4
-    fill1d!(transfer, 97, 128, (127, 255, 212, 255))
-
-    # Front octant 1
-    fill1d!(transfer, 129, 160, (255, 255, 255,  64))
-    # Front octant 2
-    fill1d!(transfer, 161, 192, (255,   0,   0, 255))
-    # Front octant 3
-    fill1d!(transfer, 193, 224, (  0, 255,   0, 255))
-    # Front octant 4
-    fill1d!(transfer, 225, 249, (  0,   0, 255, 255))
-
-    # Yellow bar
-    fill1d!(transfer, 250, 256, (255, 255,   0, 255))
+    for v = 0:255
+        fill1d!(transfer, v+1, (255, 255, 255, v))
+    end
 
     TextureDefinition1D(width, flattransfer)
 end
@@ -102,7 +83,7 @@ function maketransfertexture(texturedefinition::TextureDefinition1D)
     textureid
 end
 
-struct transparencytransfer() :: GLuint
+function transparencytransfer() :: GLuint
     maketransfertexture(generatetexturetransferfunction())
 end
 
@@ -178,7 +159,7 @@ function rendertexture(t::TexturePolygon, camera::Camera, cameraview::CameraView
     use(t.program)
 
     glBindTexture(GL_TEXTURE_2D, textureid)
-    glBindTexture(GL_TEXTURE_2D, t.transfertextureid)
+    glBindTexture(GL_TEXTURE_1D, t.transfertextureid)
 
     projection = perspective(camera)
     view = CameraViews.lookat(cameraview)
@@ -279,9 +260,9 @@ using ..ShowTextures: TextureData2D, TextureSize2D
 
 export semitransparent
 
-function semitransparent() :: TextureData2D
+function semitransparent(value::Float32 = 0.5f0) :: TextureData2D
     size = TextureSize2D(16, 16)
-    data = repeat(Float32[0.5f0], 16*16)
+    data = repeat(Float32[value], 16*16)
     TextureData2D(size, data)
 end
 
