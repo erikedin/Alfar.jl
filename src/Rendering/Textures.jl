@@ -17,7 +17,8 @@ module Textures
 using ModernGL
 
 export TextureDimension
-export FlatBinaryFormat, IntensityTextureInput
+export TextureInputIO, readtexel, FlatBinaryFormat
+export IntensityTextureInput
 export IntensityTexture
 export InternalRGBA, InputRGBA
 export Texture
@@ -58,25 +59,27 @@ numberofelements(td::TextureDimension{D}) where {D} = prod(td.dim)
 # Input textures
 #
 
+abstract type TextureInputIO{T} end
+
 # FlatBinaryFormat reads texture files where each texel is a T, and no additonal format is used.
 # That is, a NxM texture with 16 bit values in flat binary format has N*M*2 (16 bits = 2 bytes),
 # bytes, and every 2 bytes is one texel.
-struct FlatBinaryFormat{T} <: IO
+struct FlatBinaryFormat{T} <: TextureInputIO{T}
     io::IO
 end
 
-read(fbf::FlatBinaryFormat{T}, ::Type{T}) where {T} = Base.read(fbf.io, T)
+readtexel(fbf::FlatBinaryFormat{T}, ::Type{T}) where {T} = Base.read(fbf.io, T)
 
 struct IntensityTextureInput{D, Type}
     data::Vector{Type}
     dimension::TextureDimension{D}
 
-    function IntensityTextureInput{D, Type}(dimension::TextureDimension{D}, io::IO) where {D, Type}
+    function IntensityTextureInput{D, Type}(dimension::TextureDimension{D}, io::TextureInputIO{Type}) where {D, Type}
         n = numberofelements(dimension)
 
         data = Vector{Type}()
         for i=1:n
-            push!(data, read(io, Type))
+            push!(data, readtexel(io, Type))
         end
 
         new(data, dimension)
@@ -112,6 +115,7 @@ function mapinternalformat(t::Type) :: GLenum
     types = Dict{Type, GLenum}(
         UInt8 => GL_R8,
         UInt16 => GL_R16,
+        Float16 => GL_R16F,
     )
     types[t]
 end
@@ -127,6 +131,7 @@ function maptexturetype(t::Type) :: GLenum
     types = Dict{Type, GLenum}(
         UInt8  => GL_UNSIGNED_BYTE,
         UInt16 => GL_UNSIGNED_SHORT,
+        Float16 => GL_HALF_FLOAT,
     )
     types[t]
 end

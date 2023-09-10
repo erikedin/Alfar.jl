@@ -56,7 +56,7 @@ struct Show3DTexture <: Visualizer.Visualization
 end
 
 struct Show3DTextureState <: Visualizer.VisualizationState
-    texture::Union{Nothing, IntensityTexture{3, UInt16}}
+    texture::Union{Nothing, IntensityTexture}
     #transfertexture::Union{Nothing, Texture{1, UInt16, GL_TEXTURE1, InternalRGBA{UInt16}, InputRGBA{UInt16}}}
     transfertexture::Union{Nothing, Texture{1, UInt8, GL_TEXTURE1, InternalRGBA{UInt8}, InputRGBA{UInt8}}}
     cameraview::CameraView{Float32, World}
@@ -132,8 +132,7 @@ end
 
 function Visualizer.onevent(::Show3DTexture, state::Show3DTextureState, ev::Load3DTexture) :: Show3DTextureState
     println("Load 3D texture...")
-    textureinput = ev.load(ev.args...)
-    texture = IntensityTexture{3, UInt16}(textureinput)
+    texture = ev.load(ev.args...)
     Show3DTextureState(texture, state.transfertexture, state.cameraview, state.numberofslices, state.referencesamplingrate)
 end
 
