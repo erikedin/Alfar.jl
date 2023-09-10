@@ -26,68 +26,6 @@ using Alfar.Rendering.Textures
 using Alfar.Rendering.Meshs
 using Alfar.Math
 
-struct TextureDefinition1D
-    width::Int
-    data
-end
-
-function fill1d!(data, at, color)
-    data[1, at] = UInt8(color[1])
-    data[2, at] = UInt8(color[2])
-    data[3, at] = UInt8(color[3])
-    data[4, at] = UInt8(color[4])
-end
-
-function generatetexturetransferfunction() :: TextureDefinition1D
-    # The transfer function that calculates colors from intensities
-    # is moved here from the fragment shader. The fragment shader
-    # can now be re-used for different transfer functions by
-    # binding a different 1D texture.
-    channels = 4
-    width = 256
-
-    flattransfer = zeros(UInt8, channels*width)
-    transfer = reshape(flattransfer, (channels, width))
-
-    for v = 0:255
-        fill1d!(transfer, v+1, (255, 255, 255, v))
-    end
-
-    TextureDefinition1D(width, flattransfer)
-end
-
-function maketransfertexture(texturedefinition::TextureDefinition1D)
-    glActiveTexture(GL_TEXTURE1)
-
-    textureRef = Ref{GLuint}()
-    glGenTextures(1, textureRef)
-    textureid = textureRef[]
-
-    glBindTexture(GL_TEXTURE_1D, textureid)
-
-    glTexImage1D(GL_TEXTURE_1D,
-                 0,
-                 GL_RGBA,
-                 texturedefinition.width,
-                 0,
-                 GL_RGBA,
-                 GL_UNSIGNED_INT,
-                 texturedefinition.data)
-    glGenerateMipmap(GL_TEXTURE_1D)
-
-
-    bordercolor = GLfloat[1f0, 1f0, 0f0, 1f0]
-    glTexParameterfv(GL_TEXTURE_1D, GL_TEXTURE_BORDER_COLOR, Ref(bordercolor, 1))
-    glTexParameterf(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER)
-    glTexParameterf(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
-
-    textureid
-end
-
-function transparencytransfer() :: GLuint
-    maketransfertexture(generatetexturetransferfunction())
-end
-
 struct Box2D
     program::ShaderProgram
     vertices::VertexArray{GL_LINE_LOOP}
@@ -124,6 +62,23 @@ function render(box::Box2D, camera::Camera, cameraview::CameraView)
     renderarray(box.vertices)
 end
 
+function maketransfertexture()
+    dim = TextureDimension{1}(8)
+    data = UInt8[
+        255, 0, 0, 16,
+        255, 0, 0, 32,
+        255, 0, 0, 48,
+        255, 0, 0, 64,
+        255, 0, 0, 82,
+        255, 0, 0, 96,
+        255, 0, 0, 112,
+        255, 0, 0, 128,
+    ]
+    Texture{1, UInt8, GL_TEXTURE1, InternalRGBA{UInt8}, InputRGBA{UInt8}}(
+        dim, data
+    )
+end
+
 struct TexturePolygon
     program::ShaderProgram
     vertices::VertexArray{GL_TRIANGLES}
@@ -144,9 +99,9 @@ struct TexturePolygon
         vertices = VertexArray{GL_TRIANGLES}(data)
 
         box = Box2D()
-        transfertextureid = transparencytransfer()
+        transfertexture = maketransfertexture()
 
-        new(program, vertices, box, transfertextureid)
+        new(program, vertices, box, transfertexture.id)
     end
 end
 
@@ -224,7 +179,7 @@ end
 module Exports
 
 using Alfar.Math
-using ..ShowTextures: TextureData2D, TextureSize2D, NewTexture
+using ..ShowTextures: NewTexture
 
 
 end # Exports
