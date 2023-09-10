@@ -21,6 +21,7 @@ export FlatBinaryFormat, IntensityTextureInput
 export IntensityTexture
 export InternalRGBA, InputRGBA
 export Texture
+export width, height, depth
 
 # There are two aspects to textures:
 # 1. Input textures, read from files or other sources.
@@ -37,14 +38,14 @@ struct TextureDimension{D}
     function TextureDimension{2}(width::Int, height::Int)
         new((width, height))
     end
-    function TextureDimension{2}(width::Int, height::Int, depth::Int)
+    function TextureDimension{3}(width::Int, height::Int, depth::Int)
         new((width, height, depth))
     end
 
 end
 
-function TextureDimension{D}(dim::TextureDimension{D-1}, next::Int)
-    TextureDimension{D}(dim.dim..., next)
+function TextureDimension{3}(dim::TextureDimension{2}, depth::Int)
+    TextureDimension{3}(width(dim), height(dim), depth)
 end
 
 width(td::TextureDimension{D}) where {D} = td.dim[1]
@@ -80,6 +81,20 @@ struct IntensityTextureInput{D, Type}
 
         new(data, dimension)
     end
+
+    function IntensityTextureInput{3, Type}(
+        dimension::TextureDimension{2},
+        inputs::Vector{IntensityTextureInput{2, Type}}) where {Type}
+
+        newdimension = TextureDimension{3}(dimension, length(inputs))
+
+        data = Vector{Type}()
+        for input in inputs
+            append!(data, input.data)
+        end
+
+        new(data, newdimension)
+    end
 end
 
 #
@@ -102,6 +117,7 @@ function mapinternalformat(t::Type) :: GLenum
 end
 
 mapinternalformat(::Type{InternalRGBA{UInt8}}) = GL_RGBA8
+mapinternalformat(::Type{InternalRGBA{UInt16}}) = GL_RGBA16
 
 function mapformat(::Type{InputRGBA{T}}) :: GLenum where {T}
     GL_RGBA
@@ -222,7 +238,7 @@ struct IntensityTexture{D, Type}
         new(textureid)
     end
 
-    function IntensityTexture{D, Type}(inputs::Vector{IntensityTextureInput{D-1, Type}}) where {D, Type}
+    function IntensityTexture{3, Type}(inputs::Vector{IntensityTextureInput{2, Type}}) where {Type}
         data = Vector{Type}()
         for input in inputs
             append!(data, input.data)
@@ -255,7 +271,7 @@ struct IntensityTexture{D, Type}
         # Example: UInt16 -> GL_UNSIGNED_SHORT
         texturetype = maptexturetype(Type)
 
-        newdimension = TextureDimension{D}(input.dimension, length(inputs))
+        newdimension = TextureDimension{3}(input.dimension, length(inputs))
         texImage(newdimension, data, internalformat, format, texturetype, textureid)
 
         new(textureid)

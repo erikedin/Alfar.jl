@@ -31,16 +31,16 @@ using Alfar.Visualizer.Objects.Boxs
 #
 #
 
-function maketransfertexture() :: IntensityTexture{1, UInt16}
+function maketransfertexture() :: Texture{1, UInt16, GL_TEXTURE1, InternalRGBA{UInt16}, InputRGBA{UInt16}}
     dim = TextureDimension{1}(65536)
     data = UInt16[]
-    for i = 1:dim.width
+    for i = 1:width(dim)
         push!(data, UInt16(65535))
         push!(data, UInt16(0))
         push!(data, UInt16(0))
         push!(data, UInt16(i-1))
     end
-    IntensityTexture{1, UInt16}(dim, data)
+    Texture{1, UInt16, GL_TEXTURE1, InternalRGBA{UInt16}, InputRGBA{UInt16}}(dim, data)
 end
 
 struct Show3DTexture <: Visualizer.Visualization
@@ -51,7 +51,7 @@ end
 
 struct Show3DTextureState <: Visualizer.VisualizationState
     texture::Union{Nothing, IntensityTexture{3, UInt16}}
-    transfertexture::Union{Nothing, IntensityTexture{1, UInt16}}
+    transfertexture::Union{Nothing, Texture{1, UInt16, GL_TEXTURE1, InternalRGBA{UInt16}, InputRGBA{UInt16}}}
     cameraview::CameraView{Float32, World}
     numberofslices::Int
     referencesamplingrate::Float32
@@ -71,7 +71,8 @@ function Visualizer.setup(::Show3DTexture)
 
     initialnumberofslices = 100
     referencesamplingrate = 113 # TODO: Hard coded according to CThead in the Stanford Volume Data Archive
-    Show3DTextureState(nothing, nothing, cameraview, initialnumberofslices, referencesamplingrate)
+    transfertexture = maketransfertexture()
+    Show3DTextureState(nothing, transfertexture, cameraview, initialnumberofslices, referencesamplingrate)
 end
 
 function Visualizer.update(::Show3DTexture, state::Show3DTextureState)
@@ -111,9 +112,10 @@ struct New3DTexture <: Visualizer.UserDefinedEvent
     input::IntensityTextureInput{3, UInt16}
 end
 
-function Visualizer.onevent(::Show3DTexture, state::Show3DTextureState, ev::New3DTexture)
-    texture = IntensityTexture{3, UInt16}(input)
-    Show3DTextureState(texture.id, state.transfertextureid, state.cameraview)
+function Visualizer.onevent(::Show3DTexture, state::Show3DTextureState, ev::New3DTexture) :: Show3DTextureState
+    println("New 3D texture: $(ev.input.dimension)")
+    texture = IntensityTexture{3, UInt16}(ev.input)
+    Show3DTextureState(texture, state.transfertexture, state.cameraview, state.numberofslices, state.referencesamplingrate)
 end
 
 module Exports
