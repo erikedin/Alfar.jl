@@ -118,10 +118,22 @@ struct New3DTexture <: Visualizer.UserDefinedEvent
     input::IntensityTextureInput{3, UInt16}
 end
 
+struct Load3DTexture <: Visualizer.UserDefinedEvent
+    load::Function
+    args
+end
+
 function Visualizer.onevent(::Show3DTexture, state::Show3DTextureState, ev::New3DTexture) :: Show3DTextureState
     println("New 3D texture: $(ev.input.dimension)")
     println("New 3D texture: Data size = $(length(ev.input.data))")
     texture = IntensityTexture{3, UInt16}(ev.input)
+    Show3DTextureState(texture, state.transfertexture, state.cameraview, state.numberofslices, state.referencesamplingrate)
+end
+
+function Visualizer.onevent(::Show3DTexture, state::Show3DTextureState, ev::Load3DTexture) :: Show3DTextureState
+    println("Load 3D texture...")
+    textureinput = ev.load(ev.args...)
+    texture = IntensityTexture{3, UInt16}(textureinput)
     Show3DTextureState(texture, state.transfertexture, state.cameraview, state.numberofslices, state.referencesamplingrate)
 end
 
