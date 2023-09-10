@@ -23,30 +23,20 @@ context[] = Visualizer.start()
 ev = Visualizer.SelectVisualizationEvent("ShowTexture")
 put!(context[].channel, ev)
 
+slices = ARGS[:]
 
-#for value = 0.0f0:0.1f0:0.8f0
-#    ev = Exports.semitransparent(value)
-#    put!(context[].channel, ev)
-#
-#    sleep(2)
-#end
+for slicepath in slices
+    textureinput = open(slicepath, "r") do io
+        flatformat = FlatBinaryFormat{UInt16}(io)
+        dimension = TextureDimension{2}(256, 256)
+        IntensityTextureInput{2, UInt16}(dimension, flatformat)
+    end
 
-slicepath = if length(ARGS) > 0
-    ARGS[1]
-else
-    "CThead.90"
+    ev = Exports.NewTexture{IntensityTextureInput{2, UInt16}}(textureinput)
+    put!(context[].channel, ev)
+
+    sleep(1)
 end
-
-textureinput = open(slicepath, "r") do io
-    flatformat = FlatBinaryFormat{UInt16}(io)
-    dimension = TextureDimension{2}(256, 256)
-    IntensityTextureInput{2, UInt16}(dimension, flatformat)
-end
-
-texture = IntensityTexture{2, UInt16}(textureinput)
-
-ev = Exports.NewTexture{IntensityTextureInput{2, UInt16}}(textureinput)
-put!(context[].channel, ev)
 
 if !isinteractive()
     Visualizer.waituntilstop(context[])
