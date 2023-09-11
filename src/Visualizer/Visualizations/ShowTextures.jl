@@ -17,6 +17,7 @@ module ShowTextures
 using ModernGL
 using GLFW
 
+using Alfar
 using Alfar.Visualizer
 using Alfar.Rendering.Cameras
 using Alfar.Rendering.CameraViews
@@ -31,8 +32,9 @@ struct Box2D
     vertices::VertexArray{GL_LINE_LOOP}
 
     function Box2D()
-        program = ShaderProgram("shaders/visualization/vs_box_2d_texture.glsl",
-                                "shaders/visualization/uniformcolorfragment.glsl")
+        vshader = pkgdir(Alfar, "shaders", "visualization", "vs_box_2d_texture.glsl")
+        fragmentshader = pkgdir(Alfar, "shaders", "visualization", "uniformcolorfragment.glsl")
+        program = ShaderProgram(vshader, fragmentshader)
 
         indexes = GLint[
             0, 2, 3, 1,
@@ -83,8 +85,9 @@ struct TexturePolygon
     transfertextureid::GLuint
 
     function TexturePolygon()
-        program = ShaderProgram("shaders/visualization/vs_box_2d_texture.glsl",
-                                "shaders/visualization/fragment_transfer_2d_1d.glsl")
+        vshader = pkgdir(Alfar, "shaders", "visualization", "vs_box_2d_texture.glsl")
+        fragmentshader = pkgdir(Alfar, "shaders", "visualization", "fragment_transfer_2d_1d.glsl")
+        program = ShaderProgram(vshader, fragmentshader)
 
         indexes = GLint[
             0, 2, 3,
@@ -172,10 +175,21 @@ function Visualizer.onevent(::ShowTexture, state::ShowTextureState, newtexture::
     ShowTextureState(state.cameraview, texture.id)
 end
 
+struct Load2DTexture <: Visualizer.UserDefinedEvent
+    load::Function
+    args
+end
+
+function Visualizer.onevent(::ShowTexture, state::ShowTextureState, ev::Load2DTexture) :: ShowTextureState
+    println("Load 2D texture...")
+    texture = ev.load(ev.args...)
+    ShowTextureState(state.cameraview, texture.id)
+end
+
 module Exports
 
 using Alfar.Math
-using ..ShowTextures: NewTexture
+using ..ShowTextures: NewTexture, Load2DTexture
 
 
 end # Exports
