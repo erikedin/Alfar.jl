@@ -209,6 +209,7 @@ end
 # A scalar value implies that this is a single channel texture.
 struct IntensityTexture{D, Type}
     id::GLuint
+    dimension::TextureDimension{D}
 
     function IntensityTexture{D, Type}(input::IntensityTextureInput{D, Type}) where {D, Type}
         # TODO: Make a parameter out of this.
@@ -240,7 +241,7 @@ struct IntensityTexture{D, Type}
 
         texImage(input.dimension, input.data, internalformat, format, texturetype, textureid)
 
-        new(textureid)
+        new(textureid, input.dimension)
     end
 
     function IntensityTexture{3, Type}(inputs::Vector{IntensityTextureInput{2, Type}}) where {Type}
@@ -279,7 +280,7 @@ struct IntensityTexture{D, Type}
         newdimension = TextureDimension{3}(input.dimension, length(inputs))
         texImage(newdimension, data, internalformat, format, texturetype, textureid)
 
-        new(textureid)
+        new(textureid, newdimension)
 
     end
 end
