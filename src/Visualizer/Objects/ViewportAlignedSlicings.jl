@@ -108,7 +108,8 @@ struct IntersectingPolygon
 
     function IntersectingPolygon(color::NTuple{4, Float32})
         vshader = pkgdir(Alfar, "shaders", "visualization", "vs_polygon_intersecting_box.glsl")
-        fragmentshader = pkgdir(Alfar, "shaders", "visualization", "fragment1dtransfer.glsl")
+        #fragmentshader = pkgdir(Alfar, "shaders", "visualization", "fragment1dtransfer.glsl")
+        fragmentshader = pkgdir(Alfar, "shaders", "visualization", "fragment_blinn_phong.glsl")
         # TODO Note that the fragment shader and the `SliceTransfer` struct are connected
         # and depend on each other. The `SliceTransfer` struct will set the correct uniforms
         # as expected by the fragment shader and will also bind the correct textures.

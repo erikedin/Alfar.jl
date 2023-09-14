@@ -43,8 +43,12 @@ end
 function makesmalltransfertexture() :: Texture{1, UInt8, GL_TEXTURE1, InternalRGBA{UInt8}, InputRGBA{UInt8}}
     dim = TextureDimension{1}(256)
     data = UInt8[]
-    for i = 1:width(dim)
-        append!(data, UInt8[UInt8(255), UInt8(0), UInt8(0), UInt8(i-1)])
+    zerountil = 64;
+    for i = 1:zerountil
+        append!(data, UInt8[UInt8(255), UInt8(0), UInt8(0), UInt8(0)])
+    end
+    for i = zerountil+1:width(dim)
+        append!(data, UInt8[UInt8(255), UInt8(0), UInt8(0), UInt8(255)])
     end
     Texture{1, UInt8, GL_TEXTURE1, InternalRGBA{UInt8}, InputRGBA{UInt8}}(dim, data)
 end
@@ -78,7 +82,7 @@ function Visualizer.setup(::Show3DTexture)
     cameraview = CameraView{Float32, World}(position, target, up)
 
     initialnumberofslices = 500
-    referencesamplingrate = 5 # TODO: Hard coded according to CThead in the Stanford Volume Data Archive
+    referencesamplingrate = 25 # TODO: Hard coded according to CThead in the Stanford Volume Data Archive
     transfertexture = makesmalltransfertexture()
     Show3DTextureState(nothing, transfertexture, cameraview, initialnumberofslices, referencesamplingrate)
 end
