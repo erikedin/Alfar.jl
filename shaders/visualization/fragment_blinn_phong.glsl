@@ -15,18 +15,20 @@
 #version 420 core
 
 in vec3 TexCoord;
-in vec3 position;
+in vec3 Position;
 out vec4 FragColor;
 
 layout (binding = 0) uniform sampler3D mytexture;
 layout (binding = 1) uniform sampler1D transfer;
 
 uniform float relativeSamplingRate;
+uniform vec3 view_position;
+uniform vec3 light_position;
 
 vec4 blinnphong(vec3 normal, vec3 light_direction, vec3 view_direction)
 {
     const vec3 ka = vec3(0.1, 0.1, 0.1);
-    const vec3 kd = vec3(0.6, 0.6, 0.6);
+    const vec3 kd = vec3(0.4, 0.4, 0.4);
     const vec3 ks = vec3(0.2, 0.2, 0.2);
     const float shininess = 100.0;
 
@@ -68,13 +70,10 @@ void main()
     sample1.z = texture(mytexture, TexCoord + pz).r;
     sample2.z = texture(mytexture, TexCoord + nz).r;
 
-    vec3 gradient = normalize(sample2 - sample1);
+    vec3 normal = normalize(sample2 - sample1);
 
-    vec3 light_position = vec3(0.0, 0.0, 3.0);
-    vec3 view_position = vec3(0.0, 0.0, 3.0);
-    vec3 position = gl_FragCoord.xyz;
-    vec3 light_direction = normalize(light_position - position);
-    vec3 view_direction = normalize(view_position - position);
+    vec3 light_direction = normalize(light_position - Position);
+    vec3 view_direction = normalize(view_position - Position);
 
-    FragColor = transfercolor + blinnphong(gradient, light_direction, view_direction);
+    FragColor = transfercolor + blinnphong(normal, light_direction, view_direction);
 }

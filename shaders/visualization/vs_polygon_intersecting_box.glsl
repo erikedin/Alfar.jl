@@ -25,6 +25,7 @@ uniform vec3 normal;
 uniform int frontVertexIndex;
 
 out vec3 TexCoord;
+out vec3 Position;
 
 bool intersection(in vec3 vi, in vec3 vj, out vec4 p, out float lambda)
 {
@@ -178,5 +179,6 @@ void main()
         }
     }
 
+    Position = (projection * view * model * p).xyz;
     gl_Position = projection * view * model * p;
 }

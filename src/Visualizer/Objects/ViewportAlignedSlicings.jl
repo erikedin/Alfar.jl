@@ -156,6 +156,8 @@ function render(polygon::IntersectingPolygon,
     uniform(polygon.program, "distance", distance)
     uniform(polygon.program, "color", polygon.color)
     uniform(polygon.program, "frontVertexIndex", frontvertexindex)
+    uniform(polygon.program, "light_position", cameraposition(cameraview))
+    uniform(polygon.program, "view_position", cameraposition(cameraview))
 
     uniforms(polygon.program, slicetransfer, numberofslices)
 
